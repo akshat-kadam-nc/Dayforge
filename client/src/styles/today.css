@@ -161,6 +161,31 @@
 .play-btn.running { background: var(--c-accent); border-color: var(--c-accent); color: white; animation: pulse-ring 1.5s ease-in-out infinite; }
 @keyframes pulse-ring { 0%,100% { box-shadow: 0 0 0 0 rgba(124,58,237,0.4); } 50% { box-shadow: 0 0 0 7px rgba(124,58,237,0); } }
 
+.tag-carry { background: rgba(245,158,11,0.15); color: #b45309; }
+.tag-blocked { background: rgba(239,68,68,0.13); color: #b91c1c; }
+.task-item.blocked .task-name { color: #b91c1c; }
+.task-item.blocked { background: rgba(239,68,68,0.04); }
+
+.task-menu-wrap { position: relative; flex-shrink: 0; }
+.task-kebab {
+  width: 26px; height: 30px; border: none; background: none; cursor: pointer;
+  color: var(--c-secondary); font-size: 15px; font-weight: 900; line-height: 1; border-radius: 7px;
+}
+.task-kebab:hover { background: rgba(124,58,237,0.08); }
+.task-menu {
+  position: absolute; right: 0; top: calc(100% + 4px); z-index: 20;
+  background: white; border: 1.5px solid var(--border-med); border-radius: 11px;
+  box-shadow: 0 8px 28px rgba(60,20,120,0.18); padding: 5px; min-width: 168px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.task-menu button {
+  text-align: left; background: none; border: none; cursor: pointer; font-family: inherit;
+  font-size: 12.5px; font-weight: 700; color: var(--c-primary); padding: 8px 10px; border-radius: 8px;
+}
+.task-menu button:hover { background: rgba(124,58,237,0.08); }
+.task-menu button.danger { color: #b91c1c; }
+.task-menu button.danger:hover { background: rgba(239,68,68,0.08); }
+
 /* Interruptions */
 .interrupt-block { background: rgba(244,63,94,0.06); border: 1.5px solid rgba(244,63,94,0.25); border-radius: var(--r-lg); overflow: hidden; backdrop-filter: var(--blur); box-shadow: var(--shadow); }
 .interrupt-head { display: flex; align-items: center; gap: 9px; padding: 10px 15px; border-bottom: 1.5px solid rgba(244,63,94,0.15); }

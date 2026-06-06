@@ -12,3 +12,9 @@ const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 export function normaliseDay(input: unknown): string {
   return typeof input === 'string' && DAY_RE.test(input) ? input : dayKey();
 }
+
+/** Shift a day key by n calendar days (n may be negative). Parsed as a local date. */
+export function addDays(key: string, n: number): string {
+  const [y, m, d] = key.split('-').map(Number);
+  return dayKey(new Date(y, m - 1, d + n));
+}

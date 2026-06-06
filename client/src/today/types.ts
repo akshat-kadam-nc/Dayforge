@@ -45,6 +45,8 @@ export interface Task {
   goalId?: string;
   /** Name of the report this is delegated to, if any. */
   delegateName?: string;
+  /** How many times this task has rolled forward unfinished. */
+  deferredCount: number;
 }
 
 export interface Interruption {

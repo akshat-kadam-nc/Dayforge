@@ -13,7 +13,10 @@ Personal time-management web app being built with Claude Code. This file lets a 
   - `server/` — Express + TS, JWT auth, Mongoose. userId-scoped models: User, LifeArea, FunctionTrack, Goal, Task, Interruption, TimeLog. CRUD routes + `GET /api/today?day=` aggregation + `PATCH /api/me/settings`. `util/day.ts` = local YYYY-MM-DD day keys.
   - `client/` — React PWA. The cockpit (`pages/TodayPage`, `components/today/*`) is driven by `today/useToday.tsx` over a repo seam (`today/repo.ts`): `localRepo` = demo mode (in-memory seed, offline), `apiRepo` = persisted. Live timer, ⚡ interrupt logging, budget stats + 24h ring, venture blocks, empty-state + venture/goal creation.
   - **Demo mode**: login screen has "Explore in demo mode" (guest user, no backend). Real accounts **start empty**.
-- **Next: Phase 3** — function-track management UI, deferred-task rollover, recurring tasks, Google Calendar → fixed blocks, weekly/monthly reconciliation, wallpaper picker, streak logic, real week/month budget scopes.
+- **Phase 3 (part 1) done** — function-track UI + deferred-task rollover.
+  - Tracks: full CRUD wired through the repo seam (`createTrack`/`updateTrack`/`deleteTrack`) + `useToday` actions. Settings page has an expandable per-venture **TrackManager** (add / rename / recolor / delete). FAB "New task" modal now has a track picker filtered by the chosen venture.
+  - Rollover: `GET /today` auto-pulls unfinished tasks (`not_started|in_progress|blocked|deferred`) from past days forward to the real current day, `deferredCount++`, `in_progress→not_started` (done stays on its day for history). `POST /tasks/:id/defer` pushes one task to tomorrow. TaskRow shows a `⤵ N×` carry badge, a blocked state, and a `⋯` menu (Defer / Mark blocked / Delete).
+- **Next: Phase 3 (part 2 / unscoped)** — recurring tasks + fixed blocks. Then **Phase 4** — Google Calendar → fixed blocks, weekly/monthly reconciliation prompts, wallpaper picker, streak logic, real week/month budget scopes.
 
 ## Run it
 ```

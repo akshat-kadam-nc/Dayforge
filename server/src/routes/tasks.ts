@@ -4,7 +4,7 @@ import { TaskModel, TASK_STATUSES, TASK_SOURCES } from '../models/Task.js';
 import { asyncHandler, HttpError } from '../middleware/error.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requireDb } from '../middleware/requireDb.js';
-import { normaliseDay } from '../util/day.js';
+import { addDays, normaliseDay } from '../util/day.js';
 
 export const tasksRouter = Router();
 
@@ -58,6 +58,21 @@ tasksRouter.patch(
       { new: true },
     );
     if (!task) throw new HttpError(404, 'Task not found');
+    res.json({ task });
+  }),
+);
+
+// Push a single task to the next day and flag it as deferred, bumping its
+// carry count. (Skipping a day entirely is handled by rollover in /today.)
+tasksRouter.post(
+  '/:id/defer',
+  asyncHandler(async (req, res) => {
+    const task = await TaskModel.findOne({ _id: req.params.id, userId: req.userId });
+    if (!task) throw new HttpError(404, 'Task not found');
+    task.day = addDays(task.day, 1);
+    task.status = 'deferred';
+    task.deferredCount = (task.deferredCount ?? 0) + 1;
+    await task.save();
     res.json({ task });
   }),
 );

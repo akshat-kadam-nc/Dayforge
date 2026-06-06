@@ -8,10 +8,12 @@ import {
 } from 'react';
 import type {
   BudgetScope,
+  FunctionTrack,
   Goal,
   Interruption,
   LifeArea,
   Task,
+  TaskStatus,
   TodayState,
 } from './types';
 import { useAuth } from '../auth/AuthContext';
@@ -23,6 +25,7 @@ import {
   type CreateGoalInput,
   type CreateInterruptionInput,
   type CreateTaskInput,
+  type CreateTrackInput,
   type TodaySlices,
 } from './repo';
 
@@ -51,7 +54,12 @@ type Action =
   | { type: 'TOGGLE_AREA'; areaId: string }
   | { type: 'SET_SCOPE'; scope: BudgetScope }
   | { type: 'ADD_TASK'; task: Task }
+  | { type: 'REMOVE_TASK'; taskId: string }
+  | { type: 'SET_STATUS'; taskId: string; status: TaskStatus }
   | { type: 'ADD_AREA'; area: LifeArea }
+  | { type: 'ADD_TRACK'; track: FunctionTrack }
+  | { type: 'UPDATE_TRACK'; id: string; patch: Partial<Pick<FunctionTrack, 'name' | 'color'>> }
+  | { type: 'REMOVE_TRACK'; id: string }
   | { type: 'ADD_GOAL'; goal: Goal }
   | { type: 'ADD_INTERRUPTION'; interruption: Interruption };
 
@@ -119,8 +127,39 @@ function reducer(state: TodayState, action: Action): TodayState {
       return { ...state, budgetScope: action.scope };
     case 'ADD_TASK':
       return { ...state, tasks: [...state.tasks, action.task] };
+    case 'REMOVE_TASK': {
+      // Committing first keeps any logged time if the timer was on this task.
+      const base = state.timer.activeTaskId === action.taskId ? commitActiveRun(state) : state;
+      return { ...base, tasks: base.tasks.filter((t) => t.id !== action.taskId) };
+    }
+    case 'SET_STATUS': {
+      const base =
+        action.status !== 'in_progress' && state.timer.activeTaskId === action.taskId
+          ? commitActiveRun(state)
+          : state;
+      return {
+        ...base,
+        tasks: base.tasks.map((t) =>
+          t.id === action.taskId ? { ...t, status: action.status } : t,
+        ),
+      };
+    }
     case 'ADD_AREA':
       return { ...state, areas: [...state.areas, action.area] };
+    case 'ADD_TRACK':
+      return { ...state, tracks: [...state.tracks, action.track] };
+    case 'UPDATE_TRACK':
+      return {
+        ...state,
+        tracks: state.tracks.map((t) => (t.id === action.id ? { ...t, ...action.patch } : t)),
+      };
+    case 'REMOVE_TRACK':
+      return {
+        ...state,
+        tracks: state.tracks.filter((t) => t.id !== action.id),
+        // Drop the tag from any task that referenced the deleted track.
+        tasks: state.tasks.map((t) => (t.trackId === action.id ? { ...t, trackId: undefined } : t)),
+      };
     case 'ADD_GOAL':
       return { ...state, goals: [...state.goals, action.goal] };
     case 'ADD_INTERRUPTION': {
@@ -140,7 +179,13 @@ export interface TodayActions {
   toggleArea: (areaId: string) => void;
   setScope: (scope: BudgetScope) => void;
   addTask: (input: CreateTaskInput) => Promise<void>;
+  deferTask: (taskId: string) => void;
+  deleteTask: (taskId: string) => void;
+  setStatus: (taskId: string, status: TaskStatus) => void;
   addArea: (input: CreateAreaInput) => Promise<void>;
+  addTrack: (input: CreateTrackInput) => Promise<void>;
+  updateTrack: (id: string, patch: Partial<Pick<FunctionTrack, 'name' | 'color'>>) => Promise<void>;
+  deleteTrack: (id: string) => void;
   addGoal: (input: CreateGoalInput) => Promise<void>;
   logInterruption: (input: CreateInterruptionInput) => Promise<void>;
 }
@@ -216,9 +261,37 @@ export function TodayProvider({ children }: { children: ReactNode }) {
       const task = await repo.createTask(input);
       dispatch({ type: 'ADD_TASK', task });
     },
+    deferTask: (taskId) => {
+      // Pushing to tomorrow removes it from today; commit any running time first.
+      if (state.timer.activeTaskId === taskId) persistRun();
+      dispatch({ type: 'REMOVE_TASK', taskId });
+      void repo.deferTask(taskId);
+    },
+    deleteTask: (taskId) => {
+      if (state.timer.activeTaskId === taskId) persistRun();
+      dispatch({ type: 'REMOVE_TASK', taskId });
+      void repo.deleteTask(taskId);
+    },
+    setStatus: (taskId, status) => {
+      if (status !== 'in_progress' && state.timer.activeTaskId === taskId) persistRun();
+      dispatch({ type: 'SET_STATUS', taskId, status });
+      void repo.updateTask(taskId, { status });
+    },
     addArea: async (input) => {
       const area = await repo.createArea(input);
       dispatch({ type: 'ADD_AREA', area });
+    },
+    addTrack: async (input) => {
+      const track = await repo.createTrack(input);
+      dispatch({ type: 'ADD_TRACK', track });
+    },
+    updateTrack: async (id, patch) => {
+      await repo.updateTrack(id, patch);
+      dispatch({ type: 'UPDATE_TRACK', id, patch });
+    },
+    deleteTrack: (id) => {
+      dispatch({ type: 'REMOVE_TRACK', id });
+      void repo.deleteTrack(id);
     },
     addGoal: async (input) => {
       const goal = await repo.createGoal(input);

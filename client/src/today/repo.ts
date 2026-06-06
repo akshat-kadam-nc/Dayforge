@@ -38,6 +38,7 @@ export interface CreateTaskInput {
   scheduledAt?: string;
 }
 export interface CreateAreaInput { name: string; icon: string; color: string }
+export interface CreateTrackInput { areaId: string; name: string; color: string }
 export interface CreateGoalInput { areaId: string; text: string; icon: string; pct: number; color: string }
 export interface CreateInterruptionInput { type: InterruptionType; title: string; note?: string; minutes: number }
 export interface CreateTimeLogInput { taskId: string; areaId: string; minutes: number }
@@ -50,9 +51,13 @@ export interface CreateTimeLogInput { taskId: string; areaId: string; minutes: n
 export interface TodayRepo {
   load(day: string): Promise<TodaySlices>;
   createArea(input: CreateAreaInput): Promise<LifeArea>;
+  createTrack(input: CreateTrackInput): Promise<FunctionTrack>;
+  updateTrack(id: string, patch: Partial<Pick<FunctionTrack, 'name' | 'color'>>): Promise<FunctionTrack>;
+  deleteTrack(id: string): Promise<void>;
   createGoal(input: CreateGoalInput): Promise<Goal>;
   createTask(input: CreateTaskInput): Promise<Task>;
   updateTask(id: string, patch: Partial<Pick<Task, 'status'>>): Promise<void>;
+  deferTask(id: string): Promise<void>;
   deleteTask(id: string): Promise<void>;
   createInterruption(input: CreateInterruptionInput): Promise<Interruption>;
   createTimeLog(input: CreateTimeLogInput): Promise<void>;
@@ -77,6 +82,13 @@ export const localRepo: TodayRepo = {
   async createArea(input) {
     return { id: `a${Date.now()}`, ...input };
   },
+  async createTrack(input) {
+    return { id: `tr${Date.now()}`, ...input };
+  },
+  async updateTrack(id, patch) {
+    return { id, areaId: '', name: '', color: '', ...patch };
+  },
+  async deleteTrack() {},
   async createGoal(input) {
     return { id: `g${Date.now()}`, ...input };
   },
@@ -92,9 +104,11 @@ export const localRepo: TodayRepo = {
       estimateMinutes: input.estimateMinutes,
       status: 'not_started',
       source: 'manual',
+      deferredCount: 0,
     };
   },
   async updateTask() {},
+  async deferTask() {},
   async deleteTask() {},
   async createInterruption(input) {
     return { id: `i${Date.now()}`, ...input };
@@ -127,6 +141,7 @@ function mapTask(d: ServerDoc & Record<string, unknown>): Task {
     estimateMinutes: (d.estimateMinutes as number) ?? 0,
     scheduledAt: d.scheduledAt as string | undefined,
     delegateName: d.delegateName as string | undefined,
+    deferredCount: (d.deferredCount as number) ?? 0,
   };
 }
 function mapInterruption(d: ServerDoc & Record<string, unknown>): Interruption {
@@ -171,6 +186,23 @@ export const apiRepo: TodayRepo = {
     });
     return mapArea(r.area);
   },
+  async createTrack(input) {
+    const r = await api<{ track: ServerDoc & Omit<FunctionTrack, 'id'> }>('/tracks', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
+    return mapTrack(r.track);
+  },
+  async updateTrack(id, patch) {
+    const r = await api<{ track: ServerDoc & Omit<FunctionTrack, 'id'> }>(`/tracks/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(patch),
+    });
+    return mapTrack(r.track);
+  },
+  async deleteTrack(id) {
+    await api(`/tracks/${id}`, { method: 'DELETE' });
+  },
   async createGoal(input) {
     const r = await api<{ goal: ServerDoc & Omit<Goal, 'id'> }>('/goals', {
       method: 'POST',
@@ -187,6 +219,9 @@ export const apiRepo: TodayRepo = {
   },
   async updateTask(id, patch) {
     await api(`/tasks/${id}`, { method: 'PATCH', body: JSON.stringify(patch) });
+  },
+  async deferTask(id) {
+    await api(`/tasks/${id}/defer`, { method: 'POST' });
   },
   async deleteTask(id) {
     await api(`/tasks/${id}`, { method: 'DELETE' });

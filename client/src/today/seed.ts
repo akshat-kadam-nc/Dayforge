@@ -52,6 +52,7 @@ export function makeInitialState(): TodayState {
         estimateMinutes: 90,
         source: 'manual',
         goalId: 'g-batch4',
+        deferredCount: 0,
       },
       {
         id: 't2',
@@ -61,6 +62,7 @@ export function makeInitialState(): TodayState {
         status: 'not_started',
         estimateMinutes: 45,
         source: 'manual',
+        deferredCount: 2,
       },
       {
         id: 't3',
@@ -71,6 +73,7 @@ export function makeInitialState(): TodayState {
         estimateMinutes: 60,
         source: 'calendar',
         scheduledAt: '11:00',
+        deferredCount: 0,
       },
       {
         id: 't4',
@@ -81,6 +84,7 @@ export function makeInitialState(): TodayState {
         estimateMinutes: 60,
         source: 'manual',
         goalId: 'g-zumalm',
+        deferredCount: 0,
       },
       {
         id: 't5',
@@ -91,6 +95,7 @@ export function makeInitialState(): TodayState {
         estimateMinutes: 30,
         source: 'manual',
         delegateName: 'Rahul',
+        deferredCount: 0,
       },
       {
         id: 't6',
@@ -101,6 +106,7 @@ export function makeInitialState(): TodayState {
         estimateMinutes: 90,
         source: 'calendar',
         scheduledAt: '16:00',
+        deferredCount: 0,
       },
     ],
     interruptions: [

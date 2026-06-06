@@ -8,12 +8,20 @@ export function Fab() {
   const [needVenture, setNeedVenture] = useState(false);
   const [title, setTitle] = useState('');
   const [areaId, setAreaId] = useState(state.areas[0]?.id ?? '');
+  const [trackId, setTrackId] = useState('');
   const [minutes, setMinutes] = useState(30);
+
+  const areaTracks = state.tracks.filter((t) => t.areaId === areaId);
 
   // Keep the selected venture valid as areas load/change.
   useEffect(() => {
     if (!state.areas.some((a) => a.id === areaId)) setAreaId(state.areas[0]?.id ?? '');
   }, [state.areas, areaId]);
+
+  // A track belongs to one venture; clear it whenever it no longer fits the venture.
+  useEffect(() => {
+    if (trackId && !areaTracks.some((t) => t.id === trackId)) setTrackId('');
+  }, [areaTracks, trackId]);
 
   function openAdd() {
     // A task needs a venture; route to venture creation first if there are none.
@@ -23,8 +31,14 @@ export function Fab() {
 
   function submit() {
     if (!title.trim() || !areaId) return;
-    void actions.addTask({ title: title.trim(), areaId, estimateMinutes: minutes });
+    void actions.addTask({
+      title: title.trim(),
+      areaId,
+      estimateMinutes: minutes,
+      trackId: trackId || undefined,
+    });
     setTitle('');
+    setTrackId('');
     setMinutes(30);
     setOpen(false);
   }
@@ -59,6 +73,17 @@ export function Fab() {
                 ))}
               </select>
             </label>
+            {areaTracks.length > 0 && (
+              <label>
+                Track
+                <select value={trackId} onChange={(e) => setTrackId(e.target.value)}>
+                  <option value="">No track</option>
+                  {areaTracks.map((t) => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              </label>
+            )}
             <label>
               Estimate (minutes)
               <input
