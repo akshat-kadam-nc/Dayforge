@@ -8,18 +8,26 @@ Personal time-management web app being built with Claude Code. This file lets a 
 3. The durable context (user profile, decisions, full feature set) is in `project-context/` (copies of the memory files from the office machine).
 
 ## Where things stand
-- Planning + UX design phase complete.
-- **MERN + TypeScript scaffold built (2026-06-06).** Monorepo: `server/` (Express, JWT auth, Mongoose, userId-scoped `Task` model + CRUD) and `client/` (React PWA, Vite, react-router, 5-tab bottom nav, login). Both build clean. See `README.md` to run.
-- Next step: build features against the locked spec, starting with the Today cockpit (daily budget, per-task timer, interruption logging).
-- App working name: **AXIOM** (placeholder, kept for now).
+- Planning + UX design complete. App working name: **AXIOM** (placeholder).
+- **Scaffold + Phase 1 + Phase 2 done** (pushed to `main`). The Today cockpit is fully built and **persists to MongoDB Atlas**.
+  - `server/` — Express + TS, JWT auth, Mongoose. userId-scoped models: User, LifeArea, FunctionTrack, Goal, Task, Interruption, TimeLog. CRUD routes + `GET /api/today?day=` aggregation + `PATCH /api/me/settings`. `util/day.ts` = local YYYY-MM-DD day keys.
+  - `client/` — React PWA. The cockpit (`pages/TodayPage`, `components/today/*`) is driven by `today/useToday.tsx` over a repo seam (`today/repo.ts`): `localRepo` = demo mode (in-memory seed, offline), `apiRepo` = persisted. Live timer, ⚡ interrupt logging, budget stats + 24h ring, venture blocks, empty-state + venture/goal creation.
+  - **Demo mode**: login screen has "Explore in demo mode" (guest user, no backend). Real accounts **start empty**.
+- **Next: Phase 3** — function-track management UI, deferred-task rollover, recurring tasks, Google Calendar → fixed blocks, weekly/monthly reconciliation, wallpaper picker, streak logic, real week/month budget scopes.
 
 ## Run it
 ```
 npm install
-cp .env.example server/.env   # add MONGODB_URI (Atlas) + JWT_SECRET
+# server/.env needs MONGODB_URI (Atlas cluster AXIOM-Core, db `axiom`) + JWT_SECRET.
+# This file is gitignored, so recreate it on each machine. Ask Akshu for the URI.
 npm run dev                   # API :4000, client :5173
 ```
-The API boots without a DB but auth/task routes return 503 until MONGODB_URI is set.
+The API boots without a DB but auth/task/today routes return 503 until MONGODB_URI is set.
+
+## Known follow-ups
+- Rotate the Atlas DB password (was shared in plaintext during setup).
+- Two throwaway test accounts exist in the DB (`akshu@axiom.local`, `akshu+phase2@axiom.app`) — safe to delete.
+- PWA manifest references `pwa-192.png` / `pwa-512.png` that don't exist yet (placeholder icons needed).
 
 ## Mockups (open via local static server)
 In `mockups/`:
