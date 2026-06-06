@@ -1,16 +1,29 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useToday } from '../../today/useToday';
+import { AddVentureModal } from './AddVentureModal';
 
 export function Fab() {
   const { state, actions } = useToday();
   const [open, setOpen] = useState(false);
+  const [needVenture, setNeedVenture] = useState(false);
   const [title, setTitle] = useState('');
   const [areaId, setAreaId] = useState(state.areas[0]?.id ?? '');
   const [minutes, setMinutes] = useState(30);
 
+  // Keep the selected venture valid as areas load/change.
+  useEffect(() => {
+    if (!state.areas.some((a) => a.id === areaId)) setAreaId(state.areas[0]?.id ?? '');
+  }, [state.areas, areaId]);
+
+  function openAdd() {
+    // A task needs a venture; route to venture creation first if there are none.
+    if (state.areas.length === 0) setNeedVenture(true);
+    else setOpen(true);
+  }
+
   function submit() {
-    if (!title.trim()) return;
-    actions.addTask({ title: title.trim(), areaId, estimateMinutes: minutes });
+    if (!title.trim() || !areaId) return;
+    void actions.addTask({ title: title.trim(), areaId, estimateMinutes: minutes });
     setTitle('');
     setMinutes(30);
     setOpen(false);
@@ -18,9 +31,11 @@ export function Fab() {
 
   return (
     <>
-      <button type="button" className="fab" aria-label="Add task" onClick={() => setOpen(true)}>
+      <button type="button" className="fab" aria-label="Add task" onClick={openAdd}>
         +
       </button>
+
+      {needVenture && <AddVentureModal onClose={() => setNeedVenture(false)} />}
 
       {open && (
         <div className="modal-overlay" onClick={() => setOpen(false)}>

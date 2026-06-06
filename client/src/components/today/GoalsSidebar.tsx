@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { useToday } from '../../today/useToday';
 import { allocatedForArea, interruptedMinutes } from '../../today/budget';
 import { formatMinutes } from '../../today/format';
+import { AddGoalModal } from './AddGoalModal';
 
 /**
  * Right rail: this week's goals + an area-time split. The split is derived from
@@ -9,6 +11,7 @@ import { formatMinutes } from '../../today/format';
  */
 export function GoalsSidebar() {
   const { state } = useToday();
+  const [addingGoal, setAddingGoal] = useState(false);
 
   const splits = [
     ...state.areas.map((a) => ({
@@ -32,8 +35,15 @@ export function GoalsSidebar() {
   return (
     <aside className="sidebar">
       <div>
-        <div className="sidebar-title">This week's goals</div>
-        <div className="cal-badge">📅 Google Calendar · 3 events today</div>
+        <div className="sidebar-title">
+          This week's goals
+          {state.areas.length > 0 && (
+            <button type="button" className="sidebar-add" onClick={() => setAddingGoal(true)}>＋</button>
+          )}
+        </div>
+        {state.goals.length === 0 && (
+          <p className="muted sidebar-empty">No goals yet.</p>
+        )}
         {state.goals.map((g) => (
           <div key={g.id} className="goal-card">
             <div className="goal-top">
@@ -50,6 +60,7 @@ export function GoalsSidebar() {
 
       <div>
         <div className="sidebar-title">Today by area</div>
+        {splits.length === 0 && <p className="muted sidebar-empty">Nothing logged yet.</p>}
         {splits.map((s) => (
           <div key={s.id} className="split-item">
             <span className="split-icon">{s.icon}</span>
@@ -65,6 +76,8 @@ export function GoalsSidebar() {
           </div>
         ))}
       </div>
+
+      {addingGoal && <AddGoalModal onClose={() => setAddingGoal(false)} />}
     </aside>
   );
 }

@@ -1,9 +1,10 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { TaskModel, TASK_STATUSES } from '../models/Task.js';
+import { TaskModel, TASK_STATUSES, TASK_SOURCES } from '../models/Task.js';
 import { asyncHandler, HttpError } from '../middleware/error.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requireDb } from '../middleware/requireDb.js';
+import { normaliseDay } from '../util/day.js';
 
 export const tasksRouter = Router();
 
@@ -12,15 +13,23 @@ tasksRouter.use(requireDb, requireAuth);
 
 const taskInput = z.object({
   title: z.string().min(1),
-  lifeArea: z.string().optional(),
+  areaId: z.string().min(1),
+  trackId: z.string().optional(),
+  goalId: z.string().optional(),
   status: z.enum(TASK_STATUSES).optional(),
+  source: z.enum(TASK_SOURCES).optional(),
   estimateMinutes: z.number().int().min(0).optional(),
+  scheduledAt: z.string().optional(),
+  delegateName: z.string().optional(),
+  day: z.string().optional(),
 });
 
 tasksRouter.get(
   '/',
   asyncHandler(async (req, res) => {
-    const tasks = await TaskModel.find({ userId: req.userId }).sort({ createdAt: -1 });
+    const filter: Record<string, unknown> = { userId: req.userId };
+    if (typeof req.query.day === 'string') filter.day = normaliseDay(req.query.day);
+    const tasks = await TaskModel.find(filter).sort({ createdAt: 1 });
     res.json({ tasks });
   }),
 );
@@ -29,7 +38,11 @@ tasksRouter.post(
   '/',
   asyncHandler(async (req, res) => {
     const data = taskInput.parse(req.body);
-    const task = await TaskModel.create({ ...data, userId: req.userId });
+    const task = await TaskModel.create({
+      ...data,
+      day: normaliseDay(data.day),
+      userId: req.userId,
+    });
     res.status(201).json({ task });
   }),
 );

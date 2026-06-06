@@ -11,6 +11,15 @@
   --radius: 18px;
   --shadow: 0 10px 30px rgba(108, 92, 231, 0.15);
   --nav-h: 64px;
+
+  /* Cockpit palette, shared so components used outside .cockpit (Settings,
+     modals) still resolve their colors. .cockpit may re-declare these. */
+  --c-primary: #1a1535;
+  --c-secondary: #5c5280;
+  --c-muted: #9d94c0;
+  --c-accent: #7c3aed;
+  --c-fire: #f43f5e;
+  --border-med: rgba(120, 80, 220, 0.22);
 }
 
 * {
@@ -259,4 +268,68 @@ input:focus {
   flex: 1;
   height: 1px;
   background: rgba(45, 42, 69, 0.12);
+}
+
+/* Settings page */
+.settings-section {
+  margin: 16px 0;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(120, 80, 220, 0.15);
+}
+
+.settings-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-section-head h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.btn-sm {
+  padding: 5px 11px;
+  font-size: 12px;
+  border-radius: 9px;
+}
+
+.venture-settings-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.venture-settings-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+}
+
+.vs-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+}
+
+.vs-name {
+  flex: 1;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.vs-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
 }

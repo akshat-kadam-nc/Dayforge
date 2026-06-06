@@ -5,6 +5,13 @@ import { isDbConnected } from './db.js';
 import { errorHandler } from './middleware/error.js';
 import { authRouter } from './routes/auth.js';
 import { tasksRouter } from './routes/tasks.js';
+import { areasRouter } from './routes/areas.js';
+import { tracksRouter } from './routes/tracks.js';
+import { goalsRouter } from './routes/goals.js';
+import { interruptionsRouter } from './routes/interruptions.js';
+import { timelogsRouter } from './routes/timelogs.js';
+import { todayRouter } from './routes/today.js';
+import { meRouter } from './routes/me.js';
 
 export function createApp() {
   const app = express();
@@ -17,7 +24,14 @@ export function createApp() {
   });
 
   app.use('/api/auth', authRouter);
+  app.use('/api/me', meRouter);
+  app.use('/api/areas', areasRouter);
+  app.use('/api/tracks', tracksRouter);
+  app.use('/api/goals', goalsRouter);
   app.use('/api/tasks', tasksRouter);
+  app.use('/api/interruptions', interruptionsRouter);
+  app.use('/api/timelogs', timelogsRouter);
+  app.use('/api/today', todayRouter);
 
   app.use(errorHandler);
 

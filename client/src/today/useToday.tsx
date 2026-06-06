@@ -2,22 +2,58 @@ import {
   createContext,
   useContext,
   useEffect,
-  useMemo,
   useReducer,
+  useState,
   type ReactNode,
 } from 'react';
-import type { BudgetScope, InterruptionType, TodayState } from './types';
-import { makeInitialState } from './seed';
+import type {
+  BudgetScope,
+  Goal,
+  Interruption,
+  LifeArea,
+  Task,
+  TodayState,
+} from './types';
+import { useAuth } from '../auth/AuthContext';
+import {
+  apiRepo,
+  localRepo,
+  todayKey,
+  type CreateAreaInput,
+  type CreateGoalInput,
+  type CreateInterruptionInput,
+  type CreateTaskInput,
+  type TodaySlices,
+} from './repo';
+
+function emptyState(): TodayState {
+  return {
+    areas: [],
+    tracks: [],
+    tasks: [],
+    goals: [],
+    interruptions: [],
+    fixedBlocks: [],
+    logs: [],
+    timer: { activeTaskId: null, startedAt: null, elapsedSeconds: 0 },
+    collapsedAreas: {},
+    budgetScope: 'day',
+    availableMinutes: 360,
+  };
+}
 
 type Action =
+  | { type: 'HYDRATE'; slices: TodaySlices }
   | { type: 'TICK' }
   | { type: 'START_TIMER'; taskId: string }
   | { type: 'STOP_TIMER' }
   | { type: 'TOGGLE_DONE'; taskId: string }
   | { type: 'TOGGLE_AREA'; areaId: string }
   | { type: 'SET_SCOPE'; scope: BudgetScope }
-  | { type: 'LOG_INTERRUPTION'; payload: { type: InterruptionType; title: string; note?: string; minutes: number } }
-  | { type: 'ADD_TASK'; payload: { title: string; areaId: string; estimateMinutes: number } };
+  | { type: 'ADD_TASK'; task: Task }
+  | { type: 'ADD_AREA'; area: LifeArea }
+  | { type: 'ADD_GOAL'; goal: Goal }
+  | { type: 'ADD_INTERRUPTION'; interruption: Interruption };
 
 /** Commit the active run's accrued seconds into a merged TimeLog and clear the timer. */
 function commitActiveRun(state: TodayState): TodayState {
@@ -37,12 +73,13 @@ function commitActiveRun(state: TodayState): TodayState {
 
 function reducer(state: TodayState, action: Action): TodayState {
   switch (action.type) {
+    case 'HYDRATE':
+      return { ...emptyState(), ...action.slices };
     case 'TICK': {
       if (!state.timer.activeTaskId) return state;
       return { ...state, timer: { ...state.timer, elapsedSeconds: state.timer.elapsedSeconds + 1 } };
     }
     case 'START_TIMER': {
-      // Commit any current run, then start the new task fresh and mark it in progress.
       const committed = commitActiveRun(state);
       return {
         ...committed,
@@ -57,10 +94,10 @@ function reducer(state: TodayState, action: Action): TodayState {
     case 'TOGGLE_DONE': {
       const task = state.tasks.find((t) => t.id === action.taskId);
       if (!task) return state;
-      // Stop the timer first if we're completing the active task.
-      const base = task.status !== 'done' && state.timer.activeTaskId === action.taskId
-        ? commitActiveRun(state)
-        : state;
+      const base =
+        task.status !== 'done' && state.timer.activeTaskId === action.taskId
+          ? commitActiveRun(state)
+          : state;
       return {
         ...base,
         tasks: base.tasks.map((t) =>
@@ -80,32 +117,17 @@ function reducer(state: TodayState, action: Action): TodayState {
       };
     case 'SET_SCOPE':
       return { ...state, budgetScope: action.scope };
-    case 'LOG_INTERRUPTION': {
+    case 'ADD_TASK':
+      return { ...state, tasks: [...state.tasks, action.task] };
+    case 'ADD_AREA':
+      return { ...state, areas: [...state.areas, action.area] };
+    case 'ADD_GOAL':
+      return { ...state, goals: [...state.goals, action.goal] };
+    case 'ADD_INTERRUPTION': {
       // Logging an interruption pauses whatever task is running.
       const paused = commitActiveRun(state);
-      return {
-        ...paused,
-        interruptions: [
-          ...paused.interruptions,
-          { id: `i${Date.now()}`, ...action.payload },
-        ],
-      };
+      return { ...paused, interruptions: [...paused.interruptions, action.interruption] };
     }
-    case 'ADD_TASK':
-      return {
-        ...state,
-        tasks: [
-          ...state.tasks,
-          {
-            id: `t${Date.now()}`,
-            title: action.payload.title,
-            areaId: action.payload.areaId,
-            estimateMinutes: action.payload.estimateMinutes,
-            status: 'not_started',
-            source: 'manual',
-          },
-        ],
-      };
     default:
       return state;
   }
@@ -117,14 +139,41 @@ export interface TodayActions {
   toggleDone: (taskId: string) => void;
   toggleArea: (areaId: string) => void;
   setScope: (scope: BudgetScope) => void;
-  logInterruption: (p: { type: InterruptionType; title: string; note?: string; minutes: number }) => void;
-  addTask: (p: { title: string; areaId: string; estimateMinutes: number }) => void;
+  addTask: (input: CreateTaskInput) => Promise<void>;
+  addArea: (input: CreateAreaInput) => Promise<void>;
+  addGoal: (input: CreateGoalInput) => Promise<void>;
+  logInterruption: (input: CreateInterruptionInput) => Promise<void>;
 }
 
-const TodayContext = createContext<{ state: TodayState; actions: TodayActions } | null>(null);
+const TodayContext = createContext<{
+  state: TodayState;
+  actions: TodayActions;
+  loading: boolean;
+} | null>(null);
 
 export function TodayProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, undefined, makeInitialState);
+  const { isGuest } = useAuth();
+  const repo = isGuest ? localRepo : apiRepo;
+  const [state, dispatch] = useReducer(reducer, undefined, emptyState);
+  const [loading, setLoading] = useState(true);
+
+  // Hydrate from the chosen repo on mount.
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    repo
+      .load(todayKey())
+      .then((slices) => {
+        if (!cancelled) dispatch({ type: 'HYDRATE', slices });
+      })
+      .catch((err) => console.error('[today] failed to load', err))
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [repo]);
 
   // Tick once a second while a timer is running.
   useEffect(() => {
@@ -133,20 +182,58 @@ export function TodayProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(id);
   }, [state.timer.activeTaskId]);
 
-  const actions = useMemo<TodayActions>(
-    () => ({
-      startTimer: (taskId) => dispatch({ type: 'START_TIMER', taskId }),
-      stopTimer: () => dispatch({ type: 'STOP_TIMER' }),
-      toggleDone: (taskId) => dispatch({ type: 'TOGGLE_DONE', taskId }),
-      toggleArea: (areaId) => dispatch({ type: 'TOGGLE_AREA', areaId }),
-      setScope: (scope) => dispatch({ type: 'SET_SCOPE', scope }),
-      logInterruption: (p) => dispatch({ type: 'LOG_INTERRUPTION', payload: p }),
-      addTask: (p) => dispatch({ type: 'ADD_TASK', payload: p }),
-    }),
-    [],
-  );
+  // Persist the active run as a TimeLog before it's cleared locally.
+  function persistRun() {
+    const { activeTaskId, elapsedSeconds } = state.timer;
+    if (!activeTaskId || elapsedSeconds <= 0) return;
+    const task = state.tasks.find((t) => t.id === activeTaskId);
+    if (task) {
+      void repo.createTimeLog({ taskId: activeTaskId, areaId: task.areaId, minutes: elapsedSeconds / 60 });
+    }
+  }
 
-  return <TodayContext.Provider value={{ state, actions }}>{children}</TodayContext.Provider>;
+  // Actions are rebuilt each render so they read fresh state (no stale closures).
+  const actions: TodayActions = {
+    startTimer: (taskId) => {
+      persistRun();
+      dispatch({ type: 'START_TIMER', taskId });
+      void repo.updateTask(taskId, { status: 'in_progress' });
+    },
+    stopTimer: () => {
+      persistRun();
+      dispatch({ type: 'STOP_TIMER' });
+    },
+    toggleDone: (taskId) => {
+      const task = state.tasks.find((t) => t.id === taskId);
+      const completing = !!task && task.status !== 'done';
+      if (completing && state.timer.activeTaskId === taskId) persistRun();
+      dispatch({ type: 'TOGGLE_DONE', taskId });
+      void repo.updateTask(taskId, { status: completing ? 'done' : 'not_started' });
+    },
+    toggleArea: (areaId) => dispatch({ type: 'TOGGLE_AREA', areaId }),
+    setScope: (scope) => dispatch({ type: 'SET_SCOPE', scope }),
+    addTask: async (input) => {
+      const task = await repo.createTask(input);
+      dispatch({ type: 'ADD_TASK', task });
+    },
+    addArea: async (input) => {
+      const area = await repo.createArea(input);
+      dispatch({ type: 'ADD_AREA', area });
+    },
+    addGoal: async (input) => {
+      const goal = await repo.createGoal(input);
+      dispatch({ type: 'ADD_GOAL', goal });
+    },
+    logInterruption: async (input) => {
+      persistRun();
+      const interruption = await repo.createInterruption(input);
+      dispatch({ type: 'ADD_INTERRUPTION', interruption });
+    },
+  };
+
+  return (
+    <TodayContext.Provider value={{ state, actions, loading }}>{children}</TodayContext.Provider>
+  );
 }
 
 export function useToday() {
