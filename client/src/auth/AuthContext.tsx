@@ -10,16 +10,22 @@ export interface User {
 interface AuthState {
   user: User | null;
   loading: boolean;
+  /** True when the session is a local demo (no backend, no token). */
+  isGuest: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name?: string) => Promise<void>;
+  continueAsGuest: () => void;
   logout: () => void;
 }
+
+const GUEST_USER: User = { id: 'guest', email: 'demo@axiom.local', name: 'Akshu' };
 
 const AuthContext = createContext<AuthState | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
 
   // On boot, if a token exists, try to resolve the current user.
   useEffect(() => {
@@ -46,15 +52,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       loading,
+      isGuest,
+      continueAsGuest: () => {
+        setIsGuest(true);
+        setUser(GUEST_USER);
+      },
       login: (email, password) => handleAuth('/auth/login', { email, password }),
       register: (email, password, name) =>
         handleAuth('/auth/register', { email, password, name }),
       logout: () => {
         setToken(null);
         setUser(null);
+        setIsGuest(false);
       },
     }),
-    [user, loading],
+    [user, loading, isGuest],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

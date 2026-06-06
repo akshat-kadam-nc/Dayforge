@@ -1,50 +1,58 @@
-import { useEffect, useState } from 'react';
-import { Placeholder } from '../components/Placeholder';
-import { api, ApiError } from '../api/client';
-import { useAuth } from '../auth/AuthContext';
+import { TodayProvider, useToday } from '../today/useToday';
+import { TodayHeader } from '../components/today/TodayHeader';
+import { NudgeRow } from '../components/today/NudgeRow';
+import { TimeBudgetCard } from '../components/today/TimeBudgetCard';
+import { AllocationRing } from '../components/today/AllocationRing';
+import { VentureBlock } from '../components/today/VentureBlock';
+import { InterruptionsBlock } from '../components/today/InterruptionsBlock';
+import { CompletedFold } from '../components/today/CompletedFold';
+import { GoalsSidebar } from '../components/today/GoalsSidebar';
+import { TimerStrip } from '../components/today/TimerStrip';
+import { Fab } from '../components/today/Fab';
+import '../styles/today.css';
 
-interface Task {
-  _id: string;
-  title: string;
-  status: string;
-  estimateMinutes: number;
+function Cockpit() {
+  const { state } = useToday();
+  const openTasks = state.tasks.filter((t) => t.status !== 'done');
+  const doneCount = state.tasks.length - openTasks.length;
+
+  return (
+    <div className="cockpit">
+      <TodayHeader streakDays={12} />
+
+      <div className="cockpit-body">
+        <main className="cockpit-main">
+          <NudgeRow />
+          <TimeBudgetCard />
+          <AllocationRing />
+
+          <div className="tasks-header">
+            <span className="section-lbl">Today's Tasks</span>
+            <span className="task-count">{openTasks.length} tasks · {doneCount} done</span>
+          </div>
+
+          {state.areas.map((area) => (
+            <VentureBlock key={area.id} area={area} />
+          ))}
+
+          <InterruptionsBlock />
+          <CompletedFold />
+          <div style={{ height: 12 }} />
+        </main>
+
+        <GoalsSidebar />
+      </div>
+
+      <TimerStrip />
+      <Fab />
+    </div>
+  );
 }
 
 export function TodayPage() {
-  const { user } = useAuth();
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [note, setNote] = useState<string>('Loading today…');
-
-  useEffect(() => {
-    api<{ tasks: Task[] }>('/tasks')
-      .then((res) => {
-        setTasks(res.tasks);
-        setNote(res.tasks.length ? '' : 'No tasks yet. The task model is wired and ready.');
-      })
-      .catch((err) => {
-        setNote(
-          err instanceof ApiError && err.status === 503
-            ? 'Backend is running without a database. Add MONGODB_URI to server/.env to enable tasks.'
-            : 'Could not load tasks.',
-        );
-      });
-  }, []);
-
   return (
-    <Placeholder title={`Hi ${user?.name ?? ''}`} emoji="🎯">
-      <p className="muted">
-        This is the Today cockpit shell. The locked design lives in <code>mockups/today-v5.html</code>:
-        daily budget ring, live timer, ⚡ interruption logging, planned-vs-actual.
-      </p>
-      {note && <p className="muted">{note}</p>}
-      <ul className="task-list">
-        {tasks.map((t) => (
-          <li key={t._id}>
-            <span>{t.title}</span>
-            <span className="muted">{t.estimateMinutes}m</span>
-          </li>
-        ))}
-      </ul>
-    </Placeholder>
+    <TodayProvider>
+      <Cockpit />
+    </TodayProvider>
   );
 }

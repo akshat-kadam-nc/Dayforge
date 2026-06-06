@@ -3,7 +3,7 @@ import { useAuth } from '../auth/AuthContext';
 import { ApiError } from '../api/client';
 
 export function LoginPage() {
-  const { login, register } = useAuth();
+  const { login, register, continueAsGuest } = useAuth();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
@@ -77,6 +77,11 @@ export function LoginPage() {
           }}
         >
           {mode === 'login' ? 'Need an account? Register' : 'Have an account? Log in'}
+        </button>
+
+        <div className="auth-divider"><span>or</span></div>
+        <button type="button" className="link-btn" onClick={continueAsGuest}>
+          Explore in demo mode (no account)
         </button>
       </form>
     </div>

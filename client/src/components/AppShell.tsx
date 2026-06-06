@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
+import { WallpaperLayer } from './WallpaperLayer';
 
 const NAV = [
   { to: '/', label: 'Today', icon: '🎯', end: true },
@@ -12,6 +13,7 @@ const NAV = [
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="app-shell">
+      <WallpaperLayer />
       <main className="app-content">{children}</main>
       <nav className="bottom-nav">
         {NAV.map((item) => (

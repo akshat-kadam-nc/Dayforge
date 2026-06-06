@@ -1,0 +1,110 @@
+import type { LifeArea, TodayState } from './types';
+
+const MINUTES_IN_DAY = 1440;
+export const RING_RADIUS = 46;
+export const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+
+export interface Segment {
+  id: string;
+  label: string;
+  minutes: number;
+  color: string;
+}
+
+/** Minutes accrued by the currently running timer (committed logs excluded). */
+export function liveRunMinutes(state: TodayState): number {
+  if (!state.timer.activeTaskId) return 0;
+  return state.timer.elapsedSeconds / 60;
+}
+
+/** Sum of planned estimates across all of today's tasks. */
+export function allocatedMinutes(state: TodayState): number {
+  return state.tasks.reduce((sum, t) => sum + t.estimateMinutes, 0);
+}
+
+export function allocatedForArea(state: TodayState, areaId: string): number {
+  return state.tasks
+    .filter((t) => t.areaId === areaId)
+    .reduce((sum, t) => sum + t.estimateMinutes, 0);
+}
+
+/** Committed logged time plus whatever the live timer has accrued. */
+export function loggedMinutes(state: TodayState): number {
+  const committed = state.logs.reduce((sum, l) => sum + l.minutes, 0);
+  return committed + liveRunMinutes(state);
+}
+
+export function interruptedMinutes(state: TodayState): number {
+  return state.interruptions.reduce((sum, i) => sum + i.minutes, 0);
+}
+
+/** Positive when planned work exceeds the discretionary budget. */
+export function overflowMinutes(state: TodayState): number {
+  return allocatedMinutes(state) - state.availableMinutes;
+}
+
+const INTERRUPT_COLOR = '#f43f5e';
+const UNTRACKED_COLOR = 'rgba(148,163,184,0.4)';
+
+/** Per-area allocation segments, ordered by the area list. */
+function areaSegments(state: TodayState): Segment[] {
+  return state.areas
+    .map((area: LifeArea) => ({
+      id: area.id,
+      label: area.name,
+      minutes: allocatedForArea(state, area.id),
+      color: area.color,
+    }))
+    .filter((s) => s.minutes > 0);
+}
+
+/** Fixed blocks + area allocations + interruptions. Used by the 24h ring. */
+export function ringSegments(state: TodayState): Segment[] {
+  const fixed = state.fixedBlocks.map((b) => ({
+    id: b.id,
+    label: b.label,
+    minutes: b.minutes,
+    color: b.color,
+  }));
+  const interrupt = interruptedMinutes(state);
+  return [
+    ...fixed,
+    ...areaSegments(state),
+    ...(interrupt > 0
+      ? [{ id: 'interruptions', label: 'Interruptions', minutes: interrupt, color: INTERRUPT_COLOR }]
+      : []),
+  ];
+}
+
+/** Ring segments plus an "Untracked" remainder filling the 24h circle. */
+export function budgetBarSegments(state: TodayState): Segment[] {
+  const segs = ringSegments(state);
+  const used = segs.reduce((sum, s) => sum + s.minutes, 0);
+  const untracked = Math.max(0, MINUTES_IN_DAY - used);
+  return [
+    ...segs,
+    ...(untracked > 0
+      ? [{ id: 'untracked', label: 'Untracked', minutes: untracked, color: UNTRACKED_COLOR }]
+      : []),
+  ];
+}
+
+/** Convert a segment list into SVG stroke dash/offset pairs on the 24h circle. */
+export function toRingDashes(segments: Segment[]) {
+  let consumed = 0;
+  return segments.map((seg) => {
+    const length = (seg.minutes / MINUTES_IN_DAY) * RING_CIRCUMFERENCE;
+    const gap = RING_CIRCUMFERENCE - length;
+    const offset = -consumed;
+    consumed += length;
+    return { seg, dasharray: `${length} ${gap}`, dashoffset: offset };
+  });
+}
+
+/** Each segment's width as a percentage of the 24h day, for the stacked bar. */
+export function toBarPercents(segments: Segment[]) {
+  return segments.map((seg) => ({
+    seg,
+    pct: (seg.minutes / MINUTES_IN_DAY) * 100,
+  }));
+}
