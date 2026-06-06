@@ -1,7 +1,12 @@
 node_modules/
 .env
 .env.local
+server/.env
 dist/
 build/
 *.log
 .DS_Store
+
+# Vite / PWA
+client/dev-dist/
+*.tsbuildinfo

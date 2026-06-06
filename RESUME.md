@@ -8,9 +8,18 @@ Personal time-management web app being built with Claude Code. This file lets a 
 3. The durable context (user profile, decisions, full feature set) is in `project-context/` (copies of the memory files from the office machine).
 
 ## Where things stand
-- Planning + UX design phase complete. No production code written yet.
-- Next step agreed: **scaffold the full MERN project** (Node/Express/MongoDB backend with JWT auth and userId-scoped models; React PWA frontend), then build feature by feature.
+- Planning + UX design phase complete.
+- **MERN + TypeScript scaffold built (2026-06-06).** Monorepo: `server/` (Express, JWT auth, Mongoose, userId-scoped `Task` model + CRUD) and `client/` (React PWA, Vite, react-router, 5-tab bottom nav, login). Both build clean. See `README.md` to run.
+- Next step: build features against the locked spec, starting with the Today cockpit (daily budget, per-task timer, interruption logging).
 - App working name: **AXIOM** (placeholder, kept for now).
+
+## Run it
+```
+npm install
+cp .env.example server/.env   # add MONGODB_URI (Atlas) + JWT_SECRET
+npm run dev                   # API :4000, client :5173
+```
+The API boots without a DB but auth/task routes return 503 until MONGODB_URI is set.
 
 ## Mockups (open via local static server)
 In `mockups/`:
