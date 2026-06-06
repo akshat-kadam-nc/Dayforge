@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Axiom — Today v4</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --surface: rgba(255,255,255,0.72);
+  --surface-2: rgba(255,255,255,0.45);
+  --border: rgba(120,80,220,0.15);
+  --border-med: rgba(120,80,220,0.22);
+  --shadow: 0 4px 24px rgba(60,20,120,0.12);
+  --text-primary: #1a1535;
+  --text-secondary: #5c5280;
+  --text-muted: #9d94c0;
+  --accent: #7c3aed;
+  --danger: #ef4444; --danger-soft: rgba(239,68,68,0.10);
+  --success: #16a34a;
+  --warning: #d97706;
+  --radius: 16px; --radius-sm: 10px; --radius-lg: 22px; --radius-pill: 100px;
+  --blur: blur(20px);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* ── WALLPAPER LAYER ── */
+.wallpaper {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  transition: opacity 0.6s ease;
+}
+
+/* Pokémon Dusk */
+.wp-poke-dusk {
+  background:
+    radial-gradient(ellipse 40% 30% at 50% 62%, #fef3c7 0%, #fbbf24 15%, transparent 55%),
+    radial-gradient(ellipse 80% 20% at 50% 68%, rgba(251,146,60,0.55) 0%, transparent 70%),
+    linear-gradient(180deg,
+      #1e0a3c 0%, #3b0764 20%, #7e22ce 45%,
+      #c2410c 65%, #ea580c 78%, #fb923c 88%, #fde68a 100%);
+}
+
+.wp-poke-dusk::before {
+  content:'';
+  position:absolute; inset:0;
+  background:
+    /* mountains far */
+    radial-gradient(ellipse 120% 25% at 20% 72%, #1a0533 50%, transparent 51%),
+    radial-gradient(ellipse 80%  22% at 60% 70%, #200840 50%, transparent 51%),
+    radial-gradient(ellipse 100% 20% at 85% 73%, #1a0533 50%, transparent 51%),
+    /* hill base */
+    linear-gradient(to bottom, transparent 68%, #0f0320 68%);
+}
+
+.wp-poke-dusk::after {
+  content:'';
+  position:absolute; inset:0;
+  /* stars */
+  background-image:
+    radial-gradient(1.5px 1.5px at 10% 8%, white, transparent),
+    radial-gradient(1px   1px   at 22% 5%, white, transparent),
+    radial-gradient(1.5px 1.5px at 35% 12%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px   1px   at 50% 6%, white, transparent),
+    radial-gradient(1.5px 1.5px at 65% 9%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1px   1px   at 78% 4%, white, transparent),
+    radial-gradient(1.5px 1.5px at 90% 11%, rgba(255,255,255,0.9), transparent),
+    radial-gradient(1px   1px   at 15% 18%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1.5px 1.5px at 42% 22%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px   1px   at 70% 16%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px   1px   at 88% 20%, rgba(255,255,255,0.4), transparent),
+    /* pastel clouds */
+    radial-gradient(ellipse 120px 35px at 15% 28%, rgba(233,213,255,0.45), transparent),
+    radial-gradient(ellipse 80px  26px at 12% 30%, rgba(243,232,255,0.35), transparent),
+    radial-gradient(ellipse 110px 32px at 82% 24%, rgba(254,215,170,0.45), transparent),
+    radial-gradient(ellipse 75px  24px at 85% 26%, rgba(255,237,213,0.35), transparent),
+    /* water shimmer column */
+    linear-gradient(to bottom, transparent 63%, rgba(124,58,237,0.18) 65%, rgba(30,10,60,0.7) 80%, #0f0320 100%);
+}
+
+/* DBZ Super Saiyan */
+.wp-dbz {
+  background:
+    radial-gradient(ellipse 60% 60% at 50% 50%, #fef08a 0%, #facc15 20%, #f97316 45%, #dc2626 70%, #1e1b4b 100%);
+}
+
+.wp-dbz::before {
+  content:'';
+  position:absolute; inset:0;
+  background:
+    repeating-conic-gradient(from 0deg at 50% 50%,
+      rgba(254,240,138,0.15) 0deg, transparent 3deg,
+      transparent 6deg, rgba(254,240,138,0.08) 9deg),
+    radial-gradient(ellipse 30% 80% at 50% 50%, rgba(254,249,195,0.3) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 30% at 50% 50%, rgba(254,249,195,0.2) 0%, transparent 60%);
+  animation: dbz-aura 3s ease-in-out infinite alternate;
+}
+
+.wp-dbz::after {
+  content:'';
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse 100% 40% at 50% 100%, #1e1b4b 0%, transparent 60%),
+    radial-gradient(ellipse 40%  40% at 50% 50%,  rgba(254,249,195,0.15) 0%, transparent 50%);
+}
+
+@keyframes dbz-aura {
+  0%   { opacity:0.7; transform:scale(1); }
+  100% { opacity:1;   transform:scale(1.04); }
+}
+
+/* Midnight Route */
+.wp-midnight {
+  background: linear-gradient(180deg, #020617 0%, #0c0a2e 30%, #1e1b4b 55%, #312e81 75%, #1e3a5f 100%);
+}
+
+.wp-midnight::before {
+  content:'';
+  position:absolute; inset:0;
+  background-image:
+    radial-gradient(1.8px 1.8px at  5%  5%, white, transparent),
+    radial-gradient(1px   1px   at 12%  2%, white, transparent),
+    radial-gradient(2px   2px   at 20%  8%, rgba(255,255,255,0.9), transparent),
+    radial-gradient(1px   1px   at 28%  3%, white, transparent),
+    radial-gradient(1.5px 1.5px at 38%  7%, white, transparent),
+    radial-gradient(1px   1px   at 48%  2%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(2px   2px   at 55%  6%, white, transparent),
+    radial-gradient(1px   1px   at 62%  1%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1.5px 1.5px at 72%  9%, white, transparent),
+    radial-gradient(1px   1px   at 80%  4%, white, transparent),
+    radial-gradient(2px   2px   at 88%  7%, rgba(255,255,255,0.9), transparent),
+    radial-gradient(1px   1px   at 95%  3%, white, transparent),
+    radial-gradient(1px   1px   at  8% 14%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1.5px 1.5px at 25% 18%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px   1px   at 44% 15%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1.5px 1.5px at 60% 12%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px   1px   at 77% 17%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px   1px   at 93% 13%, rgba(255,255,255,0.6), transparent);
+}
+
+.wp-midnight::after {
+  content:'';
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse 50% 50% at 30% 30%, rgba(99,102,241,0.25), transparent),
+    radial-gradient(ellipse 40% 40% at 75% 20%, rgba(167,139,250,0.18), transparent),
+    linear-gradient(to bottom, transparent 65%, #020617 100%);
+}
+
+/* Cherry Blossom */
+.wp-cherry {
+  background: linear-gradient(160deg, #fdf2f8 0%, #fce7f3 25%, #fbcfe8 50%, #f9a8d4 75%, #f472b6 100%);
+}
+
+.wp-cherry::before {
+  content:'';
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse 60% 60% at 20% 20%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(ellipse 80px 60px at 15% 40%, rgba(244,114,182,0.3), transparent),
+    radial-gradient(ellipse 60px 50px at 35% 55%, rgba(251,207,232,0.5), transparent),
+    radial-gradient(ellipse 90px 70px at 60% 30%, rgba(253,242,248,0.4), transparent),
+    radial-gradient(ellipse 70px 55px at 80% 50%, rgba(249,168,212,0.35), transparent),
+    radial-gradient(ellipse 50px 40px at 90% 25%, rgba(244,114,182,0.25), transparent);
+}
+
+/* Ocean Calm */
+.wp-ocean {
+  background: linear-gradient(180deg, #0ea5e9 0%, #0284c7 30%, #0369a1 55%, #075985 75%, #0c4a6e 100%);
+}
+
+.wp-ocean::before {
+  content:'';
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse 80% 20% at 50% 30%, rgba(255,255,255,0.2), transparent),
+    radial-gradient(ellipse 60% 10% at 50% 70%, rgba(14,165,233,0.4), transparent),
+    repeating-linear-gradient(90deg, transparent, transparent 98px, rgba(255,255,255,0.03) 100px),
+    linear-gradient(to bottom, transparent 60%, rgba(12,74,110,0.5) 100%);
+}
+
+/* Solid options */
+.wp-slate   { background: linear-gradient(135deg, #1e293b, #0f172a); }
+.wp-forest  { background: linear-gradient(160deg, #14532d, #052e16, #1a2e05); }
+.wp-grape   { background: linear-gradient(135deg, #4a1d96, #2e1065, #1e0a3c); }
+
+/* ── APP SHELL ── */
+.app {
+  position:relative; z-index:1;
+  display:grid;
+  grid-template-rows: 58px 1fr 58px;
+  grid-template-columns: 1fr 288px;
+  height:100vh;
+  max-width:1380px;
+  margin:0 auto;
+}
+
+/* ── HEADER ── */
+.header {
+  grid-column:1/-1;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 22px;
+  background:rgba(255,255,255,0.68);
+  backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
+  border-bottom:1px solid var(--border-med);
+  box-shadow:0 2px 16px rgba(60,20,120,0.07);
+}
+
+.logo { font-size:20px; font-weight:900; letter-spacing:-0.5px; color:var(--accent); }
+.logo em { color:#f97316; font-style:normal; }
+
+.header-center { display:flex; flex-direction:column; align-items:center; }
+.header-day   { font-size:14px; font-weight:800; }
+.header-date-sub { font-size:11px; color:var(--text-muted); font-weight:600; }
+
+.header-right { display:flex; align-items:center; gap:10px; }
+
+.streak-pill {
+  background:rgba(251,191,36,0.18); border:1.5px solid rgba(251,191,36,0.5);
+  border-radius:var(--radius-pill); padding:4px 11px;
+  font-size:12px; font-weight:800; color:#92400e;
+  display:flex; align-items:center; gap:4px;
+}
+
+/* Wallpaper button */
+.wp-btn {
+  display:flex; align-items:center; gap:6px;
+  background:rgba(255,255,255,0.55); border:1.5px solid var(--border-med);
+  border-radius:var(--radius-pill); padding:5px 12px;
+  font-family:inherit; font-size:11.5px; font-weight:800; color:var(--text-secondary);
+  cursor:pointer; transition:all 0.2s;
+  backdrop-filter:var(--blur);
+}
+.wp-btn:hover { background:rgba(124,58,237,0.1); color:var(--accent); border-color:rgba(124,58,237,0.3); }
+
+.avatar {
+  width:36px; height:36px; border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),#ec4899);
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px; font-weight:900; color:white; cursor:pointer;
+  box-shadow:0 2px 10px rgba(124,58,237,0.35);
+}
+
+/* ── MAIN ── */
+.main {
+  grid-column:1; grid-row:2;
+  overflow-y:auto;
+  padding:16px 18px 16px 22px;
+  display:flex; flex-direction:column; gap:12px;
+  scrollbar-width:thin; scrollbar-color:rgba(124,58,237,0.2) transparent;
+}
+
+/* ── CARD ── */
+.card {
+  background:var(--surface);
+  border:1.5px solid var(--border-med);
+  border-radius:var(--radius-lg);
+  padding:16px 18px;
+  backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
+  box-shadow:var(--shadow);
+}
+
+.card-title {
+  font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px;
+  color:var(--text-muted); margin-bottom:12px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+
+.toggle-pills {
+  display:flex; gap:3px;
+  background:rgba(255,255,255,0.55); border-radius:var(--radius-pill);
+  padding:3px; border:1.5px solid var(--border-med);
+}
+
+.toggle-pills button {
+  background:none; border:none; font-family:inherit;
+  font-size:10.5px; font-weight:800; padding:4px 11px;
+  border-radius:var(--radius-pill); cursor:pointer; color:var(--text-muted);
+  transition:all 0.2s;
+}
+
+.toggle-pills button.active {
+  background:var(--accent); color:white;
+  box-shadow:0 2px 8px rgba(124,58,237,0.35);
+}
+
+.overflow-banner {
+  background:rgba(239,68,68,0.12); border:1.5px solid rgba(239,68,68,0.35);
+  border-radius:var(--radius); padding:10px 15px;
+  display:flex; align-items:center; gap:9px;
+  font-size:13px; font-weight:700; color:#b91c1c;
+  backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
+}
+
+.budget-stats { display:flex; gap:8px; margin-bottom:13px; }
+
+.stat-pill {
+  flex:1; background:rgba(255,255,255,0.6);
+  border:1.5px solid var(--border); border-radius:var(--radius);
+  padding:9px 11px; display:flex; flex-direction:column; gap:2px;
+}
+
+.stat-pill-val { font-size:17px; font-weight:900; letter-spacing:-0.5px; }
+.stat-pill-lbl { font-size:9.5px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
+
+.budget-bar-track {
+  height:11px; border-radius:var(--radius-pill);
+  background:rgba(255,255,255,0.5); border:1.5px solid var(--border-med);
+  overflow:hidden; margin-bottom:9px;
+}
+
+.budget-bar-fill { display:flex; height:100%; }
+.budget-seg { height:100%; }
+
+.bar-labels { display:flex; flex-wrap:wrap; gap:6px 12px; }
+.bar-lbl { display:flex; align-items:center; gap:5px; font-size:10.5px; font-weight:700; color:var(--text-secondary); }
+.bar-lbl-dot { width:8px; height:8px; border-radius:3px; flex-shrink:0; }
+
+.ring-body { display:flex; align-items:center; gap:18px; }
+.ring-wrap { position:relative; width:128px; height:128px; flex-shrink:0; }
+.ring-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.ring-cv { font-size:19px; font-weight:900; letter-spacing:-1px; color:var(--text-muted); }
+.ring-cl { font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); }
+.ring-legend { display:grid; grid-template-columns:1fr 1fr; gap:5px 14px; flex:1; }
+.leg { display:flex; align-items:center; gap:5px; font-size:10.5px; font-weight:700; color:var(--text-secondary); }
+.leg-dot { width:9px; height:9px; border-radius:3px; flex-shrink:0; }
+.leg-val { margin-left:auto; font-size:10.5px; font-weight:900; color:var(--text-primary); }
+
+.tasks-header { display:flex; align-items:center; justify-content:space-between; }
+.section-lbl { font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px; color:var(--text-muted); }
+.task-count { background:rgba(124,58,237,0.12); color:var(--accent); font-size:11px; font-weight:800; padding:3px 10px; border-radius:var(--radius-pill); }
+
+.venture-block {
+  background:var(--surface); border:1.5px solid var(--border-med);
+  border-radius:var(--radius-lg); overflow:hidden;
+  backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
+  box-shadow:var(--shadow);
+}
+
+.vent-head {
+  display:flex; align-items:center; gap:9px;
+  padding:10px 15px; cursor:pointer;
+  border-bottom:1.5px solid var(--border);
+  transition:background 0.15s;
+}
+.vent-head:hover { background:rgba(124,58,237,0.04); }
+.vent-icon { width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+.vent-name { font-size:12.5px; font-weight:800; flex:1; }
+.vent-badge { font-size:10.5px; font-weight:800; padding:3px 9px; border-radius:var(--radius-pill); }
+.vent-chev { font-size:9px; color:var(--text-muted); }
+
+.task-item {
+  display:flex; align-items:center; gap:10px;
+  padding:9px 15px; border-bottom:1px solid var(--border);
+  cursor:pointer; transition:background 0.15s;
+}
+.task-item:last-child { border-bottom:none; }
+.task-item:hover { background:rgba(124,58,237,0.03); }
+
+.task-check {
+  width:19px; height:19px; border-radius:50%;
+  border:2px solid rgba(140,100,240,0.3);
+  flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  font-size:9px; cursor:pointer; transition:all 0.2s;
+  background:rgba(255,255,255,0.6);
+}
+.task-check.done  { background:var(--success); border-color:var(--success); color:white; }
+.task-check.active{ border-color:var(--accent); background:rgba(124,58,237,0.1); }
+
+.task-info { flex:1; min-width:0; }
+.task-name { font-size:12.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.task-name.done { text-decoration:line-through; color:var(--text-muted); }
+.task-meta { display:flex; align-items:center; gap:5px; margin-top:2px; }
+.tag { font-size:9.5px; font-weight:800; padding:2px 7px; border-radius:6px; }
+.tag-goal { background:rgba(124,58,237,0.1); color:#6d28d9; }
+.tag-fixed { background:rgba(148,163,184,0.15); color:#64748b; }
+.tag-cal { background:rgba(14,165,233,0.12); color:#0369a1; }
+.task-dur { font-size:10.5px; font-weight:700; color:var(--text-muted); }
+
+.play-btn {
+  width:30px; height:30px; border-radius:50%;
+  border:1.5px solid rgba(140,100,240,0.3);
+  background:rgba(255,255,255,0.7); color:var(--accent);
+  font-size:10px; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all 0.2s; flex-shrink:0;
+}
+.play-btn:hover { background:var(--accent); border-color:var(--accent); color:white; transform:scale(1.12); box-shadow:0 3px 12px rgba(124,58,237,0.4); }
+.play-btn.running { background:var(--accent); border-color:var(--accent); color:white; animation:pulse-ring 1.5s ease-in-out infinite; }
+@keyframes pulse-ring { 0%,100%{box-shadow:0 0 0 0 rgba(124,58,237,0.4);}50%{box-shadow:0 0 0 7px rgba(124,58,237,0);} }
+
+.completed-fold {
+  background:rgba(255,255,255,0.55); border:1.5px solid var(--border);
+  border-radius:var(--radius); backdrop-filter:var(--blur);
+}
+.fold-head { display:flex; align-items:center; gap:8px; padding:9px 15px; cursor:pointer; font-size:11.5px; font-weight:800; color:var(--text-muted); }
+
+/* ── TIMER STRIP ── */
+.timer-strip {
+  grid-column:1/-1;
+  display:flex; align-items:center; gap:12px; padding:0 22px;
+  background:rgba(255,255,255,0.8);
+  border-top:1.5px solid var(--border-med);
+  backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
+  box-shadow:0 -2px 16px rgba(60,20,120,0.07);
+}
+.timer-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); animation:blink 1.2s ease-in-out infinite; flex-shrink:0; }
+@keyframes blink { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.35;transform:scale(0.75);} }
+.timer-lbl { font-size:12.5px; font-weight:700; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.timer-val { font-size:16px; font-weight:900; letter-spacing:-0.5px; color:var(--accent); min-width:78px; text-align:right; font-variant-numeric:tabular-nums; }
+.timer-stop {
+  background:var(--danger-soft); border:1.5px solid rgba(239,68,68,0.35);
+  color:var(--danger); font-family:inherit; font-size:11.5px; font-weight:800;
+  padding:5px 13px; border-radius:var(--radius-pill); cursor:pointer; transition:all 0.2s;
+}
+.timer-stop:hover { background:rgba(239,68,68,0.2); }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  grid-column:2; grid-row:2;
+  border-left:1.5px solid var(--border-med);
+  padding:16px 15px;
+  overflow-y:auto; display:flex; flex-direction:column; gap:16px;
+  background:rgba(255,255,255,0.4);
+  backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
+  scrollbar-width:thin; scrollbar-color:rgba(124,58,237,0.15) transparent;
+}
+.sidebar-title { font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px; color:var(--text-muted); margin-bottom:9px; }
+.cal-badge { display:flex; align-items:center; gap:6px; background:rgba(14,165,233,0.1); border:1.5px solid rgba(14,165,233,0.3); border-radius:var(--radius-pill); padding:4px 10px; font-size:11px; font-weight:700; color:#0369a1; margin-bottom:12px; }
+.goal-card { background:rgba(255,255,255,0.75); border:1.5px solid var(--border); border-radius:var(--radius); padding:9px 11px; margin-bottom:6px; cursor:pointer; transition:all 0.2s; box-shadow:0 1px 8px rgba(60,20,120,0.06); }
+.goal-card:hover { transform:translateY(-1px); box-shadow:0 5px 16px rgba(60,20,120,0.12); }
+.goal-top { display:flex; align-items:flex-start; gap:7px; margin-bottom:6px; }
+.goal-icon { font-size:15px; flex-shrink:0; }
+.goal-text { font-size:11.5px; font-weight:700; line-height:1.3; flex:1; }
+.goal-pct { font-size:11px; font-weight:900; flex-shrink:0; margin-top:1px; }
+.goal-bar { height:5px; background:rgba(0,0,0,0.07); border-radius:var(--radius-pill); overflow:hidden; }
+.goal-bar-fill { height:100%; border-radius:var(--radius-pill); transition:width 0.6s ease; }
+.split-item { display:flex; align-items:center; gap:7px; margin-bottom:8px; }
+.split-icon { font-size:13px; flex-shrink:0; }
+.split-name { font-size:11.5px; font-weight:700; color:var(--text-secondary); flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.split-bar { width:68px; height:5px; background:rgba(0,0,0,0.07); border-radius:var(--radius-pill); overflow:hidden; }
+.split-bar-fill { height:100%; border-radius:var(--radius-pill); }
+.split-val { font-size:11px; font-weight:900; color:var(--text-primary); min-width:26px; text-align:right; }
+
+/* ── FAB ── */
+.fab {
+  position:fixed; bottom:74px; right:22px;
+  width:50px; height:50px; border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),#4f46e5);
+  border:none; color:white; font-size:26px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; box-shadow:0 4px 20px rgba(124,58,237,0.45);
+  transition:all 0.25s; z-index:100;
+  font-family:inherit; font-weight:300; line-height:1;
+}
+.fab:hover { transform:scale(1.12) rotate(90deg); box-shadow:0 8px 30px rgba(124,58,237,0.6); }
+
+/* ══════════════════════════════════════════
+   WALLPAPER PICKER  (Gmail-style panel)
+══════════════════════════════════════════ */
+.wp-backdrop {
+  display:none;
+  position:fixed; inset:0; z-index:200;
+  background:rgba(15,5,40,0.45);
+  backdrop-filter:blur(4px);
+  align-items:flex-start; justify-content:flex-end;
+}
+
+.wp-backdrop.open { display:flex; }
+
+.wp-panel {
+  width:360px; height:100vh;
+  background:rgba(255,255,255,0.95);
+  backdrop-filter:var(--blur);
+  border-left:1.5px solid var(--border-med);
+  display:flex; flex-direction:column;
+  box-shadow:-8px 0 40px rgba(60,20,120,0.18);
+  animation:slide-in 0.28s cubic-bezier(.4,0,.2,1);
+}
+
+@keyframes slide-in { from{transform:translateX(100%);opacity:0;} to{transform:translateX(0);opacity:1;} }
+
+.wp-panel-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px 20px 14px;
+  border-bottom:1.5px solid var(--border);
+}
+
+.wp-panel-title { font-size:16px; font-weight:900; color:var(--text-primary); }
+
+.wp-close {
+  width:32px; height:32px; border-radius:50%;
+  background:rgba(0,0,0,0.05); border:none;
+  font-size:16px; cursor:pointer; display:flex;
+  align-items:center; justify-content:center;
+  color:var(--text-secondary); transition:all 0.2s;
+}
+.wp-close:hover { background:rgba(239,68,68,0.1); color:var(--danger); }
+
+.wp-panel-body { flex:1; overflow-y:auto; padding:16px 20px 20px; scrollbar-width:thin; }
+
+.wp-section-title {
+  font-size:10px; font-weight:800; text-transform:uppercase;
+  letter-spacing:1.2px; color:var(--text-muted); margin:0 0 10px;
+}
+
+.wp-grid {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:10px; margin-bottom:20px;
+}
+
+.wp-swatch {
+  position:relative; border-radius:12px;
+  aspect-ratio:16/9; cursor:pointer;
+  border:2.5px solid transparent;
+  transition:all 0.2s; overflow:hidden;
+  box-shadow:0 2px 8px rgba(60,20,120,0.1);
+}
+
+.wp-swatch:hover { transform:scale(1.03); box-shadow:0 4px 16px rgba(60,20,120,0.2); }
+.wp-swatch.selected { border-color:var(--accent); box-shadow:0 0 0 3px rgba(124,58,237,0.2); }
+
+.wp-swatch-label {
+  position:absolute; bottom:0; left:0; right:0;
+  padding:5px 8px;
+  background:linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+  font-size:10px; font-weight:800; color:white;
+  letter-spacing:0.3px;
+}
+
+.wp-swatch-check {
+  position:absolute; top:6px; right:6px;
+  width:18px; height:18px; border-radius:50%;
+  background:var(--accent); color:white;
+  font-size:10px; display:none;
+  align-items:center; justify-content:center;
+}
+.wp-swatch.selected .wp-swatch-check { display:flex; }
+
+/* Swatch previews (CSS gradients) */
+.sw-poke-dusk {
+  background:
+    radial-gradient(ellipse 40% 30% at 50% 70%, #fbbf24 0%, transparent 55%),
+    linear-gradient(180deg, #1e0a3c 0%, #7e22ce 45%, #c2410c 70%, #fde68a 100%);
+}
+
+.sw-dbz {
+  background:
+    radial-gradient(ellipse 60% 60% at 50% 50%, #fef08a 0%, #f97316 45%, #dc2626 70%, #1e1b4b 100%);
+}
+
+.sw-midnight {
+  background: linear-gradient(180deg, #020617 0%, #1e1b4b 55%, #312e81 80%, #1e3a5f 100%);
+}
+
+.sw-cherry {
+  background: linear-gradient(160deg, #fdf2f8 0%, #fbcfe8 50%, #f472b6 100%);
+}
+
+.sw-ocean {
+  background: linear-gradient(180deg, #0ea5e9 0%, #0284c7 40%, #0c4a6e 100%);
+}
+
+.sw-forest {
+  background: linear-gradient(160deg, #14532d 0%, #052e16 60%, #1a2e05 100%);
+}
+
+.sw-grape {
+  background: linear-gradient(135deg, #4a1d96 0%, #2e1065 60%, #1e0a3c 100%);
+}
+
+.sw-slate {
+  background: linear-gradient(135deg, #334155 0%, #1e293b 60%, #0f172a 100%);
+}
+
+/* Custom upload */
+.wp-upload-btn {
+  width:100%; padding:12px;
+  background:rgba(124,58,237,0.07); border:1.5px dashed rgba(124,58,237,0.3);
+  border-radius:12px; cursor:pointer; font-family:inherit;
+  font-size:12px; font-weight:800; color:var(--accent);
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  transition:all 0.2s;
+}
+.wp-upload-btn:hover { background:rgba(124,58,237,0.12); border-color:var(--accent); }
+
+.wp-panel-footer {
+  padding:14px 20px;
+  border-top:1.5px solid var(--border);
+  display:flex; gap:10px;
+}
+
+.wp-apply-btn {
+  flex:1; padding:10px;
+  background:var(--accent); color:white; border:none;
+  border-radius:var(--radius-pill); font-family:inherit;
+  font-size:13px; font-weight:800; cursor:pointer;
+  box-shadow:0 2px 12px rgba(124,58,237,0.35);
+  transition:all 0.2s;
+}
+.wp-apply-btn:hover { background:#6d28d9; transform:translateY(-1px); box-shadow:0 4px 18px rgba(124,58,237,0.4); }
+
+.wp-cancel-btn {
+  padding:10px 18px;
+  background:rgba(0,0,0,0.05); border:1.5px solid var(--border);
+  border-radius:var(--radius-pill); font-family:inherit;
+  font-size:13px; font-weight:800; color:var(--text-secondary);
+  cursor:pointer; transition:all 0.2s;
+}
+.wp-cancel-btn:hover { background:rgba(0,0,0,0.08); }
+
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(124,58,237,0.2); border-radius:4px; }
+</style>
+</head>
+<body>
+
+<!-- Wallpaper -->
+<div class="wallpaper wp-poke-dusk" id="wallpaper"></div>
+
+<!-- App -->
+<div class="app">
+
+  <header class="header">
+    <div class="logo">axio<em>m</em></div>
+    <div class="header-center">
+      <div class="header-day">Thursday, June 5</div>
+      <div class="header-date-sub">Week 23 · 2026</div>
+    </div>
+    <div class="header-right">
+      <div class="streak-pill">🔥 12-day streak</div>
+      <button class="wp-btn" onclick="openPicker()">🎨 Wallpaper</button>
+      <div class="avatar">A</div>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <div class="overflow-banner">
+      <span style="font-size:17px;">⚠️</span>
+      You've packed <strong style="margin:0 3px;">7h 30m</strong> into a <strong style="margin:0 3px;">6h day.</strong> Something needs to move.
+    </div>
+
+    <div class="card">
+      <div class="card-title">Time Budget
+        <div class="toggle-pills">
+          <button class="active">Day</button><button>Week</button><button>Month</button>
+        </div>
+      </div>
+      <div class="budget-stats">
+        <div class="stat-pill"><span class="stat-pill-val">6h</span><span class="stat-pill-lbl">Available</span></div>
+        <div class="stat-pill"><span class="stat-pill-val" style="color:var(--warning);">7h 30m</span><span class="stat-pill-lbl">Allocated</span></div>
+        <div class="stat-pill"><span class="stat-pill-val" style="color:var(--danger);">−1h 30m</span><span class="stat-pill-lbl">Overflow</span></div>
+        <div class="stat-pill"><span class="stat-pill-val" style="color:var(--success);">1h 45m</span><span class="stat-pill-lbl">Logged</span></div>
+      </div>
+      <div class="budget-bar-track">
+        <div class="budget-bar-fill">
+          <div class="budget-seg" style="width:29%;background:#94a3b8;"></div>
+          <div class="budget-seg" style="width:13%;background:#f97316;"></div>
+          <div class="budget-seg" style="width:18%;background:#8b5cf6;"></div>
+          <div class="budget-seg" style="width:11%;background:#06b6d4;"></div>
+          <div class="budget-seg" style="width:7%;background:#22c55e;"></div>
+          <div class="budget-seg" style="width:7%;background:#f59e0b;"></div>
+          <div class="budget-seg" style="width:15%;background:rgba(148,163,184,0.4);"></div>
+        </div>
+      </div>
+      <div class="bar-labels">
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:#94a3b8;"></div>Sleep 7h</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:#f97316;"></div>DeveLearn 2h</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:#8b5cf6;"></div>Zuma 3h</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:#06b6d4;"></div>Next 2h</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:#22c55e;"></div>Fitness 1h</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:#f59e0b;"></div>Leisure 1h</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:rgba(148,163,184,0.4);"></div>Untracked 8h</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">24-Hour Allocation
+        <div class="toggle-pills">
+          <button class="active">Today</button><button>Week</button><button>Month</button>
+        </div>
+      </div>
+      <div class="ring-body">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 128 128" width="128" height="128">
+            <circle cx="64" cy="64" r="46" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="13"/>
+            <circle cx="64" cy="64" r="46" fill="none" stroke="#94a3b8" stroke-width="13" stroke-dasharray="288.5" stroke-dashoffset="0" transform="rotate(-90 64 64)"/>
+            <circle cx="64" cy="64" r="46" fill="none" stroke="#f97316" stroke-width="13" stroke-dasharray="48.1 240.4" stroke-dashoffset="-96.2" transform="rotate(-90 64 64)"/>
+            <circle cx="64" cy="64" r="46" fill="none" stroke="#8b5cf6" stroke-width="13" stroke-dasharray="72.1 216.4" stroke-dashoffset="-144.3" transform="rotate(-90 64 64)"/>
+            <circle cx="64" cy="64" r="46" fill="none" stroke="#06b6d4" stroke-width="13" stroke-dasharray="48.1 240.4" stroke-dashoffset="-216.4" transform="rotate(-90 64 64)"/>
+            <circle cx="64" cy="64" r="46" fill="none" stroke="#22c55e" stroke-width="13" stroke-dasharray="24.0 264.5" stroke-dashoffset="-264.5" transform="rotate(-90 64 64)"/>
+            <circle cx="64" cy="64" r="46" fill="none" stroke="#f59e0b" stroke-width="13" stroke-dasharray="24.0 264.5" stroke-dashoffset="-288.5" transform="rotate(-90 64 64)"/>
+          </svg>
+          <div class="ring-center"><span class="ring-cv">8h</span><span class="ring-cl">untracked</span></div>
+        </div>
+        <div class="ring-legend">
+          <div class="leg"><div class="leg-dot" style="background:#94a3b8;"></div>Sleep<span class="leg-val">7h</span></div>
+          <div class="leg"><div class="leg-dot" style="background:#f97316;"></div>DeveLearn<span class="leg-val">2h</span></div>
+          <div class="leg"><div class="leg-dot" style="background:#8b5cf6;"></div>Zuma AI<span class="leg-val">3h</span></div>
+          <div class="leg"><div class="leg-dot" style="background:#06b6d4;"></div>Next/WorkIn<span class="leg-val">2h</span></div>
+          <div class="leg"><div class="leg-dot" style="background:#22c55e;"></div>Fitness<span class="leg-val">1h</span></div>
+          <div class="leg"><div class="leg-dot" style="background:#f59e0b;"></div>Leisure<span class="leg-val">1h</span></div>
+          <div class="leg"><div class="leg-dot" style="background:rgba(148,163,184,0.4);"></div>Untracked<span class="leg-val" style="color:var(--text-muted);">8h</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tasks-header">
+      <span class="section-lbl">Today's Tasks</span>
+      <span class="task-count">11 tasks · 3 done</span>
+    </div>
+
+    <div class="venture-block">
+      <div class="vent-head">
+        <div class="vent-icon" style="background:rgba(249,115,22,0.12);">📚</div>
+        <span class="vent-name">DeveLearn</span>
+        <span class="vent-badge" style="background:rgba(249,115,22,0.12);color:#c2410c;">2h 30m</span>
+        <span class="vent-chev">▾</span>
+      </div>
+      <div class="task-item">
+        <div class="task-check active"></div>
+        <div class="task-info">
+          <div class="task-name">Prepare Python Batch 4 — Functions & Scope</div>
+          <div class="task-meta"><span class="tag tag-goal">↗ Launch Batch 4 Jun 15</span><span class="task-dur">90m</span></div>
+        </div>
+        <button class="play-btn running">■</button>
+      </div>
+      <div class="task-item">
+        <div class="task-check"></div>
+        <div class="task-info">
+          <div class="task-name">Review franchise SOP draft v2</div>
+          <div class="task-meta"><span class="task-dur">45m</span></div>
+        </div>
+        <button class="play-btn">▶</button>
+      </div>
+      <div class="task-item">
+        <div class="task-check" style="opacity:0.35;cursor:default;"></div>
+        <div class="task-info">
+          <div class="task-name">Faculty meeting — curriculum alignment</div>
+          <div class="task-meta"><span class="tag tag-cal">📅 Calendar</span><span class="task-dur">11:00 AM · 1h</span></div>
+        </div>
+        <button class="play-btn" style="opacity:0.25;cursor:default;">▶</button>
+      </div>
+    </div>
+
+    <div class="venture-block">
+      <div class="vent-head">
+        <div class="vent-icon" style="background:rgba(139,92,246,0.12);">🤖</div>
+        <span class="vent-name">Zuma AI</span>
+        <span class="vent-badge" style="background:rgba(139,92,246,0.12);color:#6d28d9;">3h</span>
+        <span class="vent-chev">▾</span>
+      </div>
+      <div class="task-item">
+        <div class="task-check done">✓</div>
+        <div class="task-info"><div class="task-name done">Write Play Store update release notes</div><div class="task-meta"><span class="task-dur">30m · logged 28m</span></div></div>
+        <button class="play-btn" style="opacity:0.25;cursor:default;">▶</button>
+      </div>
+      <div class="task-item">
+        <div class="task-check"></div>
+        <div class="task-info">
+          <div class="task-name">MUNKEE science outfit — AI image prompts</div>
+          <div class="task-meta"><span class="tag tag-goal">↗ Q3 Instagram growth</span><span class="task-dur">1h</span></div>
+        </div>
+        <button class="play-btn">▶</button>
+      </div>
+      <div class="task-item">
+        <div class="task-check" style="opacity:0.35;cursor:default;"></div>
+        <div class="task-info">
+          <div class="task-name">Partner sync with Zubin — ZumaLM roadmap</div>
+          <div class="task-meta"><span class="tag tag-cal">📅 Calendar</span><span class="task-dur">4:00 PM · 1h 30m</span></div>
+        </div>
+        <button class="play-btn" style="opacity:0.25;cursor:default;">▶</button>
+      </div>
+    </div>
+
+    <div class="venture-block">
+      <div class="vent-head">
+        <div class="vent-icon" style="background:rgba(6,182,212,0.12);">⚡</div>
+        <span class="vent-name">Next Platforms / WorkIn</span>
+        <span class="vent-badge" style="background:rgba(6,182,212,0.12);color:#0e7490;">1h 30m</span>
+        <span class="vent-chev">▾</span>
+      </div>
+      <div class="task-item">
+        <div class="task-check done">✓</div>
+        <div class="task-info"><div class="task-name done">WorkIn pilot proposal — JICA draft v1</div><div class="task-meta"><span class="task-dur">1h · logged 1h 12m</span></div></div>
+        <button class="play-btn" style="opacity:0.25;cursor:default;">▶</button>
+      </div>
+      <div class="task-item">
+        <div class="task-check"></div>
+        <div class="task-info"><div class="task-name">Review P9 onboarding flow mockups</div><div class="task-meta"><span class="task-dur">30m</span></div></div>
+        <button class="play-btn">▶</button>
+      </div>
+    </div>
+
+    <div class="venture-block">
+      <div class="vent-head">
+        <div class="vent-icon" style="background:rgba(34,197,94,0.12);">💪</div>
+        <span class="vent-name">Health & Personal</span>
+        <span class="vent-badge" style="background:rgba(34,197,94,0.12);color:#15803d;">2h</span>
+        <span class="vent-chev">▾</span>
+      </div>
+      <div class="task-item">
+        <div class="task-check done">✓</div>
+        <div class="task-info"><div class="task-name done">Morning workout — upper body</div><div class="task-meta"><span class="tag tag-fixed">Recurring</span><span class="task-dur">1h · logged 55m</span></div></div>
+        <button class="play-btn" style="opacity:0.25;cursor:default;">▶</button>
+      </div>
+      <div class="task-item">
+        <div class="task-check"></div>
+        <div class="task-info">
+          <div class="task-name">LinkedIn post — Python list comprehensions</div>
+          <div class="task-meta"><span class="tag tag-goal">↗ Personal Brand</span><span class="task-dur">30m</span></div>
+        </div>
+        <button class="play-btn">▶</button>
+      </div>
+    </div>
+
+    <div class="completed-fold">
+      <div class="fold-head">▶ &nbsp; Completed today &nbsp;(3 tasks) ✓</div>
+    </div>
+    <div style="height:12px;"></div>
+  </main>
+
+  <aside class="sidebar">
+    <div>
+      <div class="sidebar-title">This week's goals</div>
+      <div class="cal-badge">📅 Google Calendar · 3 events today</div>
+      <div class="goal-card">
+        <div class="goal-top"><span class="goal-icon">📚</span><span class="goal-text">Complete Batch 4 lesson plan — all 6 sessions</span><span class="goal-pct" style="color:#c2410c;">33%</span></div>
+        <div class="goal-bar"><div class="goal-bar-fill" style="width:33%;background:#f97316;"></div></div>
+      </div>
+      <div class="goal-card">
+        <div class="goal-top"><span class="goal-icon">🤖</span><span class="goal-text">Ship ZumaLM v1.2 to production</span><span class="goal-pct" style="color:#6d28d9;">70%</span></div>
+        <div class="goal-bar"><div class="goal-bar-fill" style="width:70%;background:#8b5cf6;"></div></div>
+      </div>
+      <div class="goal-card">
+        <div class="goal-top"><span class="goal-icon">✍️</span><span class="goal-text">Publish 3 technical LinkedIn posts</span><span class="goal-pct" style="color:#9d174d;">33%</span></div>
+        <div class="goal-bar"><div class="goal-bar-fill" style="width:33%;background:#ec4899;"></div></div>
+      </div>
+      <div class="goal-card">
+        <div class="goal-top"><span class="goal-icon">💪</span><span class="goal-text">5 gym sessions this week</span><span class="goal-pct" style="color:#15803d;">60%</span></div>
+        <div class="goal-bar"><div class="goal-bar-fill" style="width:60%;background:#22c55e;"></div></div>
+      </div>
+    </div>
+    <div>
+      <div class="sidebar-title">Week so far</div>
+      <div class="split-item"><span class="split-icon">📚</span><span class="split-name">DeveLearn</span><div class="split-bar"><div class="split-bar-fill" style="width:55%;background:#f97316;"></div></div><span class="split-val">9h</span></div>
+      <div class="split-item"><span class="split-icon">🤖</span><span class="split-name">Zuma AI</span><div class="split-bar"><div class="split-bar-fill" style="width:72%;background:#8b5cf6;"></div></div><span class="split-val">14h</span></div>
+      <div class="split-item"><span class="split-icon">⚡</span><span class="split-name">Next / WorkIn</span><div class="split-bar"><div class="split-bar-fill" style="width:30%;background:#06b6d4;"></div></div><span class="split-val">5h</span></div>
+      <div class="split-item"><span class="split-icon">✍️</span><span class="split-name">Personal Brand</span><div class="split-bar"><div class="split-bar-fill" style="width:20%;background:#ec4899;"></div></div><span class="split-val">3h</span></div>
+      <div class="split-item"><span class="split-icon">💪</span><span class="split-name">Fitness</span><div class="split-bar"><div class="split-bar-fill" style="width:48%;background:#22c55e;"></div></div><span class="split-val">3h</span></div>
+      <div class="split-item"><span class="split-icon">🎮</span><span class="split-name">Leisure</span><div class="split-bar"><div class="split-bar-fill" style="width:35%;background:#f59e0b;"></div></div><span class="split-val">5h</span></div>
+      <div class="split-item" style="opacity:0.5;"><span class="split-icon">❔</span><span class="split-name">Untracked</span><div class="split-bar"><div class="split-bar-fill" style="width:85%;background:rgba(148,163,184,0.4);"></div></div><span class="split-val">38h</span></div>
+    </div>
+  </aside>
+
+  <div class="timer-strip">
+    <div class="timer-dot"></div>
+    <span class="timer-lbl">Prepare Python Batch 4 — Functions & Scope</span>
+    <span class="timer-val" id="timer">00:23:14</span>
+    <button class="timer-stop">■ Stop</button>
+  </div>
+</div>
+
+<button class="fab">+</button>
+
+<!-- ── WALLPAPER PICKER PANEL ── -->
+<div class="wp-backdrop" id="wpBackdrop" onclick="handleBackdropClick(event)">
+  <div class="wp-panel">
+    <div class="wp-panel-header">
+      <span class="wp-panel-title">🎨 Choose Wallpaper</span>
+      <button class="wp-close" onclick="closePicker()">✕</button>
+    </div>
+
+    <div class="wp-panel-body">
+
+      <p class="wp-section-title" style="margin-bottom:14px;color:var(--text-secondary);font-size:11.5px;font-weight:700;text-transform:none;letter-spacing:0;">Click a wallpaper to preview it instantly. Apply to save.</p>
+
+      <p class="wp-section-title">🎮 Gaming &amp; Anime</p>
+      <div class="wp-grid">
+        <div class="wp-swatch sw-poke-dusk selected" data-wp="wp-poke-dusk" onclick="previewWp(this)">
+          <div class="wp-swatch-label">Pokémon Dusk</div>
+          <div class="wp-swatch-check">✓</div>
+        </div>
+        <div class="wp-swatch sw-dbz" data-wp="wp-dbz" onclick="previewWp(this)">
+          <div class="wp-swatch-label">Super Saiyan</div>
+          <div class="wp-swatch-check">✓</div>
+        </div>
+      </div>
+
+      <p class="wp-section-title">🌌 Atmospheric</p>
+      <div class="wp-grid">
+        <div class="wp-swatch sw-midnight" data-wp="wp-midnight" onclick="previewWp(this)">
+          <div class="wp-swatch-label">Midnight Route</div>
+          <div class="wp-swatch-check">✓</div>
+        </div>
+        <div class="wp-swatch sw-ocean" data-wp="wp-ocean" onclick="previewWp(this)">
+          <div class="wp-swatch-label">Ocean Calm</div>
+          <div class="wp-swatch-check">✓</div>
+        </div>
+      </div>
+
+      <p class="wp-section-title">🌸 Light &amp; Soft</p>
+      <div class="wp-grid">
+        <div class="wp-swatch sw-cherry" data-wp="wp-cherry" onclick="previewWp(this)">
+          <div class="wp-swatch-label">Cherry Blossom</div>
+          <div class="wp-swatch-check">✓</div>
+        </div>
+        <div class="wp-swatch" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7,#bbf7d0);" data-wp="wp-mint" onclick="previewWp(this)">
+          <div class="wp-swatch-label">Mint Fresh</div>
+          <div class="wp-swatch-check">✓</div>
+        </div>
+      </div>
+
+      <p class="wp-section-title">🎨 Solid &amp; Minimal</p>
+      <div class="wp-grid">
+        <div class="wp-swatch sw-grape" data-wp="wp-grape" onclick="previewWp(this)">
+          <div class="wp-swatch-label">Deep Grape</div>
+          <div class="wp-swatch-check">✓</div>
+        </div>
+        <div class="wp-swatch sw-forest" data-wp="wp-forest" onclick="previewWp(this)">
+          <div class="wp-swatch-label">Forest</div>
+          <div class="wp-swatch-check">✓</div>
+        </div>
+        <div class="wp-swatch sw-slate" data-wp="wp-slate" onclick="previewWp(this)">
+          <div class="wp-swatch-label">Slate</div>
+          <div class="wp-swatch-check">✓</div>
+        </div>
+        <div class="wp-swatch" style="background:linear-gradient(135deg,#1c1917,#0c0a09);" data-wp="wp-black" onclick="previewWp(this)">
+          <div class="wp-swatch-label">Pure Dark</div>
+          <div class="wp-swatch-check">✓</div>
+        </div>
+      </div>
+
+      <p class="wp-section-title" style="margin-top:4px;">📁 Custom</p>
+      <button class="wp-upload-btn">📸 &nbsp; Upload your own image</button>
+
+    </div>
+
+    <div class="wp-panel-footer">
+      <button class="wp-cancel-btn" onclick="cancelPicker()">Cancel</button>
+      <button class="wp-apply-btn" onclick="applyWp()">Apply wallpaper</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Timer
+  let s = 23*60+14;
+  setInterval(() => {
+    s++;
+    const m = String(Math.floor(s/60)).padStart(2,'0');
+    const sec = String(s%60).padStart(2,'0');
+    document.getElementById('timer').textContent = `00:${m}:${sec}`;
+  }, 1000);
+
+  // Toggle pills
+  document.querySelectorAll('.toggle-pills button').forEach(btn => {
+    btn.addEventListener('click', function() {
+      this.closest('.toggle-pills').querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  // Wallpaper picker
+  const wallpaperClasses = [
+    'wp-poke-dusk','wp-dbz','wp-midnight','wp-cherry','wp-ocean',
+    'wp-slate','wp-forest','wp-grape','wp-black','wp-mint'
+  ];
+
+  const customWps = {
+    'wp-mint':  'linear-gradient(135deg,#f0fdf4,#dcfce7,#bbf7d0)',
+    'wp-black': 'linear-gradient(135deg,#1c1917,#0c0a09)',
+  };
+
+  let activeWp = 'wp-poke-dusk';
+  let previewedWp = 'wp-poke-dusk';
+
+  function openPicker() {
+    document.getElementById('wpBackdrop').classList.add('open');
+  }
+
+  function closePicker() {
+    // revert to active if user just previewed without applying
+    applyWallpaperClass(activeWp);
+    document.getElementById('wpBackdrop').classList.remove('open');
+  }
+
+  function cancelPicker() { closePicker(); }
+
+  function handleBackdropClick(e) {
+    if (e.target === document.getElementById('wpBackdrop')) closePicker();
+  }
+
+  function applyWallpaperClass(wpClass) {
+    const el = document.getElementById('wallpaper');
+    el.className = 'wallpaper';
+    if (customWps[wpClass]) {
+      el.style.background = customWps[wpClass];
+      el.style.backgroundSize = 'cover';
+    } else {
+      el.classList.add(wpClass);
+      el.style.background = '';
+    }
+  }
+
+  function previewWp(el) {
+    // deselect all
+    document.querySelectorAll('.wp-swatch').forEach(s => s.classList.remove('selected'));
+    el.classList.add('selected');
+    previewedWp = el.dataset.wp;
+    applyWallpaperClass(previewedWp);
+  }
+
+  function applyWp() {
+    activeWp = previewedWp;
+    document.getElementById('wpBackdrop').classList.remove('open');
+  }
+</script>
+</body>
+</html>

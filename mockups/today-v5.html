@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Axiom — Today v5</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --surface: rgba(255,255,255,0.72);
+  --surface-2: rgba(255,255,255,0.45);
+  --border: rgba(120,80,220,0.15);
+  --border-med: rgba(120,80,220,0.22);
+  --shadow: 0 4px 24px rgba(60,20,120,0.12);
+  --text-primary: #1a1535;
+  --text-secondary: #5c5280;
+  --text-muted: #9d94c0;
+  --accent: #7c3aed;
+  --danger: #ef4444; --danger-soft: rgba(239,68,68,0.10);
+  --success: #16a34a;
+  --warning: #d97706;
+  --fire: #f43f5e;
+  --radius: 16px; --radius-sm: 10px; --radius-lg: 22px; --radius-pill: 100px;
+  --blur: blur(20px);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Nunito',sans-serif; color:var(--text-primary); min-height:100vh; overflow:hidden; }
+
+/* Wallpaper (Pokémon Dusk) */
+.wallpaper { position:fixed; inset:0; z-index:0; }
+.wp-poke-dusk {
+  background:
+    radial-gradient(ellipse 40% 30% at 50% 62%, #fef3c7 0%, #fbbf24 15%, transparent 55%),
+    radial-gradient(ellipse 80% 20% at 50% 68%, rgba(251,146,60,0.55) 0%, transparent 70%),
+    linear-gradient(180deg,#1e0a3c 0%,#3b0764 20%,#7e22ce 45%,#c2410c 65%,#ea580c 78%,#fb923c 88%,#fde68a 100%);
+}
+.wp-poke-dusk::before {
+  content:''; position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse 120% 25% at 20% 72%, #1a0533 50%, transparent 51%),
+    radial-gradient(ellipse 80% 22% at 60% 70%, #200840 50%, transparent 51%),
+    radial-gradient(ellipse 100% 20% at 85% 73%, #1a0533 50%, transparent 51%),
+    linear-gradient(to bottom, transparent 68%, #0f0320 68%);
+}
+.wp-poke-dusk::after {
+  content:''; position:absolute; inset:0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 10% 8%, white, transparent),
+    radial-gradient(1px 1px at 22% 5%, white, transparent),
+    radial-gradient(1.5px 1.5px at 35% 12%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 50% 6%, white, transparent),
+    radial-gradient(1.5px 1.5px at 65% 9%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1px 1px at 78% 4%, white, transparent),
+    radial-gradient(1.5px 1.5px at 90% 11%, rgba(255,255,255,0.9), transparent),
+    radial-gradient(ellipse 120px 35px at 15% 28%, rgba(233,213,255,0.45), transparent),
+    radial-gradient(ellipse 110px 32px at 82% 24%, rgba(254,215,170,0.45), transparent),
+    linear-gradient(to bottom, transparent 63%, rgba(124,58,237,0.18) 65%, rgba(30,10,60,0.7) 80%, #0f0320 100%);
+}
+
+/* Shell — added bottom nav row */
+.app {
+  position:relative; z-index:1; display:grid;
+  grid-template-rows: 58px 1fr 56px 60px;
+  grid-template-columns: 1fr 288px;
+  height:100vh; max-width:1380px; margin:0 auto;
+}
+
+/* Header */
+.header {
+  grid-column:1/-1; display:flex; align-items:center; justify-content:space-between;
+  padding:0 22px; background:rgba(255,255,255,0.68);
+  backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
+  border-bottom:1px solid var(--border-med); box-shadow:0 2px 16px rgba(60,20,120,0.07);
+}
+.logo { font-size:20px; font-weight:900; letter-spacing:-0.5px; color:var(--accent); }
+.logo em { color:#f97316; font-style:normal; }
+.header-center { display:flex; flex-direction:column; align-items:center; }
+.header-day { font-size:14px; font-weight:800; }
+.header-date-sub { font-size:11px; color:var(--text-muted); font-weight:600; }
+.header-right { display:flex; align-items:center; gap:10px; }
+.streak-pill { background:rgba(251,191,36,0.18); border:1.5px solid rgba(251,191,36,0.5); border-radius:var(--radius-pill); padding:4px 11px; font-size:12px; font-weight:800; color:#92400e; display:flex; align-items:center; gap:4px; }
+.wp-btn { display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.55); border:1.5px solid var(--border-med); border-radius:var(--radius-pill); padding:5px 12px; font-family:inherit; font-size:11.5px; font-weight:800; color:var(--text-secondary); cursor:pointer; }
+.avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,var(--accent),#ec4899); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:900; color:white; }
+
+/* Main */
+.main { grid-column:1; grid-row:2; overflow-y:auto; padding:16px 18px 16px 22px; display:flex; flex-direction:column; gap:12px; scrollbar-width:thin; scrollbar-color:rgba(124,58,237,0.2) transparent; }
+
+/* Card */
+.card { background:var(--surface); border:1.5px solid var(--border-med); border-radius:var(--radius-lg); padding:16px 18px; backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur); box-shadow:var(--shadow); }
+.card-title { font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px; color:var(--text-muted); margin-bottom:12px; display:flex; align-items:center; justify-content:space-between; }
+.toggle-pills { display:flex; gap:3px; background:rgba(255,255,255,0.55); border-radius:var(--radius-pill); padding:3px; border:1.5px solid var(--border-med); }
+.toggle-pills button { background:none; border:none; font-family:inherit; font-size:10.5px; font-weight:800; padding:4px 11px; border-radius:var(--radius-pill); cursor:pointer; color:var(--text-muted); }
+.toggle-pills button.active { background:var(--accent); color:white; }
+
+/* Nudge banners */
+.nudge-row { display:flex; gap:10px; }
+.nudge {
+  flex:1; border-radius:var(--radius); padding:10px 14px;
+  display:flex; align-items:center; gap:9px; font-size:12.5px; font-weight:700;
+  backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur); cursor:pointer;
+}
+.nudge-overflow { background:rgba(239,68,68,0.12); border:1.5px solid rgba(239,68,68,0.35); color:#b91c1c; }
+.nudge-deleg { background:rgba(124,58,237,0.1); border:1.5px solid rgba(124,58,237,0.3); color:#6d28d9; }
+.nudge-badge { margin-left:auto; background:rgba(124,58,237,0.2); color:#6d28d9; font-size:11px; font-weight:900; padding:2px 8px; border-radius:var(--radius-pill); }
+
+/* Budget */
+.budget-stats { display:flex; gap:8px; margin-bottom:13px; }
+.stat-pill { flex:1; background:rgba(255,255,255,0.6); border:1.5px solid var(--border); border-radius:var(--radius); padding:9px 11px; display:flex; flex-direction:column; gap:2px; }
+.stat-pill-val { font-size:17px; font-weight:900; letter-spacing:-0.5px; }
+.stat-pill-lbl { font-size:9.5px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
+.budget-bar-track { height:11px; border-radius:var(--radius-pill); background:rgba(255,255,255,0.5); border:1.5px solid var(--border-med); overflow:hidden; margin-bottom:9px; }
+.budget-bar-fill { display:flex; height:100%; }
+.budget-seg { height:100%; }
+.bar-labels { display:flex; flex-wrap:wrap; gap:6px 12px; }
+.bar-lbl { display:flex; align-items:center; gap:5px; font-size:10.5px; font-weight:700; color:var(--text-secondary); }
+.bar-lbl-dot { width:8px; height:8px; border-radius:3px; flex-shrink:0; }
+
+/* Ring */
+.ring-body { display:flex; align-items:center; gap:18px; }
+.ring-wrap { position:relative; width:128px; height:128px; flex-shrink:0; }
+.ring-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.ring-cv { font-size:19px; font-weight:900; letter-spacing:-1px; color:var(--fire); }
+.ring-cl { font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); }
+.ring-legend { display:grid; grid-template-columns:1fr 1fr; gap:5px 14px; flex:1; }
+.leg { display:flex; align-items:center; gap:5px; font-size:10.5px; font-weight:700; color:var(--text-secondary); }
+.leg-dot { width:9px; height:9px; border-radius:3px; flex-shrink:0; }
+.leg-val { margin-left:auto; font-size:10.5px; font-weight:900; color:var(--text-primary); }
+
+/* Tasks */
+.tasks-header { display:flex; align-items:center; justify-content:space-between; }
+.section-lbl { font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px; color:var(--text-muted); }
+.task-count { background:rgba(124,58,237,0.12); color:var(--accent); font-size:11px; font-weight:800; padding:3px 10px; border-radius:var(--radius-pill); }
+.venture-block { background:var(--surface); border:1.5px solid var(--border-med); border-radius:var(--radius-lg); overflow:hidden; backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur); box-shadow:var(--shadow); }
+.vent-head { display:flex; align-items:center; gap:9px; padding:10px 15px; cursor:pointer; border-bottom:1.5px solid var(--border); }
+.vent-icon { width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+.vent-name { font-size:12.5px; font-weight:800; flex:1; }
+.vent-badge { font-size:10.5px; font-weight:800; padding:3px 9px; border-radius:var(--radius-pill); }
+.vent-chev { font-size:9px; color:var(--text-muted); }
+.task-item { display:flex; align-items:center; gap:10px; padding:9px 15px; border-bottom:1px solid var(--border); cursor:pointer; }
+.task-item:last-child { border-bottom:none; }
+.task-check { width:19px; height:19px; border-radius:50%; border:2px solid rgba(140,100,240,0.3); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:9px; background:rgba(255,255,255,0.6); }
+.task-check.done { background:var(--success); border-color:var(--success); color:white; }
+.task-check.active { border-color:var(--accent); background:rgba(124,58,237,0.1); }
+.task-info { flex:1; min-width:0; }
+.task-name { font-size:12.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.task-name.done { text-decoration:line-through; color:var(--text-muted); }
+.task-meta { display:flex; align-items:center; gap:5px; margin-top:3px; }
+.tag { font-size:9.5px; font-weight:800; padding:2px 7px; border-radius:6px; }
+.tag-goal { background:rgba(124,58,237,0.1); color:#6d28d9; }
+.tag-fixed { background:rgba(148,163,184,0.15); color:#64748b; }
+.tag-cal { background:rgba(14,165,233,0.12); color:#0369a1; }
+.tag-deleg { background:rgba(236,72,153,0.12); color:#be185d; }
+/* Function track micro-tag */
+.tag-track { font-size:9px; font-weight:800; padding:2px 7px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; }
+.tag-track::before { content:''; width:6px; height:6px; border-radius:50%; background:currentColor; opacity:0.7; }
+.task-dur { font-size:10.5px; font-weight:700; color:var(--text-muted); }
+.play-btn { width:30px; height:30px; border-radius:50%; border:1.5px solid rgba(140,100,240,0.3); background:rgba(255,255,255,0.7); color:var(--accent); font-size:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
+.play-btn.running { background:var(--accent); border-color:var(--accent); color:white; animation:pulse-ring 1.5s ease-in-out infinite; }
+@keyframes pulse-ring { 0%,100%{box-shadow:0 0 0 0 rgba(124,58,237,0.4);}50%{box-shadow:0 0 0 7px rgba(124,58,237,0);} }
+
+/* Interruptions block */
+.interrupt-block { background:rgba(244,63,94,0.06); border:1.5px solid rgba(244,63,94,0.25); border-radius:var(--radius-lg); overflow:hidden; backdrop-filter:var(--blur); box-shadow:var(--shadow); }
+.interrupt-head { display:flex; align-items:center; gap:9px; padding:10px 15px; border-bottom:1.5px solid rgba(244,63,94,0.15); }
+.interrupt-icon { width:30px; height:30px; border-radius:9px; background:rgba(244,63,94,0.15); display:flex; align-items:center; justify-content:center; font-size:15px; }
+.interrupt-title { font-size:12.5px; font-weight:800; flex:1; color:#be123c; }
+.interrupt-total { font-size:11px; font-weight:900; color:#be123c; background:rgba(244,63,94,0.12); padding:3px 9px; border-radius:var(--radius-pill); }
+.interrupt-item { display:flex; align-items:center; gap:10px; padding:9px 15px; border-bottom:1px solid rgba(244,63,94,0.1); }
+.interrupt-item:last-child { border-bottom:none; }
+.int-type-icon { font-size:15px; flex-shrink:0; }
+.int-info { flex:1; min-width:0; }
+.int-name { font-size:12.5px; font-weight:700; }
+.int-note { font-size:10.5px; color:var(--text-muted); font-weight:600; margin-top:1px; }
+.int-dur { font-size:11px; font-weight:800; color:#be123c; }
+
+.completed-fold { background:rgba(255,255,255,0.55); border:1.5px solid var(--border); border-radius:var(--radius); backdrop-filter:var(--blur); }
+.fold-head { display:flex; align-items:center; gap:8px; padding:9px 15px; cursor:pointer; font-size:11.5px; font-weight:800; color:var(--text-muted); }
+
+/* Timer strip — now with Interrupt button */
+.timer-strip { grid-column:1/-1; grid-row:3; display:flex; align-items:center; gap:12px; padding:0 22px; background:rgba(255,255,255,0.8); border-top:1.5px solid var(--border-med); backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur); }
+.timer-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); animation:blink 1.2s ease-in-out infinite; flex-shrink:0; }
+@keyframes blink { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.35;transform:scale(0.75);} }
+.timer-lbl { font-size:12.5px; font-weight:700; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.timer-val { font-size:16px; font-weight:900; letter-spacing:-0.5px; color:var(--accent); min-width:78px; text-align:right; font-variant-numeric:tabular-nums; }
+.interrupt-btn { background:rgba(244,63,94,0.12); border:1.5px solid rgba(244,63,94,0.4); color:var(--fire); font-family:inherit; font-size:11.5px; font-weight:900; padding:6px 14px; border-radius:var(--radius-pill); cursor:pointer; display:flex; align-items:center; gap:5px; transition:all 0.2s; }
+.interrupt-btn:hover { background:var(--fire); color:white; transform:scale(1.04); }
+.timer-stop { background:var(--danger-soft); border:1.5px solid rgba(239,68,68,0.35); color:var(--danger); font-family:inherit; font-size:11.5px; font-weight:800; padding:5px 13px; border-radius:var(--radius-pill); cursor:pointer; }
+
+/* Sidebar */
+.sidebar { grid-column:2; grid-row:2/4; border-left:1.5px solid var(--border-med); padding:16px 15px; overflow-y:auto; display:flex; flex-direction:column; gap:16px; background:rgba(255,255,255,0.4); backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur); }
+.sidebar-title { font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px; color:var(--text-muted); margin-bottom:9px; }
+.cal-badge { display:flex; align-items:center; gap:6px; background:rgba(14,165,233,0.1); border:1.5px solid rgba(14,165,233,0.3); border-radius:var(--radius-pill); padding:4px 10px; font-size:11px; font-weight:700; color:#0369a1; margin-bottom:12px; }
+.goal-card { background:rgba(255,255,255,0.75); border:1.5px solid var(--border); border-radius:var(--radius); padding:9px 11px; margin-bottom:6px; cursor:pointer; box-shadow:0 1px 8px rgba(60,20,120,0.06); }
+.goal-top { display:flex; align-items:flex-start; gap:7px; margin-bottom:6px; }
+.goal-icon { font-size:15px; flex-shrink:0; }
+.goal-text { font-size:11.5px; font-weight:700; line-height:1.3; flex:1; }
+.goal-pct { font-size:11px; font-weight:900; flex-shrink:0; margin-top:1px; }
+.goal-bar { height:5px; background:rgba(0,0,0,0.07); border-radius:var(--radius-pill); overflow:hidden; }
+.goal-bar-fill { height:100%; border-radius:var(--radius-pill); }
+.split-item { display:flex; align-items:center; gap:7px; margin-bottom:8px; }
+.split-icon { font-size:13px; flex-shrink:0; }
+.split-name { font-size:11.5px; font-weight:700; color:var(--text-secondary); flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.split-bar { width:68px; height:5px; background:rgba(0,0,0,0.07); border-radius:var(--radius-pill); overflow:hidden; }
+.split-bar-fill { height:100%; border-radius:var(--radius-pill); }
+.split-val { font-size:11px; font-weight:900; color:var(--text-primary); min-width:26px; text-align:right; }
+
+/* Bottom Nav */
+.bottom-nav { grid-column:1/-1; grid-row:4; display:flex; align-items:center; justify-content:space-around; padding:0 16px; background:rgba(255,255,255,0.82); border-top:1.5px solid var(--border-med); backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur); }
+.nav-item { display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 18px; border-radius:14px; cursor:pointer; color:var(--text-muted); transition:all 0.2s; }
+.nav-item.active { color:var(--accent); background:rgba(124,58,237,0.1); }
+.nav-icon { font-size:18px; }
+.nav-lbl { font-size:10px; font-weight:800; }
+.nav-badge { position:relative; }
+.nav-badge::after { content:'2'; position:absolute; top:-4px; right:-8px; background:var(--fire); color:white; font-size:8px; font-weight:900; width:14px; height:14px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+
+/* FAB */
+.fab { position:fixed; bottom:78px; right:312px; width:50px; height:50px; border-radius:50%; background:linear-gradient(135deg,var(--accent),#4f46e5); border:none; color:white; font-size:26px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 20px rgba(124,58,237,0.45); z-index:100; font-weight:300; line-height:1; }
+
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-thumb { background:rgba(124,58,237,0.2); border-radius:4px; }
+</style>
+</head>
+<body>
+<div class="wallpaper wp-poke-dusk"></div>
+
+<div class="app">
+  <header class="header">
+    <div class="logo">axio<em>m</em></div>
+    <div class="header-center">
+      <div class="header-day">Thursday, June 5</div>
+      <div class="header-date-sub">Week 23 · 2026</div>
+    </div>
+    <div class="header-right">
+      <div class="streak-pill">🔥 12-day streak</div>
+      <button class="wp-btn">🎨 Wallpaper</button>
+      <div class="avatar">A</div>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- Nudges: overflow + delegation follow-ups -->
+    <div class="nudge-row">
+      <div class="nudge nudge-overflow">
+        <span style="font-size:16px;">⚠️</span> Over by <strong style="margin:0 2px;">1h 30m</strong> today
+      </div>
+      <div class="nudge nudge-deleg">
+        <span style="font-size:16px;">👥</span> Delegation follow-ups due
+        <span class="nudge-badge">2</span>
+      </div>
+    </div>
+
+    <!-- Time budget -->
+    <div class="card">
+      <div class="card-title">Time Budget
+        <div class="toggle-pills"><button class="active">Day</button><button>Week</button><button>Month</button></div>
+      </div>
+      <div class="budget-stats">
+        <div class="stat-pill"><span class="stat-pill-val">6h</span><span class="stat-pill-lbl">Available</span></div>
+        <div class="stat-pill"><span class="stat-pill-val" style="color:var(--warning);">7h 30m</span><span class="stat-pill-lbl">Allocated</span></div>
+        <div class="stat-pill"><span class="stat-pill-val" style="color:var(--fire);">1h 45m</span><span class="stat-pill-lbl">Interrupted</span></div>
+        <div class="stat-pill"><span class="stat-pill-val" style="color:var(--success);">2h 40m</span><span class="stat-pill-lbl">Logged</span></div>
+      </div>
+      <div class="budget-bar-track">
+        <div class="budget-bar-fill">
+          <div class="budget-seg" style="width:29%;background:#94a3b8;"></div>
+          <div class="budget-seg" style="width:13%;background:#f97316;"></div>
+          <div class="budget-seg" style="width:16%;background:#8b5cf6;"></div>
+          <div class="budget-seg" style="width:10%;background:#06b6d4;"></div>
+          <div class="budget-seg" style="width:7%;background:#22c55e;"></div>
+          <div class="budget-seg" style="width:10%;background:var(--fire);"></div>
+          <div class="budget-seg" style="width:15%;background:rgba(148,163,184,0.4);"></div>
+        </div>
+      </div>
+      <div class="bar-labels">
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:#94a3b8;"></div>Sleep 7h</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:#f97316;"></div>DeveLearn 2h</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:#8b5cf6;"></div>Zuma 3h</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:#06b6d4;"></div>Next 2h</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:#22c55e;"></div>Fitness 1h</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:var(--fire);"></div>Interruptions 1h 45m</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:rgba(148,163,184,0.4);"></div>Untracked</div>
+      </div>
+    </div>
+
+    <!-- 24h ring with interruption segment -->
+    <div class="card">
+      <div class="card-title">24-Hour Allocation
+        <div class="toggle-pills"><button class="active">Today</button><button>Week</button><button>Month</button></div>
+      </div>
+      <div class="ring-body">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 128 128" width="128" height="128">
+            <circle cx="64" cy="64" r="46" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="13"/>
+            <circle cx="64" cy="64" r="46" fill="none" stroke="#94a3b8" stroke-width="13" stroke-dasharray="288.5" stroke-dashoffset="0" transform="rotate(-90 64 64)"/>
+            <circle cx="64" cy="64" r="46" fill="none" stroke="#f97316" stroke-width="13" stroke-dasharray="40 248.9" stroke-dashoffset="-96.2" transform="rotate(-90 64 64)"/>
+            <circle cx="64" cy="64" r="46" fill="none" stroke="#8b5cf6" stroke-width="13" stroke-dasharray="62 226.9" stroke-dashoffset="-136.2" transform="rotate(-90 64 64)"/>
+            <circle cx="64" cy="64" r="46" fill="none" stroke="#06b6d4" stroke-width="13" stroke-dasharray="40 248.9" stroke-dashoffset="-198.2" transform="rotate(-90 64 64)"/>
+            <circle cx="64" cy="64" r="46" fill="none" stroke="#22c55e" stroke-width="13" stroke-dasharray="20 268.9" stroke-dashoffset="-238.2" transform="rotate(-90 64 64)"/>
+            <circle cx="64" cy="64" r="46" fill="none" stroke="#f43f5e" stroke-width="13" stroke-dasharray="35 253.9" stroke-dashoffset="-258.2" transform="rotate(-90 64 64)"/>
+          </svg>
+          <div class="ring-center"><span class="ring-cv">1h45</span><span class="ring-cl">interrupted</span></div>
+        </div>
+        <div class="ring-legend">
+          <div class="leg"><div class="leg-dot" style="background:#94a3b8;"></div>Sleep<span class="leg-val">7h</span></div>
+          <div class="leg"><div class="leg-dot" style="background:#f97316;"></div>DeveLearn<span class="leg-val">2h</span></div>
+          <div class="leg"><div class="leg-dot" style="background:#8b5cf6;"></div>Zuma AI<span class="leg-val">3h</span></div>
+          <div class="leg"><div class="leg-dot" style="background:#06b6d4;"></div>Next/WorkIn<span class="leg-val">2h</span></div>
+          <div class="leg"><div class="leg-dot" style="background:#22c55e;"></div>Fitness<span class="leg-val">1h</span></div>
+          <div class="leg"><div class="leg-dot" style="background:#f43f5e;"></div>Interruptions<span class="leg-val" style="color:#be123c;">1h45</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tasks-header">
+      <span class="section-lbl">Today's Tasks</span>
+      <span class="task-count">11 tasks · 3 done</span>
+    </div>
+
+    <!-- DeveLearn with function track tags -->
+    <div class="venture-block">
+      <div class="vent-head">
+        <div class="vent-icon" style="background:rgba(249,115,22,0.12);">📚</div>
+        <span class="vent-name">DeveLearn</span>
+        <span class="vent-badge" style="background:rgba(249,115,22,0.12);color:#c2410c;">2h 30m</span>
+        <span class="vent-chev">▾</span>
+      </div>
+      <div class="task-item">
+        <div class="task-check active"></div>
+        <div class="task-info">
+          <div class="task-name">Prepare Python Batch 4 — Functions & Scope</div>
+          <div class="task-meta">
+            <span class="tag-track" style="background:rgba(59,130,246,0.12);color:#1d4ed8;">Teaching</span>
+            <span class="tag tag-goal">↗ Batch 4</span>
+            <span class="task-dur">90m</span>
+          </div>
+        </div>
+        <button class="play-btn running">■</button>
+      </div>
+      <div class="task-item">
+        <div class="task-check"></div>
+        <div class="task-info">
+          <div class="task-name">Review franchise SOP draft v2</div>
+          <div class="task-meta">
+            <span class="tag-track" style="background:rgba(100,116,139,0.14);color:#475569;">Admin</span>
+            <span class="task-dur">45m</span>
+          </div>
+        </div>
+        <button class="play-btn">▶</button>
+      </div>
+      <div class="task-item">
+        <div class="task-check" style="opacity:0.35;"></div>
+        <div class="task-info">
+          <div class="task-name">Faculty meeting — curriculum alignment</div>
+          <div class="task-meta">
+            <span class="tag-track" style="background:rgba(168,85,247,0.12);color:#7e22ce;">Leadership</span>
+            <span class="tag tag-cal">📅 Calendar</span>
+            <span class="task-dur">11:00 · 1h</span>
+          </div>
+        </div>
+        <button class="play-btn" style="opacity:0.25;">▶</button>
+      </div>
+    </div>
+
+    <!-- Zuma -->
+    <div class="venture-block">
+      <div class="vent-head">
+        <div class="vent-icon" style="background:rgba(139,92,246,0.12);">🤖</div>
+        <span class="vent-name">Zuma AI</span>
+        <span class="vent-badge" style="background:rgba(139,92,246,0.12);color:#6d28d9;">3h</span>
+        <span class="vent-chev">▾</span>
+      </div>
+      <div class="task-item">
+        <div class="task-check"></div>
+        <div class="task-info">
+          <div class="task-name">MUNKEE science outfit — AI image prompts</div>
+          <div class="task-meta">
+            <span class="tag-track" style="background:rgba(236,72,153,0.12);color:#be185d;">Marketing</span>
+            <span class="tag tag-goal">↗ Q3 Instagram</span>
+            <span class="task-dur">1h</span>
+          </div>
+        </div>
+        <button class="play-btn">▶</button>
+      </div>
+      <div class="task-item">
+        <div class="task-check"></div>
+        <div class="task-info">
+          <div class="task-name">Review dev sprint progress — assigned to Rahul</div>
+          <div class="task-meta">
+            <span class="tag-track" style="background:rgba(34,197,94,0.12);color:#15803d;">Dev Mgmt</span>
+            <span class="tag tag-deleg">👤 Rahul</span>
+            <span class="task-dur">30m</span>
+          </div>
+        </div>
+        <button class="play-btn">▶</button>
+      </div>
+      <div class="task-item">
+        <div class="task-check" style="opacity:0.35;"></div>
+        <div class="task-info">
+          <div class="task-name">Partner sync with Zubin — ZumaLM roadmap</div>
+          <div class="task-meta">
+            <span class="tag-track" style="background:rgba(245,158,11,0.14);color:#b45309;">Strategy</span>
+            <span class="tag tag-cal">📅 Calendar</span>
+            <span class="task-dur">16:00 · 1h 30m</span>
+          </div>
+        </div>
+        <button class="play-btn" style="opacity:0.25;">▶</button>
+      </div>
+    </div>
+
+    <!-- Interruptions block -->
+    <div class="interrupt-block">
+      <div class="interrupt-head">
+        <div class="interrupt-icon">⚡</div>
+        <span class="interrupt-title">Interruptions today</span>
+        <span class="interrupt-total">3 fires · 1h 45m</span>
+      </div>
+      <div class="interrupt-item">
+        <span class="int-type-icon">🔥</span>
+        <div class="int-info">
+          <div class="int-name">Zuma AI — Play Store review rejection</div>
+          <div class="int-note">Had to respond to policy flag immediately</div>
+        </div>
+        <span class="int-dur">52m</span>
+      </div>
+      <div class="interrupt-item">
+        <span class="int-type-icon">🌀</span>
+        <div class="int-info">
+          <div class="int-name">Rabbit hole — WorkIn DB schema rethink</div>
+          <div class="int-note">Unplanned, pulled away from lesson prep</div>
+        </div>
+        <span class="int-dur">38m</span>
+      </div>
+      <div class="interrupt-item">
+        <span class="int-type-icon">😵</span>
+        <div class="int-info">
+          <div class="int-name">Distraction — phone / social</div>
+          <div class="int-note"></div>
+        </div>
+        <span class="int-dur">15m</span>
+      </div>
+    </div>
+
+    <div class="completed-fold">
+      <div class="fold-head">▶ &nbsp; Completed today &nbsp;(3 tasks) ✓</div>
+    </div>
+    <div style="height:12px;"></div>
+  </main>
+
+  <aside class="sidebar">
+    <div>
+      <div class="sidebar-title">This week's goals</div>
+      <div class="cal-badge">📅 Google Calendar · 3 events today</div>
+      <div class="goal-card">
+        <div class="goal-top"><span class="goal-icon">📚</span><span class="goal-text">Batch 4 lesson plan — 6 sessions</span><span class="goal-pct" style="color:#c2410c;">33%</span></div>
+        <div class="goal-bar"><div class="goal-bar-fill" style="width:33%;background:#f97316;"></div></div>
+      </div>
+      <div class="goal-card">
+        <div class="goal-top"><span class="goal-icon">🤖</span><span class="goal-text">Ship ZumaLM v1.2 to production</span><span class="goal-pct" style="color:#6d28d9;">70%</span></div>
+        <div class="goal-bar"><div class="goal-bar-fill" style="width:70%;background:#8b5cf6;"></div></div>
+      </div>
+      <div class="goal-card">
+        <div class="goal-top"><span class="goal-icon">✍️</span><span class="goal-text">Publish 3 technical LinkedIn posts</span><span class="goal-pct" style="color:#9d174d;">33%</span></div>
+        <div class="goal-bar"><div class="goal-bar-fill" style="width:33%;background:#ec4899;"></div></div>
+      </div>
+    </div>
+    <div>
+      <div class="sidebar-title">Week so far</div>
+      <div class="split-item"><span class="split-icon">📚</span><span class="split-name">DeveLearn</span><div class="split-bar"><div class="split-bar-fill" style="width:55%;background:#f97316;"></div></div><span class="split-val">9h</span></div>
+      <div class="split-item"><span class="split-icon">🤖</span><span class="split-name">Zuma AI</span><div class="split-bar"><div class="split-bar-fill" style="width:72%;background:#8b5cf6;"></div></div><span class="split-val">14h</span></div>
+      <div class="split-item"><span class="split-icon">⚡</span><span class="split-name">Next / WorkIn</span><div class="split-bar"><div class="split-bar-fill" style="width:30%;background:#06b6d4;"></div></div><span class="split-val">5h</span></div>
+      <div class="split-item"><span class="split-icon">💪</span><span class="split-name">Fitness</span><div class="split-bar"><div class="split-bar-fill" style="width:48%;background:#22c55e;"></div></div><span class="split-val">3h</span></div>
+      <div class="split-item" style="opacity:0.85;"><span class="split-icon">🔥</span><span class="split-name" style="color:#be123c;">Interruptions</span><div class="split-bar"><div class="split-bar-fill" style="width:42%;background:#f43f5e;"></div></div><span class="split-val" style="color:#be123c;">6h</span></div>
+    </div>
+  </aside>
+
+  <!-- Timer strip with Interrupt button -->
+  <div class="timer-strip">
+    <div class="timer-dot"></div>
+    <span class="timer-lbl">Prepare Python Batch 4 — Functions & Scope</span>
+    <span class="timer-val" id="timer">00:23:14</span>
+    <button class="interrupt-btn">⚡ Interrupt</button>
+    <button class="timer-stop">■ Stop</button>
+  </div>
+
+  <!-- Bottom nav -->
+  <nav class="bottom-nav">
+    <div class="nav-item active"><span class="nav-icon">☀️</span><span class="nav-lbl">Today</span></div>
+    <div class="nav-item"><span class="nav-icon">📅</span><span class="nav-lbl">Week</span></div>
+    <div class="nav-item"><span class="nav-icon">🎯</span><span class="nav-lbl">Goals</span></div>
+    <div class="nav-item nav-badge"><span class="nav-icon">👥</span><span class="nav-lbl">Team</span></div>
+    <div class="nav-item"><span class="nav-icon">⚙️</span><span class="nav-lbl">Settings</span></div>
+  </nav>
+</div>
+
+<button class="fab">+</button>
+
+<script>
+  let s=23*60+14;
+  setInterval(()=>{s++;const m=String(Math.floor(s/60)).padStart(2,'0');const sec=String(s%60).padStart(2,'0');document.getElementById('timer').textContent=`00:${m}:${sec}`;},1000);
+  document.querySelectorAll('.toggle-pills button').forEach(b=>b.addEventListener('click',function(){this.closest('.toggle-pills').querySelectorAll('button').forEach(x=>x.classList.remove('active'));this.classList.add('active');}));
+</script>
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Axiom — Calendar / Month</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --surface: rgba(255,255,255,0.72);
+  --border: rgba(120,80,220,0.15);
+  --border-med: rgba(120,80,220,0.22);
+  --shadow: 0 4px 24px rgba(60,20,120,0.12);
+  --text-primary: #1a1535; --text-secondary: #5c5280; --text-muted: #9d94c0;
+  --accent: #7c3aed; --fire:#f43f5e;
+  --radius: 16px; --radius-lg: 22px; --radius-pill: 100px;
+  --blur: blur(20px);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Nunito',sans-serif; color:var(--text-primary); min-height:100vh; overflow:hidden; }
+
+.wallpaper { position:fixed; inset:0; z-index:0; }
+.wp-poke-dusk {
+  background:
+    radial-gradient(ellipse 40% 30% at 50% 62%, #fef3c7 0%, #fbbf24 15%, transparent 55%),
+    linear-gradient(180deg,#1e0a3c 0%,#3b0764 20%,#7e22ce 45%,#c2410c 65%,#ea580c 78%,#fb923c 88%,#fde68a 100%);
+}
+.wp-poke-dusk::after { content:''; position:absolute; inset:0; background:linear-gradient(to bottom, transparent 60%, rgba(30,10,60,0.55) 85%, #0f0320 100%); }
+
+.app { position:relative; z-index:1; display:grid; grid-template-rows:58px 1fr 60px; height:100vh; max-width:1380px; margin:0 auto; }
+
+.header { display:flex; align-items:center; justify-content:space-between; padding:0 22px; background:rgba(255,255,255,0.68); backdrop-filter:var(--blur); border-bottom:1px solid var(--border-med); }
+.logo { font-size:20px; font-weight:900; color:var(--accent); }
+.logo em { color:#f97316; font-style:normal; }
+.avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,var(--accent),#ec4899); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:900; color:white; }
+
+.body { overflow:hidden; display:flex; flex-direction:column; padding:14px 22px; gap:12px; }
+
+/* Top bar */
+.cal-topbar { display:flex; align-items:center; gap:14px; }
+.view-toggle { display:flex; gap:3px; background:rgba(255,255,255,0.6); border:1.5px solid var(--border-med); border-radius:var(--radius-pill); padding:3px; backdrop-filter:var(--blur); }
+.view-toggle button { background:none; border:none; font-family:inherit; font-size:12px; font-weight:800; padding:6px 16px; border-radius:var(--radius-pill); cursor:pointer; color:var(--text-muted); }
+.view-toggle button.active { background:var(--accent); color:white; }
+.month-nav { display:flex; align-items:center; gap:10px; }
+.month-nav button { width:30px; height:30px; border-radius:50%; border:1.5px solid var(--border-med); background:rgba(255,255,255,0.6); cursor:pointer; font-size:13px; color:var(--text-secondary); }
+.month-title { font-size:18px; font-weight:900; min-width:160px; text-align:center; }
+.today-btn { background:rgba(124,58,237,0.12); border:1.5px solid rgba(124,58,237,0.35); color:var(--accent); font-family:inherit; font-size:12px; font-weight:800; padding:6px 14px; border-radius:var(--radius-pill); cursor:pointer; }
+
+/* Calendar account legend */
+.cal-legend { margin-left:auto; display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.6); border:1.5px solid var(--border-med); border-radius:var(--radius-pill); padding:5px 14px; backdrop-filter:var(--blur); }
+.cal-src { display:flex; align-items:center; gap:6px; font-size:11px; font-weight:800; color:var(--text-secondary); cursor:pointer; }
+.cal-src-dot { width:10px; height:10px; border-radius:3px; }
+.cal-src.off { opacity:0.35; text-decoration:line-through; }
+
+/* Calendar grid */
+.cal-grid-wrap { flex:1; background:var(--surface); border:1.5px solid var(--border-med); border-radius:var(--radius-lg); padding:14px; backdrop-filter:var(--blur); box-shadow:var(--shadow); display:flex; flex-direction:column; }
+.weekday-row { display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:8px; }
+.weekday { font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); text-align:center; }
+.cal-grid { flex:1; display:grid; grid-template-columns:repeat(7,1fr); grid-template-rows:repeat(5,1fr); gap:6px; }
+.day-cell { background:rgba(255,255,255,0.5); border:1.5px solid var(--border); border-radius:12px; padding:6px 7px; display:flex; flex-direction:column; gap:4px; overflow:hidden; cursor:pointer; transition:all 0.15s; position:relative; }
+.day-cell:hover { border-color:rgba(124,58,237,0.4); background:rgba(255,255,255,0.7); }
+.day-cell.other-month { opacity:0.4; }
+.day-cell.today { border:2px solid var(--accent); background:rgba(124,58,237,0.06); }
+.day-num { font-size:12px; font-weight:900; display:flex; align-items:center; justify-content:space-between; }
+.day-num .num-today { background:var(--accent); color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; }
+.overflow-flag { position:absolute; top:0; right:0; width:0; height:0; border-top:16px solid var(--fire); border-left:16px solid transparent; }
+.fu-dot { font-size:9px; }
+
+/* Event chips */
+.evt { font-size:9.5px; font-weight:700; padding:1px 5px; border-radius:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.4; }
+.evt-more { font-size:9px; font-weight:800; color:var(--text-muted); padding-left:2px; }
+
+/* Allocation bar at bottom of cell */
+.alloc-bar { margin-top:auto; height:5px; border-radius:3px; display:flex; overflow:hidden; }
+.alloc-seg { height:100%; }
+
+/* Bottom nav */
+.bottom-nav { display:flex; align-items:center; justify-content:space-around; padding:0 16px; background:rgba(255,255,255,0.82); border-top:1.5px solid var(--border-med); backdrop-filter:var(--blur); }
+.nav-item { display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 18px; border-radius:14px; cursor:pointer; color:var(--text-muted); }
+.nav-item.active { color:var(--accent); background:rgba(124,58,237,0.1); }
+.nav-icon { font-size:18px; }
+.nav-lbl { font-size:10px; font-weight:800; }
+
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-thumb { background:rgba(124,58,237,0.2); border-radius:4px; }
+</style>
+</head>
+<body>
+<div class="wallpaper wp-poke-dusk"></div>
+
+<div class="app">
+  <header class="header">
+    <div class="logo">axio<em>m</em></div>
+    <div style="font-size:15px;font-weight:900;">📅 Calendar</div>
+    <div class="avatar">A</div>
+  </header>
+
+  <div class="body">
+
+    <!-- Top bar -->
+    <div class="cal-topbar">
+      <div class="view-toggle">
+        <button>Day</button>
+        <button>Week</button>
+        <button class="active">Month</button>
+      </div>
+      <div class="month-nav">
+        <button>‹</button>
+        <span class="month-title">June 2026</span>
+        <button>›</button>
+      </div>
+      <button class="today-btn">Today</button>
+
+      <div class="cal-legend">
+        <span style="font-size:10px;font-weight:800;color:var(--text-muted);">CALENDARS:</span>
+        <span class="cal-src"><span class="cal-src-dot" style="background:#7c3aed;"></span>Axiom plan</span>
+        <span class="cal-src"><span class="cal-src-dot" style="background:#0ea5e9;"></span>akshu@personal</span>
+        <span class="cal-src"><span class="cal-src-dot" style="background:#16a34a;"></span>akshu@develearn</span>
+        <span class="cal-src off"><span class="cal-src-dot" style="background:#f59e0b;"></span>akshu@zuma</span>
+      </div>
+    </div>
+
+    <!-- Calendar grid -->
+    <div class="cal-grid-wrap">
+      <div class="weekday-row">
+        <div class="weekday">Mon</div><div class="weekday">Tue</div><div class="weekday">Wed</div>
+        <div class="weekday">Thu</div><div class="weekday">Fri</div><div class="weekday">Sat</div><div class="weekday">Sun</div>
+      </div>
+
+      <div class="cal-grid">
+
+        <!-- Week 1 (Jun 1-7) -->
+        <div class="day-cell">
+          <div class="day-num">1</div>
+          <div class="evt" style="background:rgba(22,163,74,0.15);color:#15803d;">Python Batch 4</div>
+          <div class="evt" style="background:rgba(124,58,237,0.12);color:#6d28d9;">Lesson prep</div>
+          <div class="alloc-bar"><div class="alloc-seg" style="width:50%;background:#f97316;"></div><div class="alloc-seg" style="width:30%;background:#8b5cf6;"></div><div class="alloc-seg" style="width:20%;background:#22c55e;"></div></div>
+        </div>
+        <div class="day-cell">
+          <div class="day-num">2</div>
+          <div class="evt" style="background:rgba(14,165,233,0.15);color:#0369a1;">Gym 7am</div>
+          <div class="evt" style="background:rgba(245,158,11,0.15);color:#b45309;">Zuma standup</div>
+          <div class="alloc-bar"><div class="alloc-seg" style="width:40%;background:#8b5cf6;"></div><div class="alloc-seg" style="width:35%;background:#06b6d4;"></div><div class="alloc-seg" style="width:25%;background:#22c55e;"></div></div>
+        </div>
+        <div class="day-cell">
+          <div class="overflow-flag"></div>
+          <div class="day-num">3</div>
+          <div class="evt" style="background:rgba(245,158,11,0.15);color:#b45309;">Zuma dev sync</div>
+          <div class="evt" style="background:rgba(16,185,129,0.15);color:#047857;">Faculty mtg</div>
+          <div class="evt-more">+2 more</div>
+          <div class="alloc-bar"><div class="alloc-seg" style="width:30%;background:#f97316;"></div><div class="alloc-seg" style="width:45%;background:#8b5cf6;"></div><div class="alloc-seg" style="width:25%;background:#06b6d4;"></div></div>
+        </div>
+        <div class="day-cell">
+          <div class="day-num">4</div>
+          <div class="evt" style="background:rgba(124,58,237,0.12);color:#6d28d9;">Content block</div>
+          <div class="alloc-bar"><div class="alloc-seg" style="width:60%;background:#ec4899;"></div><div class="alloc-seg" style="width:40%;background:#22c55e;"></div></div>
+        </div>
+        <div class="day-cell today">
+          <div class="overflow-flag"></div>
+          <div class="day-num"><span class="num-today">5</span><span class="fu-dot">👥</span></div>
+          <div class="evt" style="background:rgba(16,185,129,0.15);color:#047857;">Faculty 11am</div>
+          <div class="evt" style="background:rgba(245,158,11,0.15);color:#b45309;">Zubin 4pm</div>
+          <div class="evt-more">+3 tasks</div>
+          <div class="alloc-bar"><div class="alloc-seg" style="width:28%;background:#f97316;"></div><div class="alloc-seg" style="width:35%;background:#8b5cf6;"></div><div class="alloc-seg" style="width:22%;background:#06b6d4;"></div><div class="alloc-seg" style="width:15%;background:#f43f5e;"></div></div>
+        </div>
+        <div class="day-cell">
+          <div class="day-num">6</div>
+          <div class="evt" style="background:rgba(14,165,233,0.15);color:#0369a1;">Buffer day</div>
+          <div class="alloc-bar"><div class="alloc-seg" style="width:50%;background:#8b5cf6;"></div><div class="alloc-seg" style="width:50%;background:#f59e0b;"></div></div>
+        </div>
+        <div class="day-cell">
+          <div class="day-num">7</div>
+          <div class="evt" style="background:rgba(124,58,237,0.12);color:#6d28d9;">Weekly close</div>
+          <div class="alloc-bar"><div class="alloc-seg" style="width:100%;background:rgba(148,163,184,0.4);"></div></div>
+        </div>
+
+        <!-- Week 2 (8-14) -->
+        <div class="day-cell"><div class="day-num">8</div><div class="evt" style="background:rgba(22,163,74,0.15);color:#15803d;">Batch 4</div><div class="alloc-bar"><div class="alloc-seg" style="width:60%;background:#f97316;"></div><div class="alloc-seg" style="width:40%;background:#22c55e;"></div></div></div>
+        <div class="day-cell"><div class="day-num">9</div><div class="evt" style="background:rgba(245,158,11,0.15);color:#b45309;">Zuma BD call</div><div class="alloc-bar"><div class="alloc-seg" style="width:55%;background:#8b5cf6;"></div><div class="alloc-seg" style="width:45%;background:#06b6d4;"></div></div></div>
+        <div class="day-cell"><div class="overflow-flag"></div><div class="day-num">10</div><div class="evt" style="background:rgba(16,185,129,0.15);color:#047857;">JICA prep</div><div class="evt-more">+3 more</div><div class="alloc-bar"><div class="alloc-seg" style="width:40%;background:#06b6d4;"></div><div class="alloc-seg" style="width:35%;background:#f97316;"></div><div class="alloc-seg" style="width:25%;background:#8b5cf6;"></div></div></div>
+        <div class="day-cell"><div class="day-num">11</div><div class="evt" style="background:rgba(124,58,237,0.12);color:#6d28d9;">Strategy</div><div class="alloc-bar"><div class="alloc-seg" style="width:70%;background:#f59e0b;"></div><div class="alloc-seg" style="width:30%;background:#ec4899;"></div></div></div>
+        <div class="day-cell"><div class="day-num"><span>12</span><span class="fu-dot">👥</span></div><div class="evt" style="background:rgba(22,163,74,0.15);color:#15803d;">Batch 4</div><div class="alloc-bar"><div class="alloc-seg" style="width:50%;background:#f97316;"></div><div class="alloc-seg" style="width:50%;background:#22c55e;"></div></div></div>
+        <div class="day-cell"><div class="day-num">13</div><div class="alloc-bar"><div class="alloc-seg" style="width:40%;background:#8b5cf6;"></div><div class="alloc-seg" style="width:60%;background:#f59e0b;"></div></div></div>
+        <div class="day-cell"><div class="day-num">14</div><div class="evt" style="background:rgba(124,58,237,0.12);color:#6d28d9;">Weekly close</div><div class="alloc-bar"><div class="alloc-seg" style="width:100%;background:rgba(148,163,184,0.4);"></div></div></div>
+
+        <!-- Week 3 (15-21) -->
+        <div class="day-cell"><div class="overflow-flag"></div><div class="day-num">15</div><div class="evt" style="background:rgba(22,163,74,0.15);color:#15803d;">Batch 4 LAUNCH</div><div class="evt-more">+4 more</div><div class="alloc-bar"><div class="alloc-seg" style="width:55%;background:#f97316;"></div><div class="alloc-seg" style="width:25%;background:#8b5cf6;"></div><div class="alloc-seg" style="width:20%;background:#f43f5e;"></div></div></div>
+        <div class="day-cell"><div class="day-num">16</div><div class="evt" style="background:rgba(245,158,11,0.15);color:#b45309;">Zuma sprint</div><div class="alloc-bar"><div class="alloc-seg" style="width:70%;background:#8b5cf6;"></div><div class="alloc-seg" style="width:30%;background:#06b6d4;"></div></div></div>
+        <div class="day-cell"><div class="day-num">17</div><div class="evt" style="background:rgba(14,165,233,0.15);color:#0369a1;">Gym</div><div class="alloc-bar"><div class="alloc-seg" style="width:45%;background:#06b6d4;"></div><div class="alloc-seg" style="width:35%;background:#f97316;"></div><div class="alloc-seg" style="width:20%;background:#22c55e;"></div></div></div>
+        <div class="day-cell"><div class="day-num">18</div><div class="evt" style="background:rgba(236,72,153,0.15);color:#be185d;">LinkedIn post</div><div class="alloc-bar"><div class="alloc-seg" style="width:60%;background:#ec4899;"></div><div class="alloc-seg" style="width:40%;background:#8b5cf6;"></div></div></div>
+        <div class="day-cell"><div class="day-num">19</div><div class="evt" style="background:rgba(16,185,129,0.15);color:#047857;">DeveLearn ops</div><div class="alloc-bar"><div class="alloc-seg" style="width:80%;background:#f97316;"></div><div class="alloc-seg" style="width:20%;background:#22c55e;"></div></div></div>
+        <div class="day-cell"><div class="day-num">20</div><div class="alloc-bar"><div class="alloc-seg" style="width:50%;background:#f59e0b;"></div><div class="alloc-seg" style="width:50%;background:#8b5cf6;"></div></div></div>
+        <div class="day-cell"><div class="day-num">21</div><div class="evt" style="background:rgba(124,58,237,0.12);color:#6d28d9;">Weekly close</div><div class="alloc-bar"><div class="alloc-seg" style="width:100%;background:rgba(148,163,184,0.4);"></div></div></div>
+
+        <!-- Week 4 (22-28) -->
+        <div class="day-cell"><div class="day-num">22</div><div class="evt" style="background:rgba(22,163,74,0.15);color:#15803d;">Batch 4</div><div class="alloc-bar"><div class="alloc-seg" style="width:60%;background:#f97316;"></div><div class="alloc-seg" style="width:40%;background:#22c55e;"></div></div></div>
+        <div class="day-cell"><div class="day-num">23</div><div class="evt" style="background:rgba(245,158,11,0.15);color:#b45309;">Zuma standup</div><div class="alloc-bar"><div class="alloc-seg" style="width:55%;background:#8b5cf6;"></div><div class="alloc-seg" style="width:45%;background:#06b6d4;"></div></div></div>
+        <div class="day-cell"><div class="day-num">24</div><div class="evt" style="background:rgba(16,185,129,0.15);color:#047857;">Faculty mtg</div><div class="alloc-bar"><div class="alloc-seg" style="width:50%;background:#f97316;"></div><div class="alloc-seg" style="width:50%;background:#8b5cf6;"></div></div></div>
+        <div class="day-cell"><div class="day-num">25</div><div class="evt" style="background:rgba(124,58,237,0.12);color:#6d28d9;">Content block</div><div class="alloc-bar"><div class="alloc-seg" style="width:65%;background:#ec4899;"></div><div class="alloc-seg" style="width:35%;background:#22c55e;"></div></div></div>
+        <div class="day-cell"><div class="day-num">26</div><div class="evt" style="background:rgba(14,165,233,0.15);color:#0369a1;">Gym</div><div class="alloc-bar"><div class="alloc-seg" style="width:40%;background:#06b6d4;"></div><div class="alloc-seg" style="width:60%;background:#f59e0b;"></div></div></div>
+        <div class="day-cell"><div class="day-num">27</div><div class="alloc-bar"><div class="alloc-seg" style="width:100%;background:rgba(148,163,184,0.4);"></div></div></div>
+        <div class="day-cell"><div class="day-num">28</div><div class="evt" style="background:rgba(124,58,237,0.12);color:#6d28d9;">Monthly close</div><div class="alloc-bar"><div class="alloc-seg" style="width:100%;background:rgba(148,163,184,0.4);"></div></div></div>
+
+        <!-- Week 5 (29-30 + next month) -->
+        <div class="day-cell"><div class="day-num">29</div><div class="evt" style="background:rgba(22,163,74,0.15);color:#15803d;">Batch 4</div><div class="alloc-bar"><div class="alloc-seg" style="width:60%;background:#f97316;"></div><div class="alloc-seg" style="width:40%;background:#22c55e;"></div></div></div>
+        <div class="day-cell"><div class="day-num">30</div><div class="evt" style="background:rgba(245,158,11,0.15);color:#b45309;">Zuma review</div><div class="alloc-bar"><div class="alloc-seg" style="width:55%;background:#8b5cf6;"></div><div class="alloc-seg" style="width:45%;background:#06b6d4;"></div></div></div>
+        <div class="day-cell other-month"><div class="day-num">1</div></div>
+        <div class="day-cell other-month"><div class="day-num">2</div></div>
+        <div class="day-cell other-month"><div class="day-num">3</div></div>
+        <div class="day-cell other-month"><div class="day-num">4</div></div>
+        <div class="day-cell other-month"><div class="day-num">5</div></div>
+
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <div class="nav-item"><span class="nav-icon">☀️</span><span class="nav-lbl">Today</span></div>
+    <div class="nav-item active"><span class="nav-icon">📅</span><span class="nav-lbl">Calendar</span></div>
+    <div class="nav-item"><span class="nav-icon">🎯</span><span class="nav-lbl">Goals</span></div>
+    <div class="nav-item"><span class="nav-icon">👥</span><span class="nav-lbl">Team</span></div>
+    <div class="nav-item"><span class="nav-icon">⚙️</span><span class="nav-lbl">Settings</span></div>
+  </nav>
+</div>
+
+<script>
+  document.querySelectorAll('.view-toggle button').forEach(b=>b.addEventListener('click',function(){this.closest('.view-toggle').querySelectorAll('button').forEach(x=>x.classList.remove('active'));this.classList.add('active');}));
+  document.querySelectorAll('.cal-src').forEach(s=>s.addEventListener('click',function(){this.classList.toggle('off');}));
+</script>
+</body>
+</html>

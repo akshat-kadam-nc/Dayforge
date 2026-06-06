@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Axiom — Today v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f0eefc;
+    --surface: #ffffff;
+    --surface-2: #f7f6ff;
+    --border: rgba(120,100,200,0.1);
+    --border-med: rgba(120,100,200,0.18);
+    --shadow: 0 2px 16px rgba(100,80,200,0.08);
+    --shadow-lg: 0 6px 32px rgba(100,80,200,0.13);
+    --text-primary: #1e1a2e;
+    --text-secondary: #6b6490;
+    --text-muted: #a8a0c8;
+
+    --dl: #ff7b54;
+    --dl-soft: #fff0eb;
+    --zuma: #9b5de5;
+    --zuma-soft: #f3ebff;
+    --next: #00b4d8;
+    --next-soft: #e6f9ff;
+    --brand: #f72585;
+    --brand-soft: #ffe8f4;
+    --learn: #4361ee;
+    --learn-soft: #eaedff;
+    --fit: #55a630;
+    --fit-soft: #edf7e7;
+    --rest: #c77dff;
+    --rest-soft: #f5e8ff;
+    --leisure: #fb8500;
+    --leisure-soft: #fff3e0;
+    --sleep: #b8c0cc;
+    --sleep-soft: #f0f2f5;
+    --untracked: #dee2e6;
+
+    --accent: #9b5de5;
+    --accent-soft: #f3ebff;
+    --danger: #e63946;
+    --danger-soft: #ffebec;
+    --success: #2dc653;
+    --success-soft: #e8faf0;
+    --warning: #ffb703;
+    --warning-soft: #fff8e1;
+
+    --radius: 18px;
+    --radius-sm: 10px;
+    --radius-lg: 24px;
+    --radius-pill: 100px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Playful blob wallpaper */
+  .wallpaper {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    background: #ede9fe;
+  }
+
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.55;
+    animation: float 12s ease-in-out infinite alternate;
+  }
+
+  .blob-1 { width: 500px; height: 500px; background: #c4b5fd; top: -150px; left: -100px; animation-delay: 0s; }
+  .blob-2 { width: 400px; height: 400px; background: #fbcfe8; top: 100px; right: -80px; animation-delay: -3s; }
+  .blob-3 { width: 350px; height: 350px; background: #bae6fd; bottom: 50px; left: 200px; animation-delay: -6s; }
+  .blob-4 { width: 300px; height: 300px; background: #fde68a; bottom: -80px; right: 200px; animation-delay: -2s; }
+
+  @keyframes float {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(30px, 20px) scale(1.08); }
+  }
+
+  /* App shell */
+  .app {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-rows: 60px 1fr 60px;
+    grid-template-columns: 1fr 290px;
+    height: 100vh;
+    max-width: 1380px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(24px);
+    border-bottom: 1px solid var(--border-med);
+  }
+
+  .logo {
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    color: var(--accent);
+  }
+
+  .logo span { color: var(--dl); }
+
+  .header-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .header-day {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .header-date-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .streak-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--warning-soft);
+    border: 1.5px solid #fcd34d;
+    border-radius: var(--radius-pill);
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #b45309;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--brand));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 900;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(155,93,229,0.35);
+  }
+
+  /* Main */
+  .main {
+    grid-column: 1;
+    grid-row: 2;
+    overflow-y: auto;
+    padding: 18px 20px 18px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    scrollbar-width: thin;
+    scrollbar-color: #d8d4f0 transparent;
+  }
+
+  /* Card base */
+  .card {
+    background: rgba(255,255,255,0.82);
+    border: 1.5px solid var(--border-med);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    backdrop-filter: blur(16px);
+    box-shadow: var(--shadow);
+  }
+
+  .card-title {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* Overflow banner */
+  .overflow-banner {
+    background: var(--danger-soft);
+    border: 1.5px solid #fca5a5;
+    border-radius: var(--radius);
+    padding: 11px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--danger);
+  }
+
+  /* Toggle pills */
+  .toggle-pills {
+    display: flex;
+    gap: 4px;
+    background: var(--surface-2);
+    border-radius: var(--radius-pill);
+    padding: 3px;
+    border: 1.5px solid var(--border-med);
+  }
+
+  .toggle-pills button {
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.2s;
+  }
+
+  .toggle-pills button.active {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 2px 8px rgba(155,93,229,0.35);
+  }
+
+  /* Budget stats row */
+  .budget-stats {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .stat-pill {
+    flex: 1;
+    background: var(--surface-2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stat-pill-value {
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+  }
+
+  .stat-pill-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Budget bar */
+  .budget-bar-track {
+    height: 12px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-2);
+    border: 1.5px solid var(--border);
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .budget-bar-fill {
+    display: flex;
+    height: 100%;
+  }
+
+  .budget-seg {
+    height: 100%;
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  }
+
+  .bar-labels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+  }
+
+  .bar-lbl {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary);
+  }
+
+  .bar-lbl-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  /* Ring chart section */
+  .ring-body {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .ring-wrap {
+    position: relative;
+    width: 130px;
+    height: 130px;
+    flex-shrink: 0;
+  }
+
+  .ring-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .ring-center-val {
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: -1px;
+    color: var(--text-muted);
+  }
+
+  .ring-center-label {
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+  }
+
+  .ring-legend {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 16px;
+    flex: 1;
+  }
+
+  .leg {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary);
+  }
+
+  .leg-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .leg-val {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  /* Task list */
+  .task-row-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2px;
+  }
+
+  .task-count {
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+  }
+
+  .venture-block {
+    background: rgba(255,255,255,0.82);
+    border: 1.5px solid var(--border-med);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    backdrop-filter: blur(16px);
+    box-shadow: var(--shadow);
+  }
+
+  .venture-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  .venture-head:hover { background: rgba(155,93,229,0.04); }
+
+  .vent-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .vent-name {
+    font-size: 13px;
+    font-weight: 800;
+    flex: 1;
+    color: var(--text-primary);
+  }
+
+  .vent-time-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: var(--radius-pill);
+  }
+
+  .vent-chevron {
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .task-item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .task-item:last-child { border-bottom: none; }
+  .task-item:hover { background: rgba(155,93,229,0.03); }
+
+  .task-check {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #d4c9f0;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: white;
+  }
+
+  .task-check.done { background: var(--success); border-color: var(--success); color: white; }
+  .task-check.active { border-color: var(--accent); background: var(--accent-soft); }
+
+  .task-info { flex: 1; min-width: 0; }
+
+  .task-name {
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-primary);
+  }
+
+  .task-name.done {
+    text-decoration: line-through;
+    color: var(--text-muted);
+  }
+
+  .task-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 6px;
+  }
+
+  .tag-goal { background: #ede9fe; color: #7c3aed; }
+  .tag-fixed { background: #f0f2f5; color: #8896a5; }
+  .tag-cal { background: #e0f2fe; color: #0369a1; }
+  .task-dur { font-size: 11px; font-weight: 700; color: var(--text-muted); }
+
+  .task-play-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #d4c9f0;
+    background: white;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 11px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    box-shadow: 0 1px 4px rgba(155,93,229,0.1);
+  }
+
+  .task-play-btn:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+    transform: scale(1.12);
+    box-shadow: 0 3px 12px rgba(155,93,229,0.4);
+  }
+
+  .task-play-btn.running {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+    animation: pulse-btn 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse-btn {
+    0%,100% { box-shadow: 0 0 0 0 rgba(155,93,229,0.4); }
+    50% { box-shadow: 0 0 0 7px rgba(155,93,229,0); }
+  }
+
+  /* Completed fold */
+  .completed-fold {
+    background: rgba(255,255,255,0.6);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    backdrop-filter: blur(12px);
+  }
+
+  .fold-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--text-muted);
+  }
+
+  .fold-head:hover { background: rgba(155,93,229,0.04); border-radius: var(--radius); }
+
+  /* Timer strip */
+  .timer-strip {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0 24px;
+    background: rgba(255,255,255,0.85);
+    border-top: 1.5px solid var(--border-med);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 -2px 16px rgba(155,93,229,0.07);
+  }
+
+  .timer-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: blink 1.2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes blink {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  .timer-label {
+    font-size: 13px;
+    font-weight: 700;
+    flex: 1;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .timer-value {
+    font-size: 17px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    color: var(--accent);
+    min-width: 80px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .timer-stop-btn {
+    background: var(--danger-soft);
+    border: 1.5px solid #fca5a5;
+    color: var(--danger);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .timer-stop-btn:hover { background: #fecaca; }
+
+  /* Sidebar */
+  .sidebar {
+    grid-column: 2;
+    grid-row: 2;
+    border-left: 1.5px solid var(--border-med);
+    padding: 18px 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    background: rgba(255,255,255,0.45);
+    backdrop-filter: blur(20px);
+    scrollbar-width: thin;
+    scrollbar-color: #d8d4f0 transparent;
+  }
+
+  .sidebar-title {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .goal-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    margin-bottom: 7px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 6px rgba(100,80,200,0.06);
+  }
+
+  .goal-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(100,80,200,0.12); }
+
+  .goal-card-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 7px;
+  }
+
+  .goal-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .goal-text-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.3;
+    flex: 1;
+  }
+
+  .goal-pct {
+    font-size: 11px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  .goal-bar-track {
+    height: 5px;
+    background: var(--surface-2);
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .goal-bar-fill {
+    height: 100%;
+    border-radius: var(--radius-pill);
+    transition: width 0.6s ease;
+  }
+
+  /* Week split */
+  .split-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 9px;
+  }
+
+  .split-icon { font-size: 14px; flex-shrink: 0; }
+
+  .split-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .split-bar-track {
+    width: 72px;
+    height: 6px;
+    background: var(--surface-2);
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .split-bar-fill {
+    height: 100%;
+    border-radius: var(--radius-pill);
+  }
+
+  .split-val {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-primary);
+    min-width: 28px;
+    text-align: right;
+  }
+
+  /* Calendar sync badge */
+  .cal-sync-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #e0f2fe;
+    border: 1.5px solid #bae6fd;
+    border-radius: var(--radius-pill);
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #0369a1;
+    margin-bottom: 14px;
+  }
+
+  /* FAB */
+  .fab {
+    position: fixed;
+    bottom: 76px;
+    right: 24px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #6d28d9);
+    border: none;
+    color: white;
+    font-size: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(155,93,229,0.45);
+    transition: all 0.25s;
+    z-index: 100;
+    font-family: inherit;
+    font-weight: 300;
+    line-height: 1;
+  }
+
+  .fab:hover {
+    transform: scale(1.12) rotate(90deg);
+    box-shadow: 0 8px 30px rgba(155,93,229,0.6);
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #d8d4f0; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<div class="wallpaper">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+  <div class="blob blob-4"></div>
+</div>
+
+<div class="app">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="logo">axio<span>m</span></div>
+    <div class="header-center">
+      <div class="header-day">Thursday, June 5</div>
+      <div class="header-date-sub">Week 23 of 2026</div>
+    </div>
+    <div class="header-right">
+      <div class="streak-pill">🔥 12</div>
+      <div class="avatar">A</div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Overflow -->
+    <div class="overflow-banner">
+      <span style="font-size:18px;">⚠️</span>
+      You've packed <strong style="margin:0 3px;">7h 30m</strong> into a <strong style="margin:0 3px;">6h day.</strong> Something needs to move.
+    </div>
+
+    <!-- Time budget -->
+    <div class="card">
+      <div class="card-title">
+        Time Budget
+        <div class="toggle-pills">
+          <button class="active">Day</button>
+          <button>Week</button>
+          <button>Month</button>
+        </div>
+      </div>
+      <div class="budget-stats">
+        <div class="stat-pill">
+          <span class="stat-pill-value" style="color:var(--text-primary);">6h</span>
+          <span class="stat-pill-label">Available</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-pill-value" style="color:var(--warning);">7h 30m</span>
+          <span class="stat-pill-label">Allocated</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-pill-value" style="color:var(--danger);">−1h 30m</span>
+          <span class="stat-pill-label">Overflow</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-pill-value" style="color:var(--success);">1h 45m</span>
+          <span class="stat-pill-label">Logged</span>
+        </div>
+      </div>
+      <div class="budget-bar-track">
+        <div class="budget-bar-fill">
+          <div class="budget-seg" style="width:27%;background:var(--sleep);"></div>
+          <div class="budget-seg" style="width:14%;background:var(--dl);"></div>
+          <div class="budget-seg" style="width:19%;background:var(--zuma);"></div>
+          <div class="budget-seg" style="width:11%;background:var(--next);"></div>
+          <div class="budget-seg" style="width:8%;background:var(--fit);"></div>
+          <div class="budget-seg" style="width:7%;background:var(--leisure);"></div>
+          <div class="budget-seg" style="width:14%;background:var(--untracked);"></div>
+        </div>
+      </div>
+      <div class="bar-labels">
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:var(--sleep);"></div>Sleep 7h</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:var(--dl);"></div>DeveLearn 2h</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:var(--zuma);"></div>Zuma 3h</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:var(--next);"></div>Next/WorkIn 2h</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:var(--fit);"></div>Fitness 1h</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:var(--leisure);"></div>Leisure 1h</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:var(--untracked);"></div>Untracked 8h</div>
+      </div>
+    </div>
+
+    <!-- 24h ring -->
+    <div class="card">
+      <div class="card-title">
+        24-Hour Allocation
+        <div class="toggle-pills">
+          <button class="active">Today</button>
+          <button>Week</button>
+          <button>Month</button>
+        </div>
+      </div>
+      <div class="ring-body">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 130 130" width="130" height="130">
+            <circle cx="65" cy="65" r="48" fill="none" stroke="#e2dff5" stroke-width="13"/>
+            <circle cx="65" cy="65" r="48" fill="none" stroke="#b8c0cc" stroke-width="13"
+              stroke-dasharray="301.6" stroke-dashoffset="0" transform="rotate(-90 65 65)"/>
+            <circle cx="65" cy="65" r="48" fill="none" stroke="#ff7b54" stroke-width="13"
+              stroke-dasharray="50.3 251.3" stroke-dashoffset="-100.5" transform="rotate(-90 65 65)"/>
+            <circle cx="65" cy="65" r="48" fill="none" stroke="#9b5de5" stroke-width="13"
+              stroke-dasharray="75.4 226.2" stroke-dashoffset="-150.8" transform="rotate(-90 65 65)"/>
+            <circle cx="65" cy="65" r="48" fill="none" stroke="#00b4d8" stroke-width="13"
+              stroke-dasharray="50.3 251.3" stroke-dashoffset="-226.2" transform="rotate(-90 65 65)"/>
+            <circle cx="65" cy="65" r="48" fill="none" stroke="#55a630" stroke-width="13"
+              stroke-dasharray="25.1 276.5" stroke-dashoffset="-276.5" transform="rotate(-90 65 65)"/>
+            <circle cx="65" cy="65" r="48" fill="none" stroke="#fb8500" stroke-width="13"
+              stroke-dasharray="25.1 276.5" stroke-dashoffset="-301.6" transform="rotate(-90 65 65)"/>
+          </svg>
+          <div class="ring-center">
+            <span class="ring-center-val">8h</span>
+            <span class="ring-center-label">untracked</span>
+          </div>
+        </div>
+        <div class="ring-legend">
+          <div class="leg"><div class="leg-dot" style="background:var(--sleep);"></div>Sleep<span class="leg-val">7h</span></div>
+          <div class="leg"><div class="leg-dot" style="background:var(--dl);"></div>DeveLearn<span class="leg-val">2h</span></div>
+          <div class="leg"><div class="leg-dot" style="background:var(--zuma);"></div>Zuma AI<span class="leg-val">3h</span></div>
+          <div class="leg"><div class="leg-dot" style="background:var(--next);"></div>Next/WorkIn<span class="leg-val">2h</span></div>
+          <div class="leg"><div class="leg-dot" style="background:var(--fit);"></div>Fitness<span class="leg-val">1h</span></div>
+          <div class="leg"><div class="leg-dot" style="background:var(--leisure);"></div>Leisure<span class="leg-val">1h</span></div>
+          <div class="leg"><div class="leg-dot" style="background:var(--untracked);"></div>Untracked<span class="leg-val" style="color:var(--text-muted);">8h</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tasks -->
+    <div class="task-row-header">
+      <span class="card-title" style="margin:0;">Today's Tasks</span>
+      <span class="task-count">11 tasks · 3 done</span>
+    </div>
+
+    <!-- DeveLearn -->
+    <div class="venture-block">
+      <div class="venture-head">
+        <div class="vent-icon" style="background:var(--dl-soft);">📚</div>
+        <span class="vent-name">DeveLearn</span>
+        <span class="vent-time-badge" style="background:var(--dl-soft);color:var(--dl);">2h 30m</span>
+        <span class="vent-chevron">▾</span>
+      </div>
+      <div class="task-item">
+        <div class="task-check active"></div>
+        <div class="task-info">
+          <div class="task-name">Prepare Python Batch 4 — Functions & Scope</div>
+          <div class="task-meta">
+            <span class="tag tag-goal">↗ Launch Batch 4 by Jun 15</span>
+            <span class="task-dur">90m</span>
+          </div>
+        </div>
+        <button class="task-play-btn running">■</button>
+      </div>
+      <div class="task-item">
+        <div class="task-check"></div>
+        <div class="task-info">
+          <div class="task-name">Review franchise SOP draft v2</div>
+          <div class="task-meta"><span class="task-dur">45m</span></div>
+        </div>
+        <button class="task-play-btn">▶</button>
+      </div>
+      <div class="task-item">
+        <div class="task-check" style="opacity:0.4;"></div>
+        <div class="task-info">
+          <div class="task-name">Faculty meeting — curriculum alignment</div>
+          <div class="task-meta">
+            <span class="tag tag-cal">📅 Google Calendar</span>
+            <span class="task-dur">11:00 AM · 1h</span>
+          </div>
+        </div>
+        <button class="task-play-btn" style="opacity:0.3;cursor:default;">▶</button>
+      </div>
+    </div>
+
+    <!-- Zuma AI -->
+    <div class="venture-block">
+      <div class="venture-head">
+        <div class="vent-icon" style="background:var(--zuma-soft);">🤖</div>
+        <span class="vent-name">Zuma AI</span>
+        <span class="vent-time-badge" style="background:var(--zuma-soft);color:var(--zuma);">3h</span>
+        <span class="vent-chevron">▾</span>
+      </div>
+      <div class="task-item">
+        <div class="task-check done">✓</div>
+        <div class="task-info">
+          <div class="task-name done">Write Play Store update release notes</div>
+          <div class="task-meta"><span class="task-dur">30m · logged 28m</span></div>
+        </div>
+        <button class="task-play-btn" style="opacity:0.3;cursor:default;">▶</button>
+      </div>
+      <div class="task-item">
+        <div class="task-check"></div>
+        <div class="task-info">
+          <div class="task-name">MUNKEE science outfit — AI image prompts</div>
+          <div class="task-meta">
+            <span class="tag tag-goal">↗ Q3 Instagram growth</span>
+            <span class="task-dur">1h</span>
+          </div>
+        </div>
+        <button class="task-play-btn">▶</button>
+      </div>
+      <div class="task-item">
+        <div class="task-check" style="opacity:0.4;"></div>
+        <div class="task-info">
+          <div class="task-name">Partner sync with Zubin — ZumaLM roadmap</div>
+          <div class="task-meta">
+            <span class="tag tag-cal">📅 Google Calendar</span>
+            <span class="task-dur">4:00 PM · 1h 30m</span>
+          </div>
+        </div>
+        <button class="task-play-btn" style="opacity:0.3;cursor:default;">▶</button>
+      </div>
+    </div>
+
+    <!-- Next Platforms -->
+    <div class="venture-block">
+      <div class="venture-head">
+        <div class="vent-icon" style="background:var(--next-soft);">⚡</div>
+        <span class="vent-name">Next Platforms / WorkIn</span>
+        <span class="vent-time-badge" style="background:var(--next-soft);color:var(--next);">1h 30m</span>
+        <span class="vent-chevron">▾</span>
+      </div>
+      <div class="task-item">
+        <div class="task-check done">✓</div>
+        <div class="task-info">
+          <div class="task-name done">WorkIn pilot proposal — JICA draft v1</div>
+          <div class="task-meta"><span class="task-dur">1h · logged 1h 12m</span></div>
+        </div>
+        <button class="task-play-btn" style="opacity:0.3;cursor:default;">▶</button>
+      </div>
+      <div class="task-item">
+        <div class="task-check"></div>
+        <div class="task-info">
+          <div class="task-name">Review P9 onboarding flow mockups</div>
+          <div class="task-meta"><span class="task-dur">30m</span></div>
+        </div>
+        <button class="task-play-btn">▶</button>
+      </div>
+    </div>
+
+    <!-- Health & Personal -->
+    <div class="venture-block">
+      <div class="venture-head">
+        <div class="vent-icon" style="background:var(--fit-soft);">💪</div>
+        <span class="vent-name">Health & Personal</span>
+        <span class="vent-time-badge" style="background:var(--fit-soft);color:var(--fit);">2h</span>
+        <span class="vent-chevron">▾</span>
+      </div>
+      <div class="task-item">
+        <div class="task-check done">✓</div>
+        <div class="task-info">
+          <div class="task-name done">Morning workout — upper body</div>
+          <div class="task-meta">
+            <span class="tag tag-fixed">Recurring</span>
+            <span class="task-dur">1h · logged 55m</span>
+          </div>
+        </div>
+        <button class="task-play-btn" style="opacity:0.3;cursor:default;">▶</button>
+      </div>
+      <div class="task-item">
+        <div class="task-check"></div>
+        <div class="task-info">
+          <div class="task-name">LinkedIn post — Python list comprehensions</div>
+          <div class="task-meta">
+            <span class="tag tag-goal">↗ Personal Brand</span>
+            <span class="task-dur">30m</span>
+          </div>
+        </div>
+        <button class="task-play-btn">▶</button>
+      </div>
+    </div>
+
+    <!-- Completed fold -->
+    <div class="completed-fold">
+      <div class="fold-head">▶ &nbsp;Completed today &nbsp;(3 tasks) ✓</div>
+    </div>
+
+    <div style="height:10px;"></div>
+  </main>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+
+    <div>
+      <div class="sidebar-title">This week's goals</div>
+
+      <div class="cal-sync-badge">
+        <span>📅</span> Google Calendar synced · 3 events today
+      </div>
+
+      <div class="goal-card">
+        <div class="goal-card-top">
+          <span class="goal-icon">📚</span>
+          <span class="goal-text-name">Complete Batch 4 lesson plan — all 6 sessions</span>
+          <span class="goal-pct" style="color:var(--dl);">33%</span>
+        </div>
+        <div class="goal-bar-track"><div class="goal-bar-fill" style="width:33%;background:var(--dl);"></div></div>
+      </div>
+
+      <div class="goal-card">
+        <div class="goal-card-top">
+          <span class="goal-icon">🤖</span>
+          <span class="goal-text-name">Ship ZumaLM v1.2 to production</span>
+          <span class="goal-pct" style="color:var(--zuma);">70%</span>
+        </div>
+        <div class="goal-bar-track"><div class="goal-bar-fill" style="width:70%;background:var(--zuma);"></div></div>
+      </div>
+
+      <div class="goal-card">
+        <div class="goal-card-top">
+          <span class="goal-icon">✍️</span>
+          <span class="goal-text-name">Publish 3 technical LinkedIn posts</span>
+          <span class="goal-pct" style="color:var(--brand);">33%</span>
+        </div>
+        <div class="goal-bar-track"><div class="goal-bar-fill" style="width:33%;background:var(--brand);"></div></div>
+      </div>
+
+      <div class="goal-card">
+        <div class="goal-card-top">
+          <span class="goal-icon">💪</span>
+          <span class="goal-text-name">5 gym sessions this week</span>
+          <span class="goal-pct" style="color:var(--fit);">60%</span>
+        </div>
+        <div class="goal-bar-track"><div class="goal-bar-fill" style="width:60%;background:var(--fit);"></div></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sidebar-title">Week so far</div>
+      <div class="split-item"><span class="split-icon">📚</span><span class="split-name">DeveLearn</span><div class="split-bar-track"><div class="split-bar-fill" style="width:55%;background:var(--dl);"></div></div><span class="split-val">9h</span></div>
+      <div class="split-item"><span class="split-icon">🤖</span><span class="split-name">Zuma AI</span><div class="split-bar-track"><div class="split-bar-fill" style="width:72%;background:var(--zuma);"></div></div><span class="split-val">14h</span></div>
+      <div class="split-item"><span class="split-icon">⚡</span><span class="split-name">Next / WorkIn</span><div class="split-bar-track"><div class="split-bar-fill" style="width:30%;background:var(--next);"></div></div><span class="split-val">5h</span></div>
+      <div class="split-item"><span class="split-icon">✍️</span><span class="split-name">Personal Brand</span><div class="split-bar-track"><div class="split-bar-fill" style="width:20%;background:var(--brand);"></div></div><span class="split-val">3h</span></div>
+      <div class="split-item"><span class="split-icon">💪</span><span class="split-name">Fitness</span><div class="split-bar-track"><div class="split-bar-fill" style="width:48%;background:var(--fit);"></div></div><span class="split-val">3h</span></div>
+      <div class="split-item"><span class="split-icon">🎮</span><span class="split-name">Leisure</span><div class="split-bar-track"><div class="split-bar-fill" style="width:35%;background:var(--leisure);"></div></div><span class="split-val">5h</span></div>
+      <div class="split-item" style="opacity:0.55;"><span class="split-icon">❔</span><span class="split-name">Untracked</span><div class="split-bar-track"><div class="split-bar-fill" style="width:85%;background:var(--untracked);"></div></div><span class="split-val">38h</span></div>
+    </div>
+
+  </aside>
+
+  <!-- Timer strip -->
+  <div class="timer-strip">
+    <div class="timer-dot"></div>
+    <span class="timer-label">Prepare Python Batch 4 — Functions & Scope</span>
+    <span class="timer-value" id="timer">00:23:14</span>
+    <button class="timer-stop-btn">■ Stop</button>
+  </div>
+
+</div>
+
+<button class="fab">+</button>
+
+<script>
+  let s = 23*60+14;
+  setInterval(() => {
+    s++;
+    const m = String(Math.floor(s/60)).padStart(2,'0');
+    const sec = String(s%60).padStart(2,'0');
+    document.getElementById('timer').textContent = `00:${m}:${sec}`;
+  }, 1000);
+
+  document.querySelectorAll('.toggle-pills button').forEach(btn => {
+    btn.addEventListener('click', function() {
+      this.closest('.toggle-pills').querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

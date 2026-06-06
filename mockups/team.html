@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Axiom — Team</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --surface: rgba(255,255,255,0.72);
+  --border: rgba(120,80,220,0.15);
+  --border-med: rgba(120,80,220,0.22);
+  --shadow: 0 4px 24px rgba(60,20,120,0.12);
+  --text-primary: #1a1535; --text-secondary: #5c5280; --text-muted: #9d94c0;
+  --accent: #7c3aed;
+  --pending: #f59e0b; --pending-soft: rgba(245,158,11,0.13);
+  --progress: #3b82f6; --progress-soft: rgba(59,130,246,0.13);
+  --done: #16a34a; --done-soft: rgba(22,163,74,0.13);
+  --blocked: #ef4444; --blocked-soft: rgba(239,68,68,0.13);
+  --radius: 16px; --radius-lg: 22px; --radius-pill: 100px;
+  --blur: blur(20px);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Nunito',sans-serif; color:var(--text-primary); min-height:100vh; overflow:hidden; }
+
+.wallpaper { position:fixed; inset:0; z-index:0; }
+.wp-poke-dusk {
+  background:
+    radial-gradient(ellipse 40% 30% at 50% 62%, #fef3c7 0%, #fbbf24 15%, transparent 55%),
+    linear-gradient(180deg,#1e0a3c 0%,#3b0764 20%,#7e22ce 45%,#c2410c 65%,#ea580c 78%,#fb923c 88%,#fde68a 100%);
+}
+.wp-poke-dusk::after { content:''; position:absolute; inset:0; background:linear-gradient(to bottom, transparent 63%, rgba(30,10,60,0.6) 85%, #0f0320 100%); }
+
+.app { position:relative; z-index:1; display:grid; grid-template-rows:58px 1fr 60px; grid-template-columns:1fr; height:100vh; max-width:1380px; margin:0 auto; }
+
+.header { display:flex; align-items:center; justify-content:space-between; padding:0 22px; background:rgba(255,255,255,0.68); backdrop-filter:var(--blur); border-bottom:1px solid var(--border-med); }
+.logo { font-size:20px; font-weight:900; color:var(--accent); }
+.logo em { color:#f97316; font-style:normal; }
+.header-center { font-size:15px; font-weight:900; }
+.avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,var(--accent),#ec4899); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:900; color:white; }
+
+.body { overflow:hidden; display:flex; flex-direction:column; padding:14px 22px 0; gap:12px; }
+
+/* Top controls */
+.controls { display:flex; align-items:center; gap:12px; }
+.mode-toggle { display:flex; gap:3px; background:rgba(255,255,255,0.6); border:1.5px solid var(--border-med); border-radius:var(--radius-pill); padding:3px; backdrop-filter:var(--blur); }
+.mode-toggle button { background:none; border:none; font-family:inherit; font-size:12px; font-weight:800; padding:6px 16px; border-radius:var(--radius-pill); cursor:pointer; color:var(--text-muted); }
+.mode-toggle button.active { background:var(--accent); color:white; }
+.filter-chips { display:flex; gap:6px; }
+.chip { background:rgba(255,255,255,0.6); border:1.5px solid var(--border-med); border-radius:var(--radius-pill); padding:5px 13px; font-size:11.5px; font-weight:800; color:var(--text-secondary); cursor:pointer; backdrop-filter:var(--blur); }
+.chip.active { background:rgba(124,58,237,0.12); color:var(--accent); border-color:rgba(124,58,237,0.4); }
+.chip.alert { color:#be123c; }
+.search { margin-left:auto; background:rgba(255,255,255,0.6); border:1.5px solid var(--border-med); border-radius:var(--radius-pill); padding:6px 14px; font-size:12px; font-weight:700; color:var(--text-secondary); width:180px; backdrop-filter:var(--blur); }
+
+/* Follow-up strip */
+.followup-strip { background:rgba(245,158,11,0.1); border:1.5px solid rgba(245,158,11,0.35); border-radius:var(--radius); padding:10px 16px; display:flex; align-items:center; gap:12px; backdrop-filter:var(--blur); }
+.fu-title { font-size:12.5px; font-weight:900; color:#b45309; display:flex; align-items:center; gap:7px; }
+.fu-pills { display:flex; gap:8px; flex-wrap:wrap; }
+.fu-pill { background:rgba(255,255,255,0.7); border:1.5px solid rgba(245,158,11,0.3); border-radius:var(--radius-pill); padding:4px 11px; font-size:11px; font-weight:800; color:#92400e; display:flex; align-items:center; gap:6px; cursor:pointer; }
+.fu-ava { width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:900; color:white; }
+
+/* Main split */
+.split { flex:1; display:grid; grid-template-columns:280px 1fr; gap:14px; overflow:hidden; padding-bottom:14px; }
+
+/* People rail */
+.people-rail { background:var(--surface); border:1.5px solid var(--border-med); border-radius:var(--radius-lg); padding:8px; overflow-y:auto; backdrop-filter:var(--blur); box-shadow:var(--shadow); display:flex; flex-direction:column; gap:4px; }
+.rail-title { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px; color:var(--text-muted); padding:8px 10px 4px; }
+.person { display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:12px; cursor:pointer; transition:background 0.15s; }
+.person:hover { background:rgba(124,58,237,0.05); }
+.person.selected { background:rgba(124,58,237,0.12); }
+.person-ava { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; color:white; flex-shrink:0; position:relative; }
+.person-status-dot { position:absolute; bottom:0; right:0; width:11px; height:11px; border-radius:50%; border:2px solid white; }
+.person-info { flex:1; min-width:0; }
+.person-name { font-size:13px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.person-role { font-size:10.5px; color:var(--text-muted); font-weight:600; }
+.person-counts { display:flex; flex-direction:column; align-items:flex-end; gap:2px; }
+.count-open { font-size:11px; font-weight:900; color:var(--text-secondary); }
+.count-fu { font-size:9.5px; font-weight:800; color:#b45309; background:var(--pending-soft); padding:1px 6px; border-radius:var(--radius-pill); }
+.count-fu.none { color:var(--text-muted); background:rgba(0,0,0,0.04); }
+
+/* Detail panel */
+.detail { background:var(--surface); border:1.5px solid var(--border-med); border-radius:var(--radius-lg); overflow:hidden; backdrop-filter:var(--blur); box-shadow:var(--shadow); display:flex; flex-direction:column; }
+.detail-head { display:flex; align-items:center; gap:12px; padding:16px 18px; border-bottom:1.5px solid var(--border); }
+.detail-ava { width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:900; color:white; }
+.detail-name { font-size:17px; font-weight:900; }
+.detail-role { font-size:12px; color:var(--text-muted); font-weight:700; }
+.detail-stats { margin-left:auto; display:flex; gap:8px; }
+.dstat { text-align:center; background:rgba(255,255,255,0.5); border:1.5px solid var(--border); border-radius:12px; padding:7px 14px; }
+.dstat-val { font-size:18px; font-weight:900; }
+.dstat-lbl { font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); }
+.assign-btn { background:var(--accent); color:white; border:none; font-family:inherit; font-size:12px; font-weight:800; padding:8px 16px; border-radius:var(--radius-pill); cursor:pointer; box-shadow:0 2px 10px rgba(124,58,237,0.35); }
+
+.deleg-list { flex:1; overflow-y:auto; padding:12px 16px; display:flex; flex-direction:column; gap:8px; }
+.deleg-item { display:flex; align-items:center; gap:12px; background:rgba(255,255,255,0.6); border:1.5px solid var(--border); border-radius:var(--radius); padding:12px 14px; }
+.deleg-status { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.deleg-info { flex:1; min-width:0; }
+.deleg-name { font-size:13px; font-weight:800; }
+.deleg-meta { display:flex; align-items:center; gap:8px; margin-top:3px; }
+.deleg-ctx { font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; }
+.deleg-date { font-size:10.5px; font-weight:700; color:var(--text-muted); }
+.deleg-recur { font-size:10px; font-weight:800; color:#0369a1; background:rgba(14,165,233,0.12); padding:2px 8px; border-radius:6px; }
+.status-badge { font-size:11px; font-weight:900; padding:5px 13px; border-radius:var(--radius-pill); cursor:pointer; }
+.fu-flag { font-size:10.5px; font-weight:800; color:#b45309; background:var(--pending-soft); padding:4px 10px; border-radius:var(--radius-pill); display:flex; align-items:center; gap:4px; }
+.fu-flag.overdue { color:#be123c; background:rgba(239,68,68,0.12); }
+
+/* Bottom nav */
+.bottom-nav { display:flex; align-items:center; justify-content:space-around; padding:0 16px; background:rgba(255,255,255,0.82); border-top:1.5px solid var(--border-med); backdrop-filter:var(--blur); }
+.nav-item { display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 18px; border-radius:14px; cursor:pointer; color:var(--text-muted); }
+.nav-item.active { color:var(--accent); background:rgba(124,58,237,0.1); }
+.nav-icon { font-size:18px; }
+.nav-lbl { font-size:10px; font-weight:800; }
+
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-thumb { background:rgba(124,58,237,0.2); border-radius:4px; }
+</style>
+</head>
+<body>
+<div class="wallpaper wp-poke-dusk"></div>
+
+<div class="app">
+  <header class="header">
+    <div class="logo">axio<em>m</em></div>
+    <div class="header-center">👥 Team &amp; Delegation</div>
+    <div class="avatar">A</div>
+  </header>
+
+  <div class="body">
+
+    <!-- Follow-ups due today -->
+    <div class="followup-strip">
+      <span class="fu-title">⏰ Follow-ups due today</span>
+      <div class="fu-pills">
+        <span class="fu-pill"><span class="fu-ava" style="background:#3b82f6;">R</span> Rahul — sprint review</span>
+        <span class="fu-pill"><span class="fu-ava" style="background:#ec4899;">P</span> Priya — JICA deck status</span>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <div class="mode-toggle">
+        <button class="active">By Person</button>
+        <button>By Status</button>
+      </div>
+      <div class="filter-chips">
+        <span class="chip active">All</span>
+        <span class="chip alert">Overdue · 1</span>
+        <span class="chip">Blocked · 2</span>
+        <span class="chip">Due this week</span>
+      </div>
+      <input class="search" placeholder="🔍 Search tasks...">
+    </div>
+
+    <!-- Split: people rail + detail -->
+    <div class="split">
+
+      <!-- People rail -->
+      <div class="people-rail">
+        <div class="rail-title">10 reports · sorted by attention</div>
+
+        <div class="person selected">
+          <div class="person-ava" style="background:#3b82f6;">R<span class="person-status-dot" style="background:#ef4444;"></span></div>
+          <div class="person-info"><div class="person-name">Rahul Mehta</div><div class="person-role">Lead Dev · Zuma</div></div>
+          <div class="person-counts"><span class="count-open">5 open</span><span class="count-fu">1 FU</span></div>
+        </div>
+
+        <div class="person">
+          <div class="person-ava" style="background:#ec4899;">P<span class="person-status-dot" style="background:#f59e0b;"></span></div>
+          <div class="person-info"><div class="person-name">Priya Sharma</div><div class="person-role">BD · Next Platforms</div></div>
+          <div class="person-counts"><span class="count-open">3 open</span><span class="count-fu">1 FU</span></div>
+        </div>
+
+        <div class="person">
+          <div class="person-ava" style="background:#f97316;">A<span class="person-status-dot" style="background:#ef4444;"></span></div>
+          <div class="person-info"><div class="person-name">Amit Kulkarni</div><div class="person-role">Curriculum · DeveLearn</div></div>
+          <div class="person-counts"><span class="count-open">4 open</span><span class="count-fu none">—</span></div>
+        </div>
+
+        <div class="person">
+          <div class="person-ava" style="background:#8b5cf6;">S<span class="person-status-dot" style="background:#3b82f6;"></span></div>
+          <div class="person-info"><div class="person-name">Sneha Patil</div><div class="person-role">Marketing · Zuma</div></div>
+          <div class="person-counts"><span class="count-open">2 open</span><span class="count-fu none">—</span></div>
+        </div>
+
+        <div class="person">
+          <div class="person-ava" style="background:#06b6d4;">K<span class="person-status-dot" style="background:#16a34a;"></span></div>
+          <div class="person-info"><div class="person-name">Karan Desai</div><div class="person-role">Ops · WorkIn</div></div>
+          <div class="person-counts"><span class="count-open">1 open</span><span class="count-fu none">—</span></div>
+        </div>
+
+        <div class="person">
+          <div class="person-ava" style="background:#22c55e;">N<span class="person-status-dot" style="background:#16a34a;"></span></div>
+          <div class="person-info"><div class="person-name">Neha Joshi</div><div class="person-role">Admin · DeveLearn</div></div>
+          <div class="person-counts"><span class="count-open">2 open</span><span class="count-fu none">—</span></div>
+        </div>
+
+        <div class="person">
+          <div class="person-ava" style="background:#f43f5e;">V<span class="person-status-dot" style="background:#3b82f6;"></span></div>
+          <div class="person-info"><div class="person-name">Vikram Rao</div><div class="person-role">Product · Next</div></div>
+          <div class="person-counts"><span class="count-open">3 open</span><span class="count-fu none">—</span></div>
+        </div>
+
+        <div class="person">
+          <div class="person-ava" style="background:#0ea5e9;">T<span class="person-status-dot" style="background:#16a34a;"></span></div>
+          <div class="person-info"><div class="person-name">Tanvi Shah</div><div class="person-role">Content · Brand</div></div>
+          <div class="person-counts"><span class="count-open">1 open</span><span class="count-fu none">—</span></div>
+        </div>
+
+        <div class="person">
+          <div class="person-ava" style="background:#a855f7;">D<span class="person-status-dot" style="background:#16a34a;"></span></div>
+          <div class="person-info"><div class="person-name">Dev Nair</div><div class="person-role">Dev · Zuma</div></div>
+          <div class="person-counts"><span class="count-open">2 open</span><span class="count-fu none">—</span></div>
+        </div>
+
+        <div class="person">
+          <div class="person-ava" style="background:#d97706;">M<span class="person-status-dot" style="background:#16a34a;"></span></div>
+          <div class="person-info"><div class="person-name">Maya Iyer</div><div class="person-role">Teaching · DeveLearn</div></div>
+          <div class="person-counts"><span class="count-open">1 open</span><span class="count-fu none">—</span></div>
+        </div>
+      </div>
+
+      <!-- Detail panel: Rahul -->
+      <div class="detail">
+        <div class="detail-head">
+          <div class="detail-ava" style="background:#3b82f6;">R</div>
+          <div>
+            <div class="detail-name">Rahul Mehta</div>
+            <div class="detail-role">Lead Developer · Zuma AI</div>
+          </div>
+          <div class="detail-stats">
+            <div class="dstat"><div class="dstat-val" style="color:var(--pending);">2</div><div class="dstat-lbl">Pending</div></div>
+            <div class="dstat"><div class="dstat-val" style="color:var(--progress);">2</div><div class="dstat-lbl">In Progress</div></div>
+            <div class="dstat"><div class="dstat-val" style="color:var(--blocked);">1</div><div class="dstat-lbl">Blocked</div></div>
+          </div>
+          <button class="assign-btn">+ Assign work</button>
+        </div>
+
+        <div class="deleg-list">
+          <div class="deleg-item">
+            <div class="deleg-status" style="background:var(--blocked);"></div>
+            <div class="deleg-info">
+              <div class="deleg-name">Fix Play Store policy rejection — re-submit build</div>
+              <div class="deleg-meta">
+                <span class="deleg-ctx" style="background:rgba(139,92,246,0.12);color:#6d28d9;">Zuma AI</span>
+                <span class="deleg-date">Due today</span>
+              </div>
+            </div>
+            <span class="fu-flag overdue">⏰ FU overdue</span>
+            <span class="status-badge" style="background:var(--blocked-soft);color:var(--blocked);">Blocked ▾</span>
+          </div>
+
+          <div class="deleg-item">
+            <div class="deleg-status" style="background:var(--progress);"></div>
+            <div class="deleg-info">
+              <div class="deleg-name">ZumaLM v1.2 — final QA pass before deploy</div>
+              <div class="deleg-meta">
+                <span class="deleg-ctx" style="background:rgba(139,92,246,0.12);color:#6d28d9;">Zuma AI</span>
+                <span class="deleg-date">Due Jun 7</span>
+              </div>
+            </div>
+            <span class="fu-flag">⏰ FU today</span>
+            <span class="status-badge" style="background:var(--progress-soft);color:var(--progress);">In Progress ▾</span>
+          </div>
+
+          <div class="deleg-item">
+            <div class="deleg-status" style="background:var(--progress);"></div>
+            <div class="deleg-info">
+              <div class="deleg-name">Weekly dev sync report</div>
+              <div class="deleg-meta">
+                <span class="deleg-ctx" style="background:rgba(139,92,246,0.12);color:#6d28d9;">Zuma AI</span>
+                <span class="deleg-recur">🔁 Weekly · Fri</span>
+              </div>
+            </div>
+            <span class="status-badge" style="background:var(--progress-soft);color:var(--progress);">In Progress ▾</span>
+          </div>
+
+          <div class="deleg-item">
+            <div class="deleg-status" style="background:var(--pending);"></div>
+            <div class="deleg-info">
+              <div class="deleg-name">Scope MUNKEE animation pipeline — feasibility note</div>
+              <div class="deleg-meta">
+                <span class="deleg-ctx" style="background:rgba(139,92,246,0.12);color:#6d28d9;">Zuma AI</span>
+                <span class="deleg-date">Due Jun 12</span>
+              </div>
+            </div>
+            <span class="status-badge" style="background:var(--pending-soft);color:var(--pending);">Pending ▾</span>
+          </div>
+
+          <div class="deleg-item">
+            <div class="deleg-status" style="background:var(--pending);"></div>
+            <div class="deleg-info">
+              <div class="deleg-name">Review WorkIn API integration spec</div>
+              <div class="deleg-meta">
+                <span class="deleg-ctx" style="background:rgba(6,182,212,0.12);color:#0e7490;">Next / WorkIn</span>
+                <span class="deleg-date">Due Jun 14</span>
+              </div>
+            </div>
+            <span class="status-badge" style="background:var(--pending-soft);color:var(--pending);">Pending ▾</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <div class="nav-item"><span class="nav-icon">☀️</span><span class="nav-lbl">Today</span></div>
+    <div class="nav-item"><span class="nav-icon">📅</span><span class="nav-lbl">Week</span></div>
+    <div class="nav-item"><span class="nav-icon">🎯</span><span class="nav-lbl">Goals</span></div>
+    <div class="nav-item active"><span class="nav-icon">👥</span><span class="nav-lbl">Team</span></div>
+    <div class="nav-item"><span class="nav-icon">⚙️</span><span class="nav-lbl">Settings</span></div>
+  </nav>
+</div>
+
+<script>
+  document.querySelectorAll('.mode-toggle button').forEach(b=>b.addEventListener('click',function(){this.closest('.mode-toggle').querySelectorAll('button').forEach(x=>x.classList.remove('active'));this.classList.add('active');}));
+  document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',function(){document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));this.classList.add('active');}));
+  document.querySelectorAll('.person').forEach(p=>p.addEventListener('click',function(){document.querySelectorAll('.person').forEach(x=>x.classList.remove('selected'));this.classList.add('selected');}));
+</script>
+</body>
+</html>

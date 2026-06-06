@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Axiom — Today v3</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --surface: rgba(255,255,255,0.72);
+    --surface-2: rgba(255,255,255,0.45);
+    --surface-solid: #ffffff;
+    --border: rgba(160,120,255,0.14);
+    --border-med: rgba(140,100,240,0.22);
+    --shadow: 0 4px 24px rgba(80,40,160,0.10);
+    --shadow-lg: 0 8px 40px rgba(80,40,160,0.16);
+    --text-primary: #1a1535;
+    --text-secondary: #5c5280;
+    --text-muted: #9d94c0;
+
+    --dl: #f97316;       --dl-soft: rgba(249,115,22,0.12);
+    --zuma: #8b5cf6;     --zuma-soft: rgba(139,92,246,0.12);
+    --next: #06b6d4;     --next-soft: rgba(6,182,212,0.12);
+    --brand: #ec4899;    --brand-soft: rgba(236,72,153,0.12);
+    --learn: #3b82f6;    --learn-soft: rgba(59,130,246,0.12);
+    --fit: #22c55e;      --fit-soft: rgba(34,197,94,0.12);
+    --leisure: #f59e0b;  --leisure-soft: rgba(245,158,11,0.12);
+    --sleep: #94a3b8;
+    --untracked: rgba(148,163,184,0.3);
+
+    --accent: #7c3aed;
+    --danger: #ef4444;   --danger-soft: rgba(239,68,68,0.10);
+    --success: #16a34a;  --success-soft: rgba(22,163,74,0.10);
+    --warning: #d97706;  --warning-soft: rgba(217,119,6,0.10);
+
+    --radius: 16px;
+    --radius-sm: 10px;
+    --radius-lg: 22px;
+    --radius-pill: 100px;
+    --blur: blur(18px);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ─── WALLPAPER: Pokémon-style sunset landscape ─── */
+  .wallpaper {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .wallpaper svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* ─── APP SHELL ─── */
+  .app {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-rows: 58px 1fr 58px;
+    grid-template-columns: 1fr 288px;
+    height: 100vh;
+    max-width: 1380px;
+    margin: 0 auto;
+  }
+
+  /* ─── HEADER ─── */
+  .header {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 22px;
+    background: rgba(255,255,255,0.68);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border-bottom: 1px solid var(--border-med);
+    box-shadow: 0 2px 16px rgba(80,40,160,0.07);
+  }
+
+  .logo {
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    color: var(--accent);
+  }
+  .logo em { color: var(--dl); font-style: normal; }
+
+  .header-center { display: flex; flex-direction: column; align-items: center; }
+  .header-day { font-size: 14px; font-weight: 800; }
+  .header-date-sub { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+
+  .header-right { display: flex; align-items: center; gap: 10px; }
+
+  .streak-pill {
+    background: rgba(251,191,36,0.18);
+    border: 1.5px solid rgba(251,191,36,0.5);
+    border-radius: var(--radius-pill);
+    padding: 4px 11px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #92400e;
+    display: flex; align-items: center; gap: 4px;
+  }
+
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--brand));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 900; color: white; cursor: pointer;
+    box-shadow: 0 2px 10px rgba(124,58,237,0.35);
+  }
+
+  /* ─── MAIN ─── */
+  .main {
+    grid-column: 1; grid-row: 2;
+    overflow-y: auto;
+    padding: 16px 18px 16px 22px;
+    display: flex; flex-direction: column; gap: 12px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(124,58,237,0.2) transparent;
+  }
+
+  /* ─── CARD ─── */
+  .card {
+    background: var(--surface);
+    border: 1.5px solid var(--border-med);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    box-shadow: var(--shadow);
+  }
+
+  .card-title {
+    font-size: 10.5px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 1.2px;
+    color: var(--text-muted); margin-bottom: 12px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  /* ─── TOGGLE PILLS ─── */
+  .toggle-pills {
+    display: flex; gap: 3px;
+    background: rgba(255,255,255,0.55);
+    border-radius: var(--radius-pill);
+    padding: 3px;
+    border: 1.5px solid var(--border-med);
+    backdrop-filter: var(--blur);
+  }
+
+  .toggle-pills button {
+    background: none; border: none;
+    font-family: inherit; font-size: 10.5px; font-weight: 800;
+    padding: 4px 11px; border-radius: var(--radius-pill);
+    cursor: pointer; color: var(--text-muted);
+    transition: all 0.2s;
+  }
+
+  .toggle-pills button.active {
+    background: var(--accent); color: white;
+    box-shadow: 0 2px 8px rgba(124,58,237,0.35);
+  }
+
+  /* ─── OVERFLOW BANNER ─── */
+  .overflow-banner {
+    background: rgba(239,68,68,0.12);
+    border: 1.5px solid rgba(239,68,68,0.35);
+    border-radius: var(--radius);
+    padding: 10px 15px;
+    display: flex; align-items: center; gap: 9px;
+    font-size: 13px; font-weight: 700; color: #b91c1c;
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+  }
+
+  /* ─── BUDGET STATS ─── */
+  .budget-stats {
+    display: flex; gap: 8px; margin-bottom: 13px;
+  }
+
+  .stat-pill {
+    flex: 1;
+    background: rgba(255,255,255,0.6);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 9px 11px;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+
+  .stat-pill-val { font-size: 17px; font-weight: 900; letter-spacing: -0.5px; }
+  .stat-pill-lbl { font-size: 9.5px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* ─── BUDGET BAR ─── */
+  .budget-bar-track {
+    height: 11px; border-radius: var(--radius-pill);
+    background: rgba(255,255,255,0.5);
+    border: 1.5px solid var(--border-med);
+    overflow: hidden; margin-bottom: 9px;
+  }
+
+  .budget-bar-fill { display: flex; height: 100%; }
+  .budget-seg { height: 100%; }
+
+  .bar-labels { display: flex; flex-wrap: wrap; gap: 6px 12px; }
+
+  .bar-lbl {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 10.5px; font-weight: 700; color: var(--text-secondary);
+  }
+
+  .bar-lbl-dot { width: 8px; height: 8px; border-radius: 3px; flex-shrink: 0; }
+
+  /* ─── RING ─── */
+  .ring-body { display: flex; align-items: center; gap: 18px; }
+
+  .ring-wrap { position: relative; width: 128px; height: 128px; flex-shrink: 0; }
+
+  .ring-center {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+
+  .ring-cv { font-size: 19px; font-weight: 900; letter-spacing: -1px; color: var(--text-muted); }
+  .ring-cl { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+
+  .ring-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 14px; flex: 1; }
+
+  .leg { display: flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 700; color: var(--text-secondary); }
+  .leg-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
+  .leg-val { margin-left: auto; font-size: 10.5px; font-weight: 900; color: var(--text-primary); }
+
+  /* ─── TASK LIST ─── */
+  .tasks-header {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .section-lbl { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-muted); }
+
+  .task-count {
+    background: rgba(124,58,237,0.12);
+    color: var(--accent);
+    font-size: 11px; font-weight: 800;
+    padding: 3px 10px; border-radius: var(--radius-pill);
+  }
+
+  .venture-block {
+    background: var(--surface);
+    border: 1.5px solid var(--border-med);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    box-shadow: var(--shadow);
+  }
+
+  .vent-head {
+    display: flex; align-items: center; gap: 9px;
+    padding: 10px 15px; cursor: pointer;
+    border-bottom: 1.5px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  .vent-head:hover { background: rgba(124,58,237,0.04); }
+
+  .vent-icon {
+    width: 30px; height: 30px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0;
+  }
+
+  .vent-name { font-size: 12.5px; font-weight: 800; flex: 1; }
+
+  .vent-badge {
+    font-size: 10.5px; font-weight: 800;
+    padding: 3px 9px; border-radius: var(--radius-pill);
+  }
+
+  .vent-chev { font-size: 9px; color: var(--text-muted); }
+
+  .task-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 15px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .task-item:last-child { border-bottom: none; }
+  .task-item:hover { background: rgba(124,58,237,0.03); }
+
+  .task-check {
+    width: 19px; height: 19px; border-radius: 50%;
+    border: 2px solid rgba(140,100,240,0.3);
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 9px; cursor: pointer;
+    transition: all 0.2s;
+    background: rgba(255,255,255,0.6);
+  }
+
+  .task-check.done { background: var(--success); border-color: var(--success); color: white; }
+  .task-check.active { border-color: var(--accent); background: rgba(124,58,237,0.1); }
+
+  .task-info { flex: 1; min-width: 0; }
+
+  .task-name {
+    font-size: 12.5px; font-weight: 700;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .task-name.done { text-decoration: line-through; color: var(--text-muted); }
+
+  .task-meta { display: flex; align-items: center; gap: 5px; margin-top: 2px; flex-wrap: wrap; }
+
+  .tag {
+    font-size: 9.5px; font-weight: 800;
+    padding: 2px 7px; border-radius: 6px;
+  }
+
+  .tag-goal { background: rgba(124,58,237,0.1); color: #6d28d9; }
+  .tag-fixed { background: rgba(148,163,184,0.15); color: #64748b; }
+  .tag-cal { background: rgba(14,165,233,0.12); color: #0369a1; }
+  .task-dur { font-size: 10.5px; font-weight: 700; color: var(--text-muted); }
+
+  .play-btn {
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 1.5px solid rgba(140,100,240,0.3);
+    background: rgba(255,255,255,0.7);
+    color: var(--accent); font-size: 10px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+    box-shadow: 0 1px 5px rgba(124,58,237,0.1);
+  }
+
+  .play-btn:hover {
+    background: var(--accent); border-color: var(--accent); color: white;
+    transform: scale(1.12);
+    box-shadow: 0 3px 12px rgba(124,58,237,0.4);
+  }
+
+  .play-btn.running {
+    background: var(--accent); border-color: var(--accent); color: white;
+    animation: pulse-ring 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse-ring {
+    0%,100% { box-shadow: 0 0 0 0 rgba(124,58,237,0.4); }
+    50% { box-shadow: 0 0 0 7px rgba(124,58,237,0); }
+  }
+
+  /* Completed fold */
+  .completed-fold {
+    background: rgba(255,255,255,0.55);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    backdrop-filter: var(--blur);
+  }
+
+  .fold-head {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 15px; cursor: pointer;
+    font-size: 11.5px; font-weight: 800; color: var(--text-muted);
+  }
+
+  /* ─── TIMER STRIP ─── */
+  .timer-strip {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; gap: 12px;
+    padding: 0 22px;
+    background: rgba(255,255,255,0.8);
+    border-top: 1.5px solid var(--border-med);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    box-shadow: 0 -2px 16px rgba(80,40,160,0.08);
+  }
+
+  .timer-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent);
+    animation: blink 1.2s ease-in-out infinite; flex-shrink: 0;
+  }
+
+  @keyframes blink {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.35; transform: scale(0.75); }
+  }
+
+  .timer-lbl { font-size: 12.5px; font-weight: 700; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .timer-val { font-size: 16px; font-weight: 900; letter-spacing: -0.5px; color: var(--accent); min-width: 78px; text-align: right; font-variant-numeric: tabular-nums; }
+
+  .timer-stop {
+    background: var(--danger-soft);
+    border: 1.5px solid rgba(239,68,68,0.35);
+    color: var(--danger); font-family: inherit; font-size: 11.5px; font-weight: 800;
+    padding: 5px 13px; border-radius: var(--radius-pill); cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .timer-stop:hover { background: rgba(239,68,68,0.2); }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    grid-column: 2; grid-row: 2;
+    border-left: 1.5px solid var(--border-med);
+    padding: 16px 15px;
+    overflow-y: auto;
+    display: flex; flex-direction: column; gap: 16px;
+    background: rgba(255,255,255,0.4);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(124,58,237,0.15) transparent;
+  }
+
+  .sidebar-title { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-muted); margin-bottom: 9px; }
+
+  .cal-badge {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(14,165,233,0.1);
+    border: 1.5px solid rgba(14,165,233,0.3);
+    border-radius: var(--radius-pill);
+    padding: 4px 10px; font-size: 11px; font-weight: 700; color: #0369a1;
+    margin-bottom: 12px;
+  }
+
+  .goal-card {
+    background: rgba(255,255,255,0.75);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 9px 11px; margin-bottom: 6px; cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 8px rgba(80,40,160,0.06);
+  }
+
+  .goal-card:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(80,40,160,0.12); }
+
+  .goal-top { display: flex; align-items: flex-start; gap: 7px; margin-bottom: 6px; }
+  .goal-icon { font-size: 15px; flex-shrink: 0; }
+  .goal-text { font-size: 11.5px; font-weight: 700; line-height: 1.3; flex: 1; }
+  .goal-pct { font-size: 11px; font-weight: 900; flex-shrink: 0; margin-top: 1px; }
+
+  .goal-bar { height: 5px; background: rgba(0,0,0,0.07); border-radius: var(--radius-pill); overflow: hidden; }
+  .goal-bar-fill { height: 100%; border-radius: var(--radius-pill); transition: width 0.6s ease; }
+
+  .split-item { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
+  .split-icon { font-size: 13px; flex-shrink: 0; }
+  .split-name { font-size: 11.5px; font-weight: 700; color: var(--text-secondary); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .split-bar { width: 68px; height: 5px; background: rgba(0,0,0,0.07); border-radius: var(--radius-pill); overflow: hidden; }
+  .split-bar-fill { height: 100%; border-radius: var(--radius-pill); }
+  .split-val { font-size: 11px; font-weight: 900; color: var(--text-primary); min-width: 26px; text-align: right; }
+
+  /* ─── FAB ─── */
+  .fab {
+    position: fixed; bottom: 74px; right: 22px;
+    width: 50px; height: 50px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #4f46e5);
+    border: none; color: white; font-size: 26px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(124,58,237,0.45);
+    transition: all 0.25s; z-index: 100;
+    font-family: inherit; font-weight: 300; line-height: 1;
+  }
+
+  .fab:hover { transform: scale(1.12) rotate(90deg); box-shadow: 0 8px 30px rgba(124,58,237,0.6); }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.2); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<!-- ─── WALLPAPER: Pokémon-style layered landscape ─── -->
+<div class="wallpaper">
+  <svg viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Sky gradient: deep dusk purple → warm amber horizon -->
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#1e0a3c"/>
+        <stop offset="35%" stop-color="#4a1580"/>
+        <stop offset="65%" stop-color="#c2410c"/>
+        <stop offset="85%" stop-color="#fb923c"/>
+        <stop offset="100%" stop-color="#fde68a"/>
+      </linearGradient>
+
+      <!-- Sun glow -->
+      <radialGradient id="sun-glow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#fef9c3" stop-opacity="1"/>
+        <stop offset="40%" stop-color="#fbbf24" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#f97316" stop-opacity="0"/>
+      </radialGradient>
+
+      <!-- Horizon shimmer -->
+      <radialGradient id="horizon-glow" cx="50%" cy="0%" r="60%">
+        <stop offset="0%" stop-color="#fed7aa" stop-opacity="0.6"/>
+        <stop offset="100%" stop-color="#fed7aa" stop-opacity="0"/>
+      </radialGradient>
+
+      <!-- Water shimmer -->
+      <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#7e22ce" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#1e0a3c" stop-opacity="0.8"/>
+      </linearGradient>
+
+      <!-- Star twinkle filter -->
+      <filter id="glow">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
+        <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+      </filter>
+    </defs>
+
+    <!-- Sky -->
+    <rect width="1400" height="900" fill="url(#sky)"/>
+
+    <!-- Stars (scattered dots in upper sky) -->
+    <g fill="white" filter="url(#glow)">
+      <circle cx="120" cy="60" r="1.2" opacity="0.9"/>
+      <circle cx="230" cy="35" r="0.9" opacity="0.7"/>
+      <circle cx="340" cy="80" r="1.4" opacity="0.85"/>
+      <circle cx="480" cy="45" r="1.0" opacity="0.6"/>
+      <circle cx="580" cy="25" r="1.3" opacity="0.9"/>
+      <circle cx="710" cy="55" r="0.8" opacity="0.5"/>
+      <circle cx="840" cy="30" r="1.2" opacity="0.8"/>
+      <circle cx="950" cy="70" r="1.5" opacity="0.7"/>
+      <circle cx="1080" cy="40" r="0.9" opacity="0.6"/>
+      <circle cx="1190" cy="20" r="1.3" opacity="0.85"/>
+      <circle cx="1310" cy="65" r="1.0" opacity="0.7"/>
+      <circle cx="65"  cy="110" r="1.1" opacity="0.5"/>
+      <circle cx="410" cy="130" r="0.8" opacity="0.6"/>
+      <circle cx="760" cy="105" r="1.2" opacity="0.4"/>
+      <circle cx="1050" cy="120" r="0.9" opacity="0.55"/>
+      <circle cx="1350" cy="95" r="1.3" opacity="0.6"/>
+    </g>
+
+    <!-- Large moon / setting sun -->
+    <circle cx="700" cy="470" r="110" fill="url(#sun-glow)" opacity="0.95"/>
+    <circle cx="700" cy="470" r="62" fill="#fef3c7" opacity="0.85"/>
+    <circle cx="700" cy="470" r="46" fill="#fde68a"/>
+    <!-- Sun crescent highlight -->
+    <circle cx="690" cy="460" r="38" fill="#fef9c3" opacity="0.4"/>
+
+    <!-- Horizon shimmer over water -->
+    <ellipse cx="700" cy="540" rx="500" ry="80" fill="url(#horizon-glow)"/>
+
+    <!-- Moon/sun reflection on water — shimmering column -->
+    <rect x="672" y="540" width="56" height="220" fill="#fde68a" opacity="0.18" rx="4"/>
+    <rect x="684" y="540" width="32" height="220" fill="#fef3c7" opacity="0.12" rx="4"/>
+
+    <!-- Distant water / lake -->
+    <ellipse cx="700" cy="575" rx="800" ry="70" fill="url(#water)"/>
+    <rect x="0" y="570" width="1400" height="160" fill="#1e0a3c" opacity="0.55"/>
+
+    <!-- Far mountain range (dark silhouette) -->
+    <path d="M0,480 L80,360 L180,430 L280,310 L400,390 L520,280 L640,370 L700,290 L760,370 L880,280 L1000,390 L1110,300 L1220,400 L1320,340 L1400,410 L1400,540 L0,540 Z"
+          fill="#1a0533" opacity="0.85"/>
+
+    <!-- Mid mountain range -->
+    <path d="M0,520 L100,420 L200,470 L330,390 L450,450 L570,380 L680,440 L760,370 L860,440 L970,385 L1100,450 L1220,400 L1340,455 L1400,430 L1400,580 L0,580 Z"
+          fill="#260b40" opacity="0.9"/>
+
+    <!-- Foreground hill left -->
+    <path d="M0,650 Q180,520 420,580 Q600,630 700,590 Q820,545 950,600 Q1150,660 1400,580 L1400,900 L0,900 Z"
+          fill="#14062a"/>
+
+    <!-- Treeline silhouette left -->
+    <!-- Pine trees left cluster -->
+    <g fill="#0d0420" opacity="0.95">
+      <!-- Tree 1 -->
+      <polygon points="60,600 80,540 100,600"/>
+      <polygon points="55,620 80,555 105,620"/>
+      <rect x="76" y="620" width="8" height="20"/>
+      <!-- Tree 2 -->
+      <polygon points="110,590 132,525 154,590"/>
+      <polygon points="105,615 132,540 159,615"/>
+      <rect x="128" y="615" width="8" height="22"/>
+      <!-- Tree 3 -->
+      <polygon points="158,598 178,538 198,598"/>
+      <polygon points="153,622 178,553 203,622"/>
+      <rect x="174" y="622" width="8" height="20"/>
+      <!-- Tree 4 small -->
+      <polygon points="200,610 215,565 230,610"/>
+      <polygon points="197,628 215,575 233,628"/>
+      <rect x="211" y="628" width="7" height="16"/>
+      <!-- Tree 5 -->
+      <polygon points="240,595 262,530 284,595"/>
+      <polygon points="235,620 262,545 289,620"/>
+      <rect x="258" y="620" width="8" height="22"/>
+    </g>
+
+    <!-- Pine trees right cluster -->
+    <g fill="#0d0420" opacity="0.95">
+      <polygon points="1160,595 1182,530 1204,595"/>
+      <polygon points="1155,620 1182,545 1209,620"/>
+      <rect x="1178" y="620" width="8" height="22"/>
+
+      <polygon points="1210,605 1228,548 1246,605"/>
+      <polygon points="1206,626 1228,560 1250,626"/>
+      <rect x="1224" y="626" width="7" height="18"/>
+
+      <polygon points="1250,592 1272,527 1294,592"/>
+      <polygon points="1245,618 1272,542 1299,618"/>
+      <rect x="1268" y="618" width="8" height="22"/>
+
+      <polygon points="1300,600 1320,545 1340,600"/>
+      <polygon points="1296,622 1320,558 1344,622"/>
+      <rect x="1316" y="622" width="8" height="20"/>
+
+      <polygon points="1345,590 1368,522 1391,590"/>
+      <polygon points="1340,618 1368,537 1396,618"/>
+      <rect x="1364" y="618" width="8" height="24"/>
+    </g>
+
+    <!-- Foreground grass left soft -->
+    <path d="M0,750 Q100,700 250,720 Q400,740 500,710 Q600,680 700,700 Q800,720 900,700 Q1050,675 1200,710 Q1320,730 1400,700 L1400,900 L0,900 Z"
+          fill="#0f0320" opacity="0.9"/>
+
+    <!-- Small Pokémon-style round clouds (pastel, floaty) -->
+    <g opacity="0.38">
+      <!-- Cloud 1 left -->
+      <ellipse cx="160" cy="180" rx="70" ry="26" fill="#e9d5ff"/>
+      <ellipse cx="130" cy="185" rx="40" ry="22" fill="#f3e8ff"/>
+      <ellipse cx="190" cy="183" rx="45" ry="20" fill="#f3e8ff"/>
+      <ellipse cx="160" cy="172" rx="35" ry="18" fill="white"/>
+
+      <!-- Cloud 2 right top -->
+      <ellipse cx="1220" cy="150" rx="85" ry="28" fill="#fed7aa"/>
+      <ellipse cx="1185" cy="155" rx="48" ry="24" fill="#ffedd5"/>
+      <ellipse cx="1255" cy="153" rx="50" ry="22" fill="#ffedd5"/>
+      <ellipse cx="1220" cy="140" rx="40" ry="20" fill="white" opacity="0.7"/>
+
+      <!-- Cloud 3 mid -->
+      <ellipse cx="680" cy="210" rx="60" ry="22" fill="#ddd6fe"/>
+      <ellipse cx="655" cy="214" rx="38" ry="19" fill="#ede9fe"/>
+      <ellipse cx="705" cy="212" rx="42" ry="18" fill="#ede9fe"/>
+      <ellipse cx="680" cy="202" rx="32" ry="16" fill="white" opacity="0.6"/>
+    </g>
+
+    <!-- Pokéball silhouette on the hill (subtle, dark) -->
+    <g transform="translate(1100, 590)" opacity="0.18" fill="#0d0420">
+      <circle cx="0" cy="0" r="28"/>
+      <rect x="-28" y="-3" width="56" height="6"/>
+      <circle cx="0" cy="0" r="10" fill="#0d0420"/>
+      <circle cx="0" cy="0" r="7" fill="#14062a"/>
+    </g>
+
+    <!-- Subtle shooting star -->
+    <line x1="900" y1="80" x2="960" y2="50" stroke="white" stroke-width="1.2" opacity="0.5" stroke-linecap="round"/>
+    <circle cx="900" cy="80" r="1.5" fill="white" opacity="0.7"/>
+  </svg>
+</div>
+
+<!-- ─── APP ─── -->
+<div class="app">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="logo">axio<em>m</em></div>
+    <div class="header-center">
+      <div class="header-day">Thursday, June 5</div>
+      <div class="header-date-sub">Week 23 · 2026</div>
+    </div>
+    <div class="header-right">
+      <div class="streak-pill">🔥 12-day streak</div>
+      <div class="avatar">A</div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Overflow -->
+    <div class="overflow-banner">
+      <span style="font-size:17px;">⚠️</span>
+      You've packed <strong style="margin:0 3px;">7h 30m</strong> into a <strong style="margin:0 3px;">6h day.</strong> Something needs to move.
+    </div>
+
+    <!-- Time budget -->
+    <div class="card">
+      <div class="card-title">Time Budget
+        <div class="toggle-pills">
+          <button class="active">Day</button>
+          <button>Week</button>
+          <button>Month</button>
+        </div>
+      </div>
+      <div class="budget-stats">
+        <div class="stat-pill"><span class="stat-pill-val">6h</span><span class="stat-pill-lbl">Available</span></div>
+        <div class="stat-pill"><span class="stat-pill-val" style="color:var(--warning);">7h 30m</span><span class="stat-pill-lbl">Allocated</span></div>
+        <div class="stat-pill"><span class="stat-pill-val" style="color:var(--danger);">−1h 30m</span><span class="stat-pill-lbl">Overflow</span></div>
+        <div class="stat-pill"><span class="stat-pill-val" style="color:var(--success);">1h 45m</span><span class="stat-pill-lbl">Logged</span></div>
+      </div>
+      <div class="budget-bar-track">
+        <div class="budget-bar-fill">
+          <div class="budget-seg" style="width:29%;background:var(--sleep);"></div>
+          <div class="budget-seg" style="width:13%;background:var(--dl);"></div>
+          <div class="budget-seg" style="width:18%;background:var(--zuma);"></div>
+          <div class="budget-seg" style="width:11%;background:var(--next);"></div>
+          <div class="budget-seg" style="width:7%;background:var(--fit);"></div>
+          <div class="budget-seg" style="width:7%;background:var(--leisure);"></div>
+          <div class="budget-seg" style="width:15%;background:rgba(148,163,184,0.4);"></div>
+        </div>
+      </div>
+      <div class="bar-labels">
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:var(--sleep);"></div>Sleep 7h</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:var(--dl);"></div>DeveLearn 2h</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:var(--zuma);"></div>Zuma 3h</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:var(--next);"></div>Next 2h</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:var(--fit);"></div>Fitness 1h</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:var(--leisure);"></div>Leisure 1h</div>
+        <div class="bar-lbl"><div class="bar-lbl-dot" style="background:rgba(148,163,184,0.5);"></div>Untracked 8h</div>
+      </div>
+    </div>
+
+    <!-- 24h ring -->
+    <div class="card">
+      <div class="card-title">24-Hour Allocation
+        <div class="toggle-pills">
+          <button class="active">Today</button>
+          <button>Week</button>
+          <button>Month</button>
+        </div>
+      </div>
+      <div class="ring-body">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 128 128" width="128" height="128">
+            <circle cx="64" cy="64" r="46" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="13"/>
+            <circle cx="64" cy="64" r="46" fill="none" stroke="#94a3b8" stroke-width="13"
+              stroke-dasharray="288.5" stroke-dashoffset="0" transform="rotate(-90 64 64)"/>
+            <circle cx="64" cy="64" r="46" fill="none" stroke="#f97316" stroke-width="13"
+              stroke-dasharray="48.1 240.4" stroke-dashoffset="-96.2" transform="rotate(-90 64 64)"/>
+            <circle cx="64" cy="64" r="46" fill="none" stroke="#8b5cf6" stroke-width="13"
+              stroke-dasharray="72.1 216.4" stroke-dashoffset="-144.3" transform="rotate(-90 64 64)"/>
+            <circle cx="64" cy="64" r="46" fill="none" stroke="#06b6d4" stroke-width="13"
+              stroke-dasharray="48.1 240.4" stroke-dashoffset="-216.4" transform="rotate(-90 64 64)"/>
+            <circle cx="64" cy="64" r="46" fill="none" stroke="#22c55e" stroke-width="13"
+              stroke-dasharray="24.0 264.5" stroke-dashoffset="-264.5" transform="rotate(-90 64 64)"/>
+            <circle cx="64" cy="64" r="46" fill="none" stroke="#f59e0b" stroke-width="13"
+              stroke-dasharray="24.0 264.5" stroke-dashoffset="-288.5" transform="rotate(-90 64 64)"/>
+          </svg>
+          <div class="ring-center">
+            <span class="ring-cv">8h</span>
+            <span class="ring-cl">untracked</span>
+          </div>
+        </div>
+        <div class="ring-legend">
+          <div class="leg"><div class="leg-dot" style="background:#94a3b8;"></div>Sleep<span class="leg-val">7h</span></div>
+          <div class="leg"><div class="leg-dot" style="background:#f97316;"></div>DeveLearn<span class="leg-val">2h</span></div>
+          <div class="leg"><div class="leg-dot" style="background:#8b5cf6;"></div>Zuma AI<span class="leg-val">3h</span></div>
+          <div class="leg"><div class="leg-dot" style="background:#06b6d4;"></div>Next/WorkIn<span class="leg-val">2h</span></div>
+          <div class="leg"><div class="leg-dot" style="background:#22c55e;"></div>Fitness<span class="leg-val">1h</span></div>
+          <div class="leg"><div class="leg-dot" style="background:#f59e0b;"></div>Leisure<span class="leg-val">1h</span></div>
+          <div class="leg"><div class="leg-dot" style="background:rgba(148,163,184,0.4);"></div>Untracked<span class="leg-val" style="color:var(--text-muted);">8h</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tasks header -->
+    <div class="tasks-header">
+      <span class="section-lbl">Today's Tasks</span>
+      <span class="task-count">11 tasks · 3 done</span>
+    </div>
+
+    <!-- DeveLearn -->
+    <div class="venture-block">
+      <div class="vent-head">
+        <div class="vent-icon" style="background:rgba(249,115,22,0.12);">📚</div>
+        <span class="vent-name">DeveLearn</span>
+        <span class="vent-badge" style="background:rgba(249,115,22,0.12);color:#c2410c;">2h 30m</span>
+        <span class="vent-chev">▾</span>
+      </div>
+      <div class="task-item">
+        <div class="task-check active"></div>
+        <div class="task-info">
+          <div class="task-name">Prepare Python Batch 4 — Functions & Scope</div>
+          <div class="task-meta">
+            <span class="tag tag-goal">↗ Launch Batch 4 Jun 15</span>
+            <span class="task-dur">90m</span>
+          </div>
+        </div>
+        <button class="play-btn running">■</button>
+      </div>
+      <div class="task-item">
+        <div class="task-check"></div>
+        <div class="task-info">
+          <div class="task-name">Review franchise SOP draft v2</div>
+          <div class="task-meta"><span class="task-dur">45m</span></div>
+        </div>
+        <button class="play-btn">▶</button>
+      </div>
+      <div class="task-item">
+        <div class="task-check" style="opacity:0.35;cursor:default;"></div>
+        <div class="task-info">
+          <div class="task-name">Faculty meeting — curriculum alignment</div>
+          <div class="task-meta">
+            <span class="tag tag-cal">📅 Calendar</span>
+            <span class="task-dur">11:00 AM · 1h</span>
+          </div>
+        </div>
+        <button class="play-btn" style="opacity:0.25;cursor:default;">▶</button>
+      </div>
+    </div>
+
+    <!-- Zuma AI -->
+    <div class="venture-block">
+      <div class="vent-head">
+        <div class="vent-icon" style="background:rgba(139,92,246,0.12);">🤖</div>
+        <span class="vent-name">Zuma AI</span>
+        <span class="vent-badge" style="background:rgba(139,92,246,0.12);color:#6d28d9;">3h</span>
+        <span class="vent-chev">▾</span>
+      </div>
+      <div class="task-item">
+        <div class="task-check done">✓</div>
+        <div class="task-info">
+          <div class="task-name done">Write Play Store update release notes</div>
+          <div class="task-meta"><span class="task-dur">30m · logged 28m</span></div>
+        </div>
+        <button class="play-btn" style="opacity:0.25;cursor:default;">▶</button>
+      </div>
+      <div class="task-item">
+        <div class="task-check"></div>
+        <div class="task-info">
+          <div class="task-name">MUNKEE science outfit — AI image prompts</div>
+          <div class="task-meta">
+            <span class="tag tag-goal">↗ Q3 Instagram growth</span>
+            <span class="task-dur">1h</span>
+          </div>
+        </div>
+        <button class="play-btn">▶</button>
+      </div>
+      <div class="task-item">
+        <div class="task-check" style="opacity:0.35;cursor:default;"></div>
+        <div class="task-info">
+          <div class="task-name">Partner sync with Zubin — ZumaLM roadmap</div>
+          <div class="task-meta">
+            <span class="tag tag-cal">📅 Calendar</span>
+            <span class="task-dur">4:00 PM · 1h 30m</span>
+          </div>
+        </div>
+        <button class="play-btn" style="opacity:0.25;cursor:default;">▶</button>
+      </div>
+    </div>
+
+    <!-- Next Platforms -->
+    <div class="venture-block">
+      <div class="vent-head">
+        <div class="vent-icon" style="background:rgba(6,182,212,0.12);">⚡</div>
+        <span class="vent-name">Next Platforms / WorkIn</span>
+        <span class="vent-badge" style="background:rgba(6,182,212,0.12);color:#0e7490;">1h 30m</span>
+        <span class="vent-chev">▾</span>
+      </div>
+      <div class="task-item">
+        <div class="task-check done">✓</div>
+        <div class="task-info">
+          <div class="task-name done">WorkIn pilot proposal — JICA draft v1</div>
+          <div class="task-meta"><span class="task-dur">1h · logged 1h 12m</span></div>
+        </div>
+        <button class="play-btn" style="opacity:0.25;cursor:default;">▶</button>
+      </div>
+      <div class="task-item">
+        <div class="task-check"></div>
+        <div class="task-info">
+          <div class="task-name">Review P9 onboarding flow mockups</div>
+          <div class="task-meta"><span class="task-dur">30m</span></div>
+        </div>
+        <button class="play-btn">▶</button>
+      </div>
+    </div>
+
+    <!-- Health & Personal -->
+    <div class="venture-block">
+      <div class="vent-head">
+        <div class="vent-icon" style="background:rgba(34,197,94,0.12);">💪</div>
+        <span class="vent-name">Health & Personal</span>
+        <span class="vent-badge" style="background:rgba(34,197,94,0.12);color:#15803d;">2h</span>
+        <span class="vent-chev">▾</span>
+      </div>
+      <div class="task-item">
+        <div class="task-check done">✓</div>
+        <div class="task-info">
+          <div class="task-name done">Morning workout — upper body</div>
+          <div class="task-meta">
+            <span class="tag tag-fixed">Recurring</span>
+            <span class="task-dur">1h · logged 55m</span>
+          </div>
+        </div>
+        <button class="play-btn" style="opacity:0.25;cursor:default;">▶</button>
+      </div>
+      <div class="task-item">
+        <div class="task-check"></div>
+        <div class="task-info">
+          <div class="task-name">LinkedIn post — Python list comprehensions</div>
+          <div class="task-meta">
+            <span class="tag tag-goal">↗ Personal Brand</span>
+            <span class="task-dur">30m</span>
+          </div>
+        </div>
+        <button class="play-btn">▶</button>
+      </div>
+    </div>
+
+    <!-- Completed fold -->
+    <div class="completed-fold">
+      <div class="fold-head">▶ &nbsp; Completed today &nbsp;(3 tasks) ✓</div>
+    </div>
+
+    <div style="height:12px;"></div>
+  </main>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div>
+      <div class="sidebar-title">This week's goals</div>
+      <div class="cal-badge">📅 Google Calendar · 3 events today</div>
+
+      <div class="goal-card">
+        <div class="goal-top">
+          <span class="goal-icon">📚</span>
+          <span class="goal-text">Complete Batch 4 lesson plan — all 6 sessions</span>
+          <span class="goal-pct" style="color:#c2410c;">33%</span>
+        </div>
+        <div class="goal-bar"><div class="goal-bar-fill" style="width:33%;background:#f97316;"></div></div>
+      </div>
+
+      <div class="goal-card">
+        <div class="goal-top">
+          <span class="goal-icon">🤖</span>
+          <span class="goal-text">Ship ZumaLM v1.2 to production</span>
+          <span class="goal-pct" style="color:#6d28d9;">70%</span>
+        </div>
+        <div class="goal-bar"><div class="goal-bar-fill" style="width:70%;background:#8b5cf6;"></div></div>
+      </div>
+
+      <div class="goal-card">
+        <div class="goal-top">
+          <span class="goal-icon">✍️</span>
+          <span class="goal-text">Publish 3 technical LinkedIn posts</span>
+          <span class="goal-pct" style="color:#9d174d;">33%</span>
+        </div>
+        <div class="goal-bar"><div class="goal-bar-fill" style="width:33%;background:#ec4899;"></div></div>
+      </div>
+
+      <div class="goal-card">
+        <div class="goal-top">
+          <span class="goal-icon">💪</span>
+          <span class="goal-text">5 gym sessions this week</span>
+          <span class="goal-pct" style="color:#15803d;">60%</span>
+        </div>
+        <div class="goal-bar"><div class="goal-bar-fill" style="width:60%;background:#22c55e;"></div></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sidebar-title">Week so far</div>
+      <div class="split-item"><span class="split-icon">📚</span><span class="split-name">DeveLearn</span><div class="split-bar"><div class="split-bar-fill" style="width:55%;background:#f97316;"></div></div><span class="split-val">9h</span></div>
+      <div class="split-item"><span class="split-icon">🤖</span><span class="split-name">Zuma AI</span><div class="split-bar"><div class="split-bar-fill" style="width:72%;background:#8b5cf6;"></div></div><span class="split-val">14h</span></div>
+      <div class="split-item"><span class="split-icon">⚡</span><span class="split-name">Next / WorkIn</span><div class="split-bar"><div class="split-bar-fill" style="width:30%;background:#06b6d4;"></div></div><span class="split-val">5h</span></div>
+      <div class="split-item"><span class="split-icon">✍️</span><span class="split-name">Personal Brand</span><div class="split-bar"><div class="split-bar-fill" style="width:20%;background:#ec4899;"></div></div><span class="split-val">3h</span></div>
+      <div class="split-item"><span class="split-icon">💪</span><span class="split-name">Fitness</span><div class="split-bar"><div class="split-bar-fill" style="width:48%;background:#22c55e;"></div></div><span class="split-val">3h</span></div>
+      <div class="split-item"><span class="split-icon">🎮</span><span class="split-name">Leisure</span><div class="split-bar"><div class="split-bar-fill" style="width:35%;background:#f59e0b;"></div></div><span class="split-val">5h</span></div>
+      <div class="split-item" style="opacity:0.5;"><span class="split-icon">❔</span><span class="split-name">Untracked</span><div class="split-bar"><div class="split-bar-fill" style="width:85%;background:rgba(148,163,184,0.4);"></div></div><span class="split-val">38h</span></div>
+    </div>
+  </aside>
+
+  <!-- Timer strip -->
+  <div class="timer-strip">
+    <div class="timer-dot"></div>
+    <span class="timer-lbl">Prepare Python Batch 4 — Functions & Scope</span>
+    <span class="timer-val" id="timer">00:23:14</span>
+    <button class="timer-stop">■ Stop</button>
+  </div>
+
+</div>
+
+<button class="fab">+</button>
+
+<script>
+  let s = 23*60+14;
+  setInterval(() => {
+    s++;
+    const m = String(Math.floor(s/60)).padStart(2,'0');
+    const sec = String(s%60).padStart(2,'0');
+    document.getElementById('timer').textContent = `00:${m}:${sec}`;
+  }, 1000);
+
+  document.querySelectorAll('.toggle-pills button').forEach(btn => {
+    btn.addEventListener('click', function() {
+      this.closest('.toggle-pills').querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>
