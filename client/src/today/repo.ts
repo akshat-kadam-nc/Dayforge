@@ -57,6 +57,7 @@ export interface TodaySlices {
   logs: TimeLog[];
   fixedBlocks: { id: string; label: string; minutes: number; color: string }[];
   availableMinutes: number;
+  day: string;
 }
 
 export interface CreateTaskInput {
@@ -67,6 +68,10 @@ export interface CreateTaskInput {
   goalId?: string;
   delegateName?: string;
   scheduledAt?: string;
+  /** The day the task should appear in Today (defaults to today). */
+  day?: string;
+  dueAt?: string;
+  deadlineType?: import('./types').DeadlineType;
 }
 export interface CreateAreaInput { name: string; icon: string; color: string }
 export interface CreateTrackInput { areaId: string; name: string; color: string }
@@ -87,7 +92,7 @@ export interface TodayRepo {
   deleteTrack(id: string): Promise<void>;
   createGoal(input: CreateGoalInput): Promise<Goal>;
   createTask(input: CreateTaskInput): Promise<Task>;
-  updateTask(id: string, patch: Partial<Pick<Task, 'status' | 'loggedMinutes'>>): Promise<void>;
+  updateTask(id: string, patch: Partial<Pick<Task, 'status' | 'loggedMinutes' | 'day'>>): Promise<void>;
   deferTask(id: string): Promise<void>;
   deleteTask(id: string): Promise<void>;
   createInterruption(input: CreateInterruptionInput): Promise<Interruption>;
@@ -113,6 +118,7 @@ export const localRepo: TodayRepo = {
       logs: s.logs,
       fixedBlocks: s.fixedBlocks,
       availableMinutes: s.availableMinutes,
+      day: s.day,
     };
   },
   async createArea(input) {
@@ -140,6 +146,9 @@ export const localRepo: TodayRepo = {
       estimateMinutes: input.estimateMinutes,
       status: 'not_started',
       source: 'manual',
+      day: input.day ?? todayKey(),
+      dueAt: input.dueAt,
+      deadlineType: input.deadlineType,
       deferredCount: 0,
       loggedMinutes: 0,
       createdAt: new Date().toISOString(),
@@ -246,6 +255,9 @@ function mapTask(d: ServerDoc & Record<string, unknown>): Task {
     source: (d.source as Task['source']) ?? 'manual',
     estimateMinutes: (d.estimateMinutes as number) ?? 0,
     scheduledAt: d.scheduledAt as string | undefined,
+    day: (d.day as string) ?? todayKey(),
+    dueAt: d.dueAt ? new Date(d.dueAt as string).toISOString() : undefined,
+    deadlineType: d.deadlineType as Task['deadlineType'],
     delegateName: d.delegateName as string | undefined,
     deferredCount: (d.deferredCount as number) ?? 0,
     loggedMinutes: (d.loggedMinutes as number) ?? 0,
@@ -269,6 +281,7 @@ function mapLog(d: ServerDoc & Record<string, unknown>): TimeLog {
 export const apiRepo: TodayRepo = {
   async load(day) {
     const r = await api<{
+      day: string;
       availableMinutes: number;
       areas: (ServerDoc & Omit<LifeArea, 'id'>)[];
       tracks: (ServerDoc & Omit<FunctionTrack, 'id'>)[];
@@ -286,6 +299,7 @@ export const apiRepo: TodayRepo = {
       logs: r.logs.map(mapLog),
       fixedBlocks: [],
       availableMinutes: r.availableMinutes,
+      day: r.day ?? day,
     };
   },
   async createArea(input) {
@@ -322,7 +336,7 @@ export const apiRepo: TodayRepo = {
   async createTask(input) {
     const r = await api<{ task: ServerDoc & Record<string, unknown> }>('/tasks', {
       method: 'POST',
-      body: JSON.stringify({ ...input, day: todayKey() }),
+      body: JSON.stringify({ ...input, day: input.day ?? todayKey() }),
     });
     return mapTask(r.task);
   },

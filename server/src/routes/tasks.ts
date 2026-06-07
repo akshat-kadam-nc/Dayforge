@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { TaskModel, TASK_STATUSES, TASK_SOURCES } from '../models/Task.js';
+import { TaskModel, TASK_STATUSES, TASK_SOURCES, DEADLINE_TYPES } from '../models/Task.js';
 import { asyncHandler, HttpError } from '../middleware/error.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requireDb } from '../middleware/requireDb.js';
@@ -21,6 +21,8 @@ const taskInput = z.object({
   estimateMinutes: z.number().int().min(0).optional(),
   loggedMinutes: z.number().min(0).optional(),
   scheduledAt: z.string().optional(),
+  dueAt: z.string().datetime().nullable().optional(),
+  deadlineType: z.enum(DEADLINE_TYPES).optional(),
   delegateName: z.string().optional(),
   day: z.string().optional(),
 });

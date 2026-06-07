@@ -17,6 +17,12 @@ export function TaskRow({ task }: { task: Task }) {
   const loggedSecs = taskLoggedSeconds(state, task);
   const showClock = loggedSecs > 0 || running;
   const gained = task.estimateMinutes - task.loggedMinutes; // for done tasks
+  const isToday = task.day === state.day;
+  const due = task.dueAt ? new Date(task.dueAt) : null;
+  const overdue = !!due && !isDone && due.getTime() < Date.now();
+  const dueLabel = due
+    ? due.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+    : '';
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [completeOpen, setCompleteOpen] = useState(false);
@@ -57,6 +63,14 @@ export function TaskRow({ task }: { task: Task }) {
             </span>
           )}
           {isBlocked && <span className="tag tag-blocked">⛔ Blocked</span>}
+          {due && (
+            <span
+              className={`tag ${overdue ? (task.deadlineType === 'hard' ? 'tag-overdue-hard' : 'tag-overdue-soft') : 'tag-due'}`}
+              title={`${task.deadlineType === 'hard' ? 'Hard' : 'Soft'} deadline`}
+            >
+              {overdue ? '⚠ ' : '⏳ '}{dueLabel}{task.deadlineType === 'hard' ? ' · hard' : ''}
+            </span>
+          )}
           {goal && <span className="tag tag-goal">↗ {goal.text}</span>}
           {isCalendar && <span className="tag tag-cal">📅 Calendar</span>}
           {task.delegateName && <span className="tag tag-deleg">👤 {task.delegateName}</span>}
@@ -124,6 +138,11 @@ export function TaskRow({ task }: { task: Task }) {
       </button>
 
       <PortalMenu anchorRef={kebabRef} open={menuOpen} onClose={() => setMenuOpen(false)}>
+        {!isToday && (
+          <button type="button" onClick={() => { actions.moveToToday(task.id); setMenuOpen(false); }}>
+            📅 Move to today
+          </button>
+        )}
         <button type="button" onClick={() => { actions.deferTask(task.id); setMenuOpen(false); }}>
           ⤵ Defer to tomorrow
         </button>

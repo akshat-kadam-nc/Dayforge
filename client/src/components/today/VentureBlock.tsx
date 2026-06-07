@@ -7,7 +7,9 @@ import { TaskRow } from './TaskRow';
 /** One venture/area group of tasks. Header is clickable to collapse. */
 export function VentureBlock({ area }: { area: LifeArea }) {
   const { state, actions } = useToday();
-  const tasks = state.tasks.filter((t) => t.areaId === area.id && t.status !== 'done');
+  const tasks = state.tasks.filter(
+    (t) => t.areaId === area.id && t.day === state.day && t.status !== 'done',
+  );
   if (tasks.length === 0) return null;
 
   const collapsed = !!state.collapsedAreas[area.id];

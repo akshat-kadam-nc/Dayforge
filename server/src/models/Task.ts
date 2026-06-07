@@ -15,6 +15,7 @@ export const TASK_STATUSES = [
 ] as const;
 
 export const TASK_SOURCES = ['manual', 'calendar', 'recurring'] as const;
+export const DEADLINE_TYPES = ['soft', 'hard'] as const;
 
 const taskSchema = new Schema(
   {
@@ -29,6 +30,9 @@ const taskSchema = new Schema(
     /** Committed minutes worked, accrued from the timer + manual logging. */
     loggedMinutes: { type: Number, min: 0, default: 0 },
     scheduledAt: { type: String },
+    /** Optional deadline (date + time). Soft = nudge; hard = firm. */
+    dueAt: { type: Date },
+    deadlineType: { type: String, enum: DEADLINE_TYPES, default: 'soft' },
     delegateName: { type: String, trim: true },
     deferredCount: { type: Number, min: 0, default: 0 },
     /** When the task was marked done (cleared if reopened). */

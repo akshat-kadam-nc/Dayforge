@@ -36,26 +36,32 @@ export function taskLoggedSeconds(state: TodayState, task: Task): number {
   return Math.round(task.loggedMinutes * 60) + (state.timer.runs[task.id]?.elapsedSeconds ?? 0);
 }
 
+/** Only the tasks scheduled for the day the cockpit is showing (excludes the
+ *  Pending/overdue and Scheduled/future buckets that share the tasks array). */
+export function todaysTasks(state: TodayState): Task[] {
+  return state.tasks.filter((t) => t.day === state.day);
+}
+
 /** Sum of planned estimates across all of today's tasks. */
 export function allocatedMinutes(state: TodayState): number {
-  return state.tasks.reduce((sum, t) => sum + t.estimateMinutes, 0);
+  return todaysTasks(state).reduce((sum, t) => sum + t.estimateMinutes, 0);
 }
 
 export function allocatedForArea(state: TodayState, areaId: string): number {
-  return state.tasks
+  return todaysTasks(state)
     .filter((t) => t.areaId === areaId)
     .reduce((sum, t) => sum + t.estimateMinutes, 0);
 }
 
-/** Logged time across all tasks (committed per-task minutes + any live runs). */
+/** Logged time across today's tasks (committed per-task minutes + any live runs). */
 export function loggedMinutes(state: TodayState): number {
-  return state.tasks.reduce((sum, t) => sum + taskLoggedMinutes(state, t), 0);
+  return todaysTasks(state).reduce((sum, t) => sum + taskLoggedMinutes(state, t), 0);
 }
 
-/** Net minutes gained (finished under estimate) minus lost (over) across done tasks.
- *  Positive = time gained, negative = time lost. */
+/** Net minutes gained (finished under estimate) minus lost (over) across today's
+ *  done tasks. Positive = time gained, negative = time lost. */
 export function timeGainedMinutes(state: TodayState): number {
-  return state.tasks
+  return todaysTasks(state)
     .filter((t) => t.status === 'done')
     .reduce((sum, t) => sum + (t.estimateMinutes - t.loggedMinutes), 0);
 }

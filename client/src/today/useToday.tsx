@@ -49,6 +49,7 @@ function emptyState(): TodayState {
     scopeSummary: null,
     dueReconciliations: [],
     calendarEvents: [],
+    day: todayKey(),
     availableMinutes: 360,
   };
 }
@@ -72,6 +73,7 @@ type Action =
   | { type: 'ADD_TASK'; task: Task }
   | { type: 'REMOVE_TASK'; taskId: string }
   | { type: 'SET_STATUS'; taskId: string; status: TaskStatus }
+  | { type: 'MOVE_TO_TODAY'; taskId: string }
   | { type: 'ADD_AREA'; area: LifeArea }
   | { type: 'ADD_TRACK'; track: FunctionTrack }
   | { type: 'UPDATE_TRACK'; id: string; patch: Partial<Pick<FunctionTrack, 'name' | 'color'>> }
@@ -215,6 +217,11 @@ function reducer(state: TodayState, action: Action): TodayState {
         ),
       };
     }
+    case 'MOVE_TO_TODAY':
+      return {
+        ...state,
+        tasks: state.tasks.map((t) => (t.id === action.taskId ? { ...t, day: state.day } : t)),
+      };
     case 'ADD_AREA':
       return { ...state, areas: [...state.areas, action.area] };
     case 'ADD_TRACK':
@@ -254,6 +261,7 @@ export interface TodayActions {
   addTask: (input: CreateTaskInput) => Promise<void>;
   deferTask: (taskId: string) => void;
   deleteTask: (taskId: string) => void;
+  moveToToday: (taskId: string) => void;
   setStatus: (taskId: string, status: TaskStatus) => void;
   addArea: (input: CreateAreaInput) => Promise<void>;
   addTrack: (input: CreateTrackInput) => Promise<void>;
@@ -324,6 +332,28 @@ export function TodayProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, [repo]);
+
+  // Midnight crossover: if the wall-clock day moves past the loaded day, reload
+  // so finished-day tasks roll into Pending and the budget resets. Checks on a
+  // timer and whenever the tab regains focus.
+  useEffect(() => {
+    function check() {
+      if (todayKey() !== state.day) {
+        const day = todayKey();
+        void repo.load(day).then((slices) => dispatch({ type: 'HYDRATE', slices })).catch(() => {});
+        void repo.loadDueReconciliations(day).then((due) => dispatch({ type: 'SET_DUE_RECONCILIATIONS', due })).catch(() => {});
+        void repo.loadCalendarEvents(day).then((events) => dispatch({ type: 'SET_CALENDAR_EVENTS', events })).catch(() => {});
+      }
+    }
+    const id = setInterval(check, 30_000);
+    window.addEventListener('focus', check);
+    document.addEventListener('visibilitychange', check);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener('focus', check);
+      document.removeEventListener('visibilitychange', check);
+    };
+  }, [state.day, repo]);
 
   // Tick once a second while any task is running.
   const runningCount = Object.keys(state.timer.runs).length;
@@ -402,6 +432,10 @@ export function TodayProvider({ children }: { children: ReactNode }) {
     deleteTask: (taskId) => {
       dispatch({ type: 'REMOVE_TASK', taskId });
       void repo.deleteTask(taskId);
+    },
+    moveToToday: (taskId) => {
+      dispatch({ type: 'MOVE_TO_TODAY', taskId });
+      void repo.updateTask(taskId, { day: state.day });
     },
     setStatus: (taskId, status) => {
       const patch: Partial<Pick<Task, 'status' | 'loggedMinutes'>> = { status };

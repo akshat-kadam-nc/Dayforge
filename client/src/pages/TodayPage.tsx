@@ -4,6 +4,7 @@ import { NudgeRow } from '../components/today/NudgeRow';
 import { TimeBudgetCard } from '../components/today/TimeBudgetCard';
 import { AllocationRing } from '../components/today/AllocationRing';
 import { VentureBlock } from '../components/today/VentureBlock';
+import { TaskBuckets } from '../components/today/TaskBuckets';
 import { CalendarEventsBlock } from '../components/today/CalendarEventsBlock';
 import { InterruptionsBlock } from '../components/today/InterruptionsBlock';
 import { CompletedFold } from '../components/today/CompletedFold';
@@ -15,8 +16,9 @@ import '../styles/today.css';
 
 function Cockpit() {
   const { state, loading } = useToday();
-  const openTasks = state.tasks.filter((t) => t.status !== 'done');
-  const doneCount = state.tasks.length - openTasks.length;
+  const todays = state.tasks.filter((t) => t.day === state.day);
+  const openTasks = todays.filter((t) => t.status !== 'done');
+  const doneCount = todays.length - openTasks.length;
   const hasAreas = state.areas.length > 0;
 
   return (
@@ -35,6 +37,8 @@ function Cockpit() {
               <TimeBudgetCard />
               <AllocationRing />
 
+              <TaskBuckets which="pending" />
+
               <div className="tasks-header">
                 <span className="section-lbl">Today's Tasks</span>
                 <span className="task-count">{openTasks.length} tasks · {doneCount} done</span>
@@ -45,6 +49,7 @@ function Cockpit() {
               ))}
 
               <CalendarEventsBlock />
+              <TaskBuckets which="upcoming" />
               <InterruptionsBlock />
               <CompletedFold />
             </>

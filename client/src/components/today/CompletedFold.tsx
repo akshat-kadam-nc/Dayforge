@@ -12,7 +12,7 @@ function fmtStamp(iso?: string): string {
 export function CompletedFold() {
   const { state } = useToday();
   const [open, setOpen] = useState(false);
-  const done = state.tasks.filter((t) => t.status === 'done');
+  const done = state.tasks.filter((t) => t.status === 'done' && t.day === state.day);
   if (done.length === 0) return null;
 
   return (

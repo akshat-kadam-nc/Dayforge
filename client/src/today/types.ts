@@ -6,6 +6,8 @@
 
 export type TaskStatus = 'not_started' | 'in_progress' | 'done' | 'deferred' | 'blocked';
 
+export type DeadlineType = 'soft' | 'hard';
+
 /** How a task entered the day. */
 export type TaskSource = 'manual' | 'calendar' | 'recurring';
 
@@ -86,8 +88,13 @@ export interface Task {
   /** Planned minutes. */
   estimateMinutes: number;
   source: TaskSource;
+  /** The day this task is scheduled to appear in Today (YYYY-MM-DD). */
+  day: string;
   /** Set for calendar/scheduled blocks, e.g. "11:00". */
   scheduledAt?: string;
+  /** Optional deadline (ISO date-time) + how firm it is. */
+  dueAt?: string;
+  deadlineType?: DeadlineType;
   /** Linked weekly goal id, if any. */
   goalId?: string;
   /** Name of the report this is delegated to, if any. */
@@ -184,6 +191,8 @@ export interface TodayState {
   dueReconciliations: ReconciliationDue[];
   /** Synced Google Calendar events for the day. */
   calendarEvents: CalendarEvent[];
+  /** The day the cockpit is currently showing (YYYY-MM-DD). */
+  day: string;
   /** Discretionary minutes available today after fixed blocks. */
   availableMinutes: number;
 }

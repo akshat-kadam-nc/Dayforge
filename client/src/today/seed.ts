@@ -34,7 +34,16 @@ const GOALS = [
   { id: 'g-linkedin', areaId: 'brand', text: 'Publish 3 technical LinkedIn posts', icon: '✍️', pct: 33, color: '#ec4899' },
 ];
 
+function keyShift(n: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export function makeInitialState(): TodayState {
+  const today = keyShift(0);
+  const yesterday = keyShift(-1);
+  const tomorrow = keyShift(1);
   return {
     areas: AREAS,
     tracks: TRACKS,
@@ -55,6 +64,7 @@ export function makeInitialState(): TodayState {
         deferredCount: 0,
         loggedMinutes: 23,
         createdAt: '2026-06-08T07:15:00',
+        day: today,
       },
       {
         id: 't2',
@@ -67,6 +77,7 @@ export function makeInitialState(): TodayState {
         deferredCount: 2,
         loggedMinutes: 0,
         createdAt: '2026-06-08T08:30:00',
+        day: today,
       },
       {
         id: 't3',
@@ -80,6 +91,7 @@ export function makeInitialState(): TodayState {
         deferredCount: 0,
         loggedMinutes: 0,
         createdAt: '2026-06-08T08:30:00',
+        day: today,
       },
       {
         id: 't4',
@@ -93,6 +105,7 @@ export function makeInitialState(): TodayState {
         deferredCount: 0,
         loggedMinutes: 0,
         createdAt: '2026-06-08T08:30:00',
+        day: today,
       },
       {
         id: 't5',
@@ -106,6 +119,7 @@ export function makeInitialState(): TodayState {
         deferredCount: 0,
         loggedMinutes: 0,
         createdAt: '2026-06-08T08:30:00',
+        day: today,
       },
       {
         id: 't6',
@@ -119,6 +133,37 @@ export function makeInitialState(): TodayState {
         deferredCount: 0,
         loggedMinutes: 0,
         createdAt: '2026-06-08T08:30:00',
+        day: today,
+      },
+      {
+        id: 't-pending',
+        title: 'Send Q2 investor update (overdue)',
+        areaId: 'zuma',
+        trackId: 'zu-strategy',
+        status: 'not_started',
+        estimateMinutes: 60,
+        source: 'manual',
+        deferredCount: 1,
+        loggedMinutes: 0,
+        createdAt: keyShift(-2) + 'T10:00:00',
+        day: yesterday,
+        dueAt: keyShift(-1) + 'T18:00:00',
+        deadlineType: 'hard',
+      },
+      {
+        id: 't-upcoming',
+        title: 'Prep DeveLearn Batch 5 kickoff',
+        areaId: 'develearn',
+        trackId: 'dl-leadership',
+        status: 'not_started',
+        estimateMinutes: 75,
+        source: 'manual',
+        deferredCount: 0,
+        loggedMinutes: 0,
+        createdAt: today + 'T09:00:00',
+        day: tomorrow,
+        dueAt: keyShift(3) + 'T12:00:00',
+        deadlineType: 'soft',
       },
     ],
     interruptions: [
@@ -153,6 +198,7 @@ export function makeInitialState(): TodayState {
     scopeSummary: null,
     dueReconciliations: [],
     calendarEvents: [],
+    day: today,
     availableMinutes: 360, // 6h discretionary today
   };
 }

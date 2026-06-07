@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useToday } from '../../today/useToday';
+import type { DeadlineType } from '../../today/types';
+import { todayKey } from '../../today/repo';
 import { AddVentureModal } from './AddVentureModal';
 
 export function Fab() {
@@ -10,6 +12,10 @@ export function Fab() {
   const [areaId, setAreaId] = useState(state.areas[0]?.id ?? '');
   const [trackId, setTrackId] = useState('');
   const [minutes, setMinutes] = useState(30);
+  const [startDay, setStartDay] = useState(todayKey());
+  const [dueDate, setDueDate] = useState('');
+  const [dueTime, setDueTime] = useState('17:00');
+  const [deadlineType, setDeadlineType] = useState<DeadlineType>('soft');
 
   const areaTracks = state.tracks.filter((t) => t.areaId === areaId);
 
@@ -31,15 +37,24 @@ export function Fab() {
 
   function submit() {
     if (!title.trim() || !areaId) return;
+    // Build a local ISO datetime for the deadline if a date was picked.
+    const dueAt = dueDate ? new Date(`${dueDate}T${dueTime || '17:00'}`).toISOString() : undefined;
     void actions.addTask({
       title: title.trim(),
       areaId,
       estimateMinutes: minutes,
       trackId: trackId || undefined,
+      day: startDay,
+      dueAt,
+      deadlineType: dueAt ? deadlineType : undefined,
     });
     setTitle('');
     setTrackId('');
     setMinutes(30);
+    setStartDay(todayKey());
+    setDueDate('');
+    setDueTime('17:00');
+    setDeadlineType('soft');
     setOpen(false);
   }
 
@@ -94,6 +109,26 @@ export function Fab() {
                 onChange={(e) => setMinutes(Math.max(5, Number(e.target.value)))}
               />
             </label>
+            <label>
+              Start day
+              <input type="date" value={startDay} min={todayKey()} onChange={(e) => setStartDay(e.target.value || todayKey())} />
+            </label>
+            <label>
+              Deadline (optional)
+              <div className="due-row">
+                <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+                <input type="time" value={dueTime} disabled={!dueDate} onChange={(e) => setDueTime(e.target.value)} />
+              </div>
+            </label>
+            {dueDate && (
+              <label>
+                Deadline type
+                <div className="toggle-pills inline">
+                  <button type="button" className={deadlineType === 'soft' ? 'active' : ''} onClick={() => setDeadlineType('soft')}>Soft</button>
+                  <button type="button" className={deadlineType === 'hard' ? 'active' : ''} onClick={() => setDeadlineType('hard')}>Hard</button>
+                </div>
+              </label>
+            )}
             <div className="modal-actions">
               <button type="button" className="btn-ghost" onClick={() => setOpen(false)}>Cancel</button>
               <button type="button" className="btn" onClick={submit}>Add</button>

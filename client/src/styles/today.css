@@ -290,6 +290,29 @@
 .routine-summary li span { color: var(--c-secondary); font-weight: 600; }
 .routine-summary li strong { font-weight: 800; }
 
+/* Due dates / deadlines */
+.tag-due { background: rgba(99,102,241,0.12); color: #4338ca; }
+.tag-overdue-soft { background: rgba(217,119,6,0.15); color: #b45309; }
+.tag-overdue-hard { background: rgba(239,68,68,0.16); color: #b91c1c; }
+.due-row { display: flex; gap: 8px; }
+.due-row input { flex: 1; }
+.toggle-pills.inline { display: inline-flex; }
+.toggle-pills.inline button { font-family: inherit; font-size: 12px; font-weight: 800; padding: 6px 16px; border: none; background: none; border-radius: var(--r-pill); cursor: pointer; color: var(--c-secondary); }
+.toggle-pills.inline button.active { background: var(--c-accent); color: white; }
+
+/* Pending / Scheduled buckets */
+.bucket-block .vent-head { cursor: pointer; }
+.bucket-pending .vent-head { background: rgba(217,119,6,0.08); }
+.bucket-upcoming .vent-head { background: rgba(99,102,241,0.07); }
+.bucket-icon { background: rgba(255,255,255,0.5); }
+.bucket-badge { background: rgba(120,80,220,0.12) !important; color: var(--c-secondary) !important; }
+.bucket-item { border-bottom: 1px solid var(--border); }
+.bucket-item:last-child { border-bottom: none; }
+.bucket-item .task-item { border-bottom: none; padding-top: 2px; }
+.bucket-meta { display: flex; gap: 8px; align-items: center; padding: 6px 15px 0; }
+.bucket-day { font-size: 10.5px; font-weight: 800; color: var(--c-primary); }
+.bucket-created { font-size: 10px; font-weight: 700; color: var(--c-muted); }
+
 /* Interruptions */
 .interrupt-block { background: rgba(244,63,94,0.06); border: 1.5px solid rgba(244,63,94,0.25); border-radius: var(--r-lg); overflow: hidden; backdrop-filter: var(--blur); box-shadow: var(--shadow); }
 .interrupt-head { display: flex; align-items: center; gap: 9px; padding: 10px 15px; border-bottom: 1.5px solid rgba(244,63,94,0.15); }
