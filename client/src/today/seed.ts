@@ -138,6 +138,7 @@ export function makeInitialState(): TodayState {
     timer: { activeTaskId: null, startedAt: null, elapsedSeconds: 0 },
     collapsedAreas: {},
     budgetScope: 'day',
+    scopeSummary: null,
     availableMinutes: 360, // 6h discretionary today
   };
 }

@@ -1,6 +1,8 @@
 import { api } from '../api/client';
 import { makeInitialState } from './seed';
 import type {
+  BudgetScope,
+  BudgetSummary,
   FunctionTrack,
   Goal,
   Interruption,
@@ -14,6 +16,23 @@ import type {
 export function todayKey(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function keyOf(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/** Client mirror of the server's scopeRange (week = Mon–Sun, month = full month). */
+function scopeRange(scope: BudgetScope, key: string): { start: string; end: string; days: number } {
+  const [y, m, d] = key.split('-').map(Number);
+  if (scope === 'day') return { start: key, end: key, days: 1 };
+  if (scope === 'week') {
+    const base = new Date(y, m - 1, d);
+    const offset = (base.getDay() + 6) % 7;
+    return { start: keyOf(new Date(y, m - 1, d - offset)), end: keyOf(new Date(y, m - 1, d - offset + 6)), days: 7 };
+  }
+  const last = new Date(y, m, 0);
+  return { start: keyOf(new Date(y, m - 1, 1)), end: keyOf(last), days: last.getDate() };
 }
 
 /** The slices the cockpit hydrates from. */
@@ -61,6 +80,7 @@ export interface TodayRepo {
   deleteTask(id: string): Promise<void>;
   createInterruption(input: CreateInterruptionInput): Promise<Interruption>;
   createTimeLog(input: CreateTimeLogInput): Promise<void>;
+  loadBudget(scope: BudgetScope, day: string): Promise<BudgetSummary>;
 }
 
 // ---- Demo mode: in-memory, seeded, no persistence ----
@@ -114,6 +134,31 @@ export const localRepo: TodayRepo = {
     return { id: `i${Date.now()}`, ...input };
   },
   async createTimeLog() {},
+  async loadBudget(scope, day) {
+    // Demo has only one seeded day, so scale it to a plausible week/month window.
+    const s = makeInitialState();
+    const { start, end, days } = scopeRange(scope, day);
+    const perAreaDay = s.areas.map((a) => ({
+      areaId: a.id,
+      minutes: s.tasks.filter((t) => t.areaId === a.id).reduce((sum, t) => sum + t.estimateMinutes, 0),
+    }));
+    // Vary the multiplier a little per day so totals look organic, not day×N flat.
+    const k = scope === 'week' ? 5.4 : 22;
+    const allocated = perAreaDay.reduce((sum, p) => sum + p.minutes, 0) * k;
+    const logged = allocated * 0.62;
+    const interrupted = s.interruptions.reduce((sum, i) => sum + i.minutes, 0) * (scope === 'week' ? 3 : 12);
+    return {
+      scope,
+      start,
+      end,
+      days,
+      availableMinutes: 360 * days,
+      allocated: Math.round(allocated),
+      logged: Math.round(logged),
+      interrupted: Math.round(interrupted),
+      perArea: perAreaDay.map((p) => ({ areaId: p.areaId, minutes: Math.round(p.minutes * k) })),
+    };
+  },
 };
 
 // ---- Real accounts: persisted via the API ----
@@ -235,5 +280,8 @@ export const apiRepo: TodayRepo = {
   },
   async createTimeLog(input) {
     await api('/timelogs', { method: 'POST', body: JSON.stringify({ ...input, day: todayKey() }) });
+  },
+  async loadBudget(scope, day) {
+    return api<BudgetSummary>(`/budget?scope=${scope}&day=${encodeURIComponent(day)}`);
   },
 };

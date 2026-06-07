@@ -1,5 +1,12 @@
-/** Fixed background wallpaper behind the whole app. Pokémon Dusk preset for now;
- *  Phase 3 makes this swappable via the wallpaper picker. */
+import { useWallpaper } from '../wallpaper/WallpaperContext';
+
+/** Fixed background behind the whole app. Reads the live wallpaper selection
+ *  (preview while the picker is open, otherwise the applied choice). */
 export function WallpaperLayer() {
-  return <div className="wallpaper wp-poke-dusk" aria-hidden="true" />;
+  const { active } = useWallpaper();
+  const className = active.image ? 'wallpaper wp-custom' : `wallpaper ${active.wp}`;
+  const style = active.image
+    ? { backgroundImage: `url(${active.image})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    : undefined;
+  return <div className={className} style={style} aria-hidden="true" />;
 }

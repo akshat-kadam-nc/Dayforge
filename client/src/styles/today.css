@@ -186,6 +186,9 @@
 .task-menu button.danger { color: #b91c1c; }
 .task-menu button.danger:hover { background: rgba(239,68,68,0.08); }
 
+.scope-range { margin-top: 9px; font-size: 10.5px; font-weight: 800; color: var(--c-muted); letter-spacing: 0.3px; }
+.scope-loading { padding: 18px 4px; font-size: 12.5px; font-weight: 700; color: var(--c-muted); }
+
 /* Interruptions */
 .interrupt-block { background: rgba(244,63,94,0.06); border: 1.5px solid rgba(244,63,94,0.25); border-radius: var(--r-lg); overflow: hidden; backdrop-filter: var(--blur); box-shadow: var(--shadow); }
 .interrupt-head { display: flex; align-items: center; gap: 9px; padding: 10px 15px; border-bottom: 1.5px solid rgba(244,63,94,0.15); }

@@ -11,6 +11,19 @@ export type TaskSource = 'manual' | 'calendar' | 'recurring';
 
 export type BudgetScope = 'day' | 'week' | 'month';
 
+/** Aggregated budget for a week/month window (the server sums across days). */
+export interface BudgetSummary {
+  scope: BudgetScope;
+  start: string;
+  end: string;
+  days: number;
+  availableMinutes: number;
+  allocated: number;
+  logged: number;
+  interrupted: number;
+  perArea: { areaId: string; minutes: number }[];
+}
+
 export type InterruptionType = 'fire' | 'rabbit_hole' | 'distraction';
 
 /** A venture / area of life. Color + icon drive the whole cockpit palette. */
@@ -102,6 +115,8 @@ export interface TodayState {
   /** Per-area collapse state in the task list. */
   collapsedAreas: Record<string, boolean>;
   budgetScope: BudgetScope;
+  /** Aggregated budget for the active week/month scope; null in day scope. */
+  scopeSummary: BudgetSummary | null;
   /** Discretionary minutes available today after fixed blocks. */
   availableMinutes: number;
 }
