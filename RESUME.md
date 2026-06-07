@@ -1,74 +1,68 @@
 # Axiom — Resume Here
 
-Personal time-management web app being built with Claude Code. This file lets a fresh session (e.g. on the home machine) pick up cleanly.
+Personal time-management web app built with Claude Code for Akshu. MERN + TypeScript, PWA-first. This file is the catch-up entry point for a fresh session.
 
-## How to resume at home
-1. Clone this repo and open it in Claude Code.
-2. Tell Claude: "Read RESUME.md and project-context/ to load the full plan, then continue."
-3. The durable context (user profile, decisions, full feature set) is in `project-context/` (copies of the memory files from the office machine).
-
-## Where things stand
-- Planning + UX design complete. App working name: **AXIOM** (placeholder).
-- **Scaffold + Phase 1 + Phase 2 done** (pushed to `main`). The Today cockpit is fully built and **persists to MongoDB Atlas**.
-  - `server/` — Express + TS, JWT auth, Mongoose. userId-scoped models: User, LifeArea, FunctionTrack, Goal, Task, Interruption, TimeLog. CRUD routes + `GET /api/today?day=` aggregation + `PATCH /api/me/settings`. `util/day.ts` = local YYYY-MM-DD day keys.
-  - `client/` — React PWA. The cockpit (`pages/TodayPage`, `components/today/*`) is driven by `today/useToday.tsx` over a repo seam (`today/repo.ts`): `localRepo` = demo mode (in-memory seed, offline), `apiRepo` = persisted. Live timer, ⚡ interrupt logging, budget stats + 24h ring, venture blocks, empty-state + venture/goal creation.
-  - **Demo mode**: login screen has "Explore in demo mode" (guest user, no backend). Real accounts **start empty**.
-- **Phase 3 (part 1) done** — function-track UI + deferred-task rollover.
-  - Tracks: full CRUD wired through the repo seam (`createTrack`/`updateTrack`/`deleteTrack`) + `useToday` actions. Settings page has an expandable per-venture **TrackManager** (add / rename / recolor / delete). FAB "New task" modal now has a track picker filtered by the chosen venture.
-  - Rollover: `GET /today` auto-pulls unfinished tasks (`not_started|in_progress|blocked|deferred`) from past days forward to the real current day, `deferredCount++`, `in_progress→not_started` (done stays on its day for history). `POST /tasks/:id/defer` pushes one task to tomorrow. TaskRow shows a `⤵ N×` carry badge, a blocked state, and a `⋯` menu (Defer / Mark blocked / Delete).
-- **Phase 4 (part 1) done** — wallpaper picker + real week/month budget scopes.
-  - Wallpaper: `client/src/wallpaper/WallpaperContext.tsx` (localStorage-persisted selection + transient preview), slide-in `components/WallpaperPicker.tsx` (9 presets across 4 sections + custom image upload, live preview, apply/cancel), opened from the Today header button. `WallpaperLayer` renders the active selection. Preset CSS lives in `styles/global.css`; `wp-poke-dusk` still in `today.css`.
-  - Budget scopes: `GET /api/budget?scope&day` aggregates available (daily × days), allocated/logged/interrupted, and per-area allocation over a day / week (Mon–Sun) / month window (`scopeRange` in `util/day.ts`). The Time Budget card's toggle now fetches + renders the real aggregate (per-area + free/over bar, period range); day scope keeps the 24h view. Demo mode synthesises scaled numbers.
-- **Phase 4 (part 2) done — reconciliation.** Auto-prompted weekly (Sunday) / monthly (last day) / half-year close-outs. `Reconciliation` model (one per user+scope+periodKey, upserted) + `GET /reconciliations`, `GET /reconciliations/due` (most recent finished period per scope not yet closed + budget snapshot), `POST` to save. Shared `services/budget.ts#computeBudget` (also used by `/budget`). `util/day.ts` gained `weekOfYear`, `daysBetween`, `completedPeriod`. Client: due closes load with the day and show as Today nudges → `ReconciliationModal` (stat snapshot + structured per-scope prompts + 1–5 rating); saving clears the nudge. Demo synthesises a weekly close.
-- **Phase 4 (part 3a) done — Google Calendar OAuth plumbing (inert).** Read-only OAuth (auth-code + refresh) via plain fetch. Server: `GoogleAccount` + `BudgetExclusion` models, `services/google.ts`, `routes/google.ts` (`/status`, `/auth-url`, `/callback` with signed-state, account list/patch/delete, `/events`, `/exclude` POST+DELETE). Features stay off (503 / `configured:false`) until `GOOGLE_CLIENT_ID/SECRET` set in `server/.env` (see `.env.example`). Client: `google/api.ts` + `GoogleAccountsSection` in Settings (connect / per-source color+toggle / disconnect; inert + guest states).
-- **Phase 4 (part 3b) done — GCal events in the cockpit.** Creds are in `server/.env` (project `axiom-498710`). Synced events load per day and render as a Calendar block of fixed blocks; timed events deduct from the budget (`effectiveAvailable` subtracts them, they appear on the 24h ring), all-day don't. Per-event mute toggle stops deduction for the whole recurring series (persisted via `/google/exclude`). `HYDRATE` now merges over current state so parallel calendar/recon/scope fetches aren't clobbered. Verified: `/google/status`→configured, `/auth-url` valid; demo + budget math live. **Only the Google consent click-through is user-driven** (needs Akshu's Google login) — connect from Settings → Google Calendar → Connect on a real (non-demo) account.
-- **Timer/logging rework + onboarding done.**
-  - Per-task time: tasks have `loggedMinutes`; rows show `logged / estimate`, ticking live. Budget "Logged" sums per-task (server too).
-  - **Concurrent timers**: `timer.runs` keyed by taskId; playing one doesn't stop others. Strip shows running count + **Pause all**. Per-task controls: ▶ Play → ⏸ Pause (keeps time) + ⏹ Stop & Complete. Interrupt no longer auto-pauses.
-  - Completing from the checkbox opens **Log allocated / Log custom / Don't log**; done rows + budget card + completed fold show **time gained/lost** (Σ estimate−logged).
-  - Menus render via `components/today/PortalMenu.tsx` (body portal, flips/clamps) — fixes the clipped-dropdown bug.
-  - **Onboarding**: new accounts start at a full 24h; first-run `RoutineModal` (sleep/commute/work hours + working days) drives `availableMinutes = 1440 − sleep − commute − (work on workdays)`. Server `services/availability.ts`; `/today` + `/budget` compute per-day; `/me/settings` saves routine + flips `onboarded`; editable in Settings. (The old hardcoded 6h default is gone.)
-- **Timer fix + task scheduling done** (commits `78fcdcd`, `8da748d`).
-  - Concurrent timers fixed: one **strip per running task**, each ticking 1s/sec (was one summed strip advancing N×/sec). Each strip has ⚡ Interrupt / ⏸ Pause / ⏹ Stop & Complete. Rows show second-level logged time (`HH:MM:SS / estimate`). Completed-today is a table (Logged / Δ vs plan / Created / Completed); tasks carry `createdAt` + `completedAt`.
-  - Task buckets: `/today` returns today + all unfinished other-day tasks (no destructive rollover); client buckets into **Pending** (overdue, with created date) and **Scheduled** (future, collapsed). Budget/counts use only `state.day` tasks (`todaysTasks`). **Day crossover** auto-reloads (interval + focus) so finished-day tasks fall into Pending.
-  - **Due dates**: Task has `dueAt` + `deadlineType` (soft/hard); rows show a due badge, overdue flags amber (soft) / red (hard). Create form adds start day (future-dating), deadline date/time, soft/hard toggle. Kebab has "Move to today".
-- **Next:** streak logic (hardcoded `streakDays={12}` in TodayPage), recurring tasks, manual fixed blocks, the Calendar view (to manage scheduled/future tasks). Security TODO: encrypt stored Google tokens; rotate Atlas password. Cleanup: throwaway test accounts in DB (`gcal-test@axiom.app`, `onboard-test-*`, `ui-onboard-*`).
+## How to resume
+1. Open this repo in Claude Code.
+2. Read this file, then `project-context/` for durable context: `user_akshu.md` (who he is), `feedback_communication_style.md` (**how to write: direct, no em dashes, no filler, no AI-sounding phrasing**), `project_task_manager.md` (full locked feature set + UX), `MEMORY.md`.
+3. `git pull` first — `main` is the cross-machine sync point and is always kept current + pushed.
 
 ## Run it
 ```
 npm install
-# server/.env needs MONGODB_URI (Atlas cluster AXIOM-Core, db `axiom`) + JWT_SECRET.
-# This file is gitignored, so recreate it on each machine. Ask Akshu for the URI.
-npm run dev                   # API :4000, client :5173
+npm run dev          # API on :4000, client on :5173 (Vite proxies /api → :4000)
 ```
-The API boots without a DB but auth/task/today routes return 503 until MONGODB_URI is set.
+`server/.env` is **gitignored — recreate per machine**. Required keys (see `.env.example`):
+- `MONGODB_URI` — Atlas cluster AXIOM-Core, db `axiom` (ask Akshu).
+- `JWT_SECRET`
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REDIRECT_URI=http://localhost:4000/api/google/callback` — Google Cloud project `axiom-498710`. Without these, Calendar features stay inert (no crash).
 
-## Known follow-ups
-- Rotate the Atlas DB password (was shared in plaintext during setup).
-- Two throwaway test accounts exist in the DB (`akshu@axiom.local`, `akshu+phase2@axiom.app`) — safe to delete.
-- PWA manifest references `pwa-192.png` / `pwa-512.png` that don't exist yet (placeholder icons needed).
+The API boots without a DB; DB-backed routes return 503 until `MONGODB_URI` is set.
 
-## Mockups (open via local static server)
-In `mockups/`:
-- `today-v5.html` — current Today screen (cockpit) with the 3 differentiating features
-- `month.html` — Calendar / Month view (multi-GCal sync + allocation bars)
-- `team.html` — Team & Delegation tracker
-- `today-v4.html` — Today with the Gmail-style wallpaper picker
-- earlier: today.html (v1 dark), today-v2, today-v3
+## How to verify changes
+- **Demo mode** (no backend): login screen → "Explore in demo mode". Uses `localRepo` with a rich in-memory seed (today tasks + a Pending + a Scheduled + 2 calendar events). Best for fast UI checks; reloading drops the demo session.
+- **Real account**: register/login; data persists to Atlas. Needed to test Google sync, onboarding, reconciliation against the live API.
+- Build gate: `npm run build` (server `tsc` + client `tsc --noEmit && vite build`). Keep it green before committing.
+- The Claude Preview tool drives `:5173`. Note: synthetic outside-clicks must dispatch `mousedown` (PortalMenu closes on mousedown), and never manually `.remove()` portal nodes (corrupts React → false console errors).
 
-To view: the project has `.claude/launch.json` configured to serve `mockups/` on port 4321 via `npx serve`.
+## Architecture map
 
-## Core problem the app solves
-Akshu loses accurate sense of where time goes — illusion of free time, work overflows. The app's #1 job: accurate real-time view of daily time allocation and remaining free time.
+**Server (`server/src/`)** — Express + TS (NodeNext ESM), Mongoose, JWT. Every doc scoped to `userId`.
+- Models: `User` (+ `routine{sleep/commute/work Minutes, workdays[]}` + `onboarded`), `LifeArea`, `FunctionTrack`, `Goal`, `Task`, `Interruption`, `TimeLog` (now unused by budget — kept), `Reconciliation`, `GoogleAccount` (OAuth tokens, **plaintext — encrypt before multi-user**), `BudgetExclusion` (muted calendar series).
+- `Task` fields: areaId, trackId?, goalId?, title, status (not_started|in_progress|done|deferred|blocked), source, estimateMinutes, **loggedMinutes**, scheduledAt?, **dueAt? + deadlineType(soft|hard)**, delegateName?, deferredCount, **completedAt?**, **day** (YYYY-MM-DD, the day it shows in Today), timestamps (createdAt).
+- Routes (`/api`): auth, me (`/settings` saves routine + flips onboarded), areas, tracks, goals, tasks (CRUD + `/:id/defer`; PATCH stamps completedAt on done), interruptions, timelogs, **today** (returns the day + availableMinutes + today's tasks **plus all unfinished other-day tasks** — no destructive rollover), **budget** (`?scope=day|week|month`), **reconciliations** (`/`, `/due`, POST), **google** (`/status`, `/auth-url`, `/callback` signed-state, accounts CRUD, `/events`, `/exclude`).
+- Services: `budget.ts#computeBudget` (sums task.loggedMinutes/estimate per range), `availability.ts` (availableForDay/Range from routine — work only deducts on workdays; 24h before onboarding), `google.ts` (plain-fetch OAuth + calendar fetch, recurring expanded, seriesKey).
+- `util/day.ts`: local day keys, `addDays`, `scopeRange`, `weekOfYear`, `daysBetween`, `completedPeriod`.
 
-## Locked feature set (summary — full detail in project-context/project_task_manager.md)
-- Daily time budget, required per-task estimates, live per-task timer, overflow detection, planned-vs-actual report
-- Goal hierarchy: Annual > Half-year > Monthly > Weekly per life area, auto-prompted weekly/monthly/half-year reviews
-- Google Calendar read-only sync (multiple accounts) feeding fixed blocks
-- JWT auth, every Mongo doc scoped to userId (multi-user ready for future public rollout)
-- **3 differentiators:** (1) one-tap interruption/distraction logging (🔥 Fire / 🌀 Rabbit Hole / 😵 Distraction), (2) Function Tracks within projects, (3) Delegation tracker for ~10 reports
-- Nav: Today | Calendar | Goals | Team | Settings
-- Aesthetic: light, playful, Nunito font, frosted glass over swappable wallpapers (Pokémon/DBZ themes), Gmail-style wallpaper picker
+**Client (`client/src/`)** — React PWA. The cockpit is driven by `today/useToday.tsx` (reducer + context) over a **repo seam** `today/repo.ts`: `localRepo` (demo seed) vs `apiRepo` (persisted) chosen by `auth.isGuest`. Components in `components/today/*`.
+- State (`today/types.ts` `TodayState`): areas, tracks, tasks (**all buckets: today + pending + upcoming**), goals, interruptions, fixedBlocks, **timer.runs** (Record<taskId,{startedAt,elapsedSeconds}> — concurrent), **day**, budgetScope, scopeSummary, dueReconciliations, calendarEvents, availableMinutes.
+- `today/budget.ts` derivations: `todaysTasks` (day===state.day), `completedTodayTasks` (by completedAt date), `taskLoggedSeconds`, `effectiveAvailable` (minus deducting calendar events), ring/bar segments, `timeGainedMinutes`.
+- Key components: `TimerStrip` (one strip per running task, each 1s/sec, ⚡/⏸/⏹), `TaskRow` (logged HH:MM:SS / estimate, due badge, kebab via `PortalMenu`), `TaskBuckets` (Pending/Scheduled), `CompletedFold` (table: Logged/Δ/Created/Completed), `TimeBudgetCard` (day + week/month scopes, gained line), `AllocationRing`, `CalendarEventsBlock` (mute toggle), `ReconciliationModal`, `RoutineModal` (onboarding + Settings), `WallpaperPicker`, `GoogleAccountsSection`, `Fab` (create: area/track/estimate/**start day**/**deadline + soft-hard**).
+- Wallpaper: `wallpaper/WallpaperContext.tsx` (localStorage). Profile: `profile/api.ts`. Google: `google/api.ts`.
 
-## Stack
-MERN. PWA first (works on desktop browsers + Android home screen). React Native is a later option.
+## Built so far (all on `main`, pushed)
+Scaffold → Phase 1/2 (cockpit + Atlas persistence) → function-track UI → wallpaper picker + real week/month budget scopes → auto-prompted weekly/monthly/half-year **reconciliation** → **Google Calendar** read-only sync (connected, events become budget-deducting fixed blocks, per-series mute) → **routine-based onboarding** (24h start, sleep/commute/work setup) → **timer/logging rework** (per-task loggedMinutes, concurrent multi-strip timers each 1s/sec, Pause / Stop & Complete, complete-with-log options, time gained/lost) → **task scheduling** (Pending/Scheduled buckets, due dates + soft/hard deadlines, future start days, day-crossover auto-reload, Move-to-today) → Completed-today keyed off completedAt.
+
+Latest commits: `d85130c` (completed-today fix), `8da748d` (buckets/due/crossover), `78fcdcd` (multi-strip timer fix).
+
+## Next (not started)
+- **Calendar view** (Day/Week/Month route — currently a placeholder). Should host **completed-task history** (read-only; data already supports it — add a `GET /api/tasks?from=&to=` range endpoint; don't let editing past days mutate closed reconciliation snapshots) and management of scheduled/future + due tasks. This is the priority next piece.
+- **Streak logic** — currently hardcoded `streakDays={12}` in `TodayPage`; derive from activity/reconciliation history.
+- **Recurring tasks** and **manual fixed blocks** (sleep/standing meetings beyond GCal) — still unbuilt.
+- **Goals** and **Team/Delegation** pages are placeholders (locked feature set has full specs in project-context).
+
+## Known issues / cleanup
+- Google OAuth tokens stored plaintext in Mongo — encrypt before any multi-user rollout.
+- Rotate Atlas DB password (shared in plaintext during setup).
+- Throwaway test accounts in DB: `akshu@axiom.local`, `akshu+phase2@axiom.app`, `gcal-test@axiom.app`, `onboard-test-*@axiom.app`, `ui-onboard-*@axiom.app` — safe to delete. Real account in use: `akshat@nextplatforms.in`.
+- PWA manifest references `pwa-192.png` / `pwa-512.png` that don't exist yet.
+- `TimeLog` model + `/timelogs` route + `repo.createTimeLog` are now unused (budget uses per-task `loggedMinutes`) — could be removed.
+
+## Mockups (`mockups/`, served via `.claude/launch.json` on :4321)
+`today-v5.html` (cockpit), `month.html` (Calendar/Month — useful for the upcoming Calendar build), `team.html` (Team & Delegation), `today-v4.html` (wallpaper picker).
+
+## Core problem
+Akshu loses accurate sense of where time goes — illusion of free time, work overflows. The app's #1 job: an accurate real-time view of daily time allocation and remaining free time. Filter every feature through: does this help him see where time goes and prevent overflow?
+
+## Locked feature set + stack
+Full detail in `project-context/project_task_manager.md`. Summary: daily time budget, per-task estimates + live timer, overflow detection, planned-vs-actual; goal hierarchy (Annual>Half>Monthly>Weekly) with auto reviews; GCal read-only multi-account; JWT, userId-scoped. **3 differentiators:** (1) one-tap interruption logging (🔥 Fire / 🌀 Rabbit Hole / 😵 Distraction), (2) Function Tracks within ventures, (3) Delegation tracker (~10 reports). Nav: Today | Calendar | Goals | Team | Settings. Aesthetic: light/playful, Nunito, frosted glass over swappable wallpapers. Stack: MERN + TS, PWA first (React Native later).
