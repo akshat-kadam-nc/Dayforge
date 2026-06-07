@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useToday } from '../../today/useToday';
 import { formatMinutes } from '../../today/format';
+import { completedTodayTasks } from '../../today/budget';
 
 function fmtStamp(iso?: string): string {
   if (!iso) return '—';
@@ -12,7 +13,7 @@ function fmtStamp(iso?: string): string {
 export function CompletedFold() {
   const { state } = useToday();
   const [open, setOpen] = useState(false);
-  const done = state.tasks.filter((t) => t.status === 'done' && t.day === state.day);
+  const done = completedTodayTasks(state);
   if (done.length === 0) return null;
 
   return (

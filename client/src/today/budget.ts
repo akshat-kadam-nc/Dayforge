@@ -42,6 +42,22 @@ export function todaysTasks(state: TodayState): Task[] {
   return state.tasks.filter((t) => t.day === state.day);
 }
 
+/** Local YYYY-MM-DD for an ISO timestamp (matches day-key convention). */
+function localDayOf(iso: string): string {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/** Tasks completed on the shown day — keyed off completedAt, not the scheduled
+ *  day, so a past-day task finished today still counts as completed today. */
+export function completedTodayTasks(state: TodayState): Task[] {
+  return state.tasks.filter(
+    (t) =>
+      t.status === 'done' &&
+      (t.completedAt ? localDayOf(t.completedAt) === state.day : t.day === state.day),
+  );
+}
+
 /** Sum of planned estimates across all of today's tasks. */
 export function allocatedMinutes(state: TodayState): number {
   return todaysTasks(state).reduce((sum, t) => sum + t.estimateMinutes, 0);
@@ -58,12 +74,13 @@ export function loggedMinutes(state: TodayState): number {
   return todaysTasks(state).reduce((sum, t) => sum + taskLoggedMinutes(state, t), 0);
 }
 
-/** Net minutes gained (finished under estimate) minus lost (over) across today's
- *  done tasks. Positive = time gained, negative = time lost. */
+/** Net minutes gained (finished under estimate) minus lost (over) across tasks
+ *  completed today. Positive = time gained, negative = time lost. */
 export function timeGainedMinutes(state: TodayState): number {
-  return todaysTasks(state)
-    .filter((t) => t.status === 'done')
-    .reduce((sum, t) => sum + (t.estimateMinutes - t.loggedMinutes), 0);
+  return completedTodayTasks(state).reduce(
+    (sum, t) => sum + (t.estimateMinutes - t.loggedMinutes),
+    0,
+  );
 }
 
 export function interruptedMinutes(state: TodayState): number {

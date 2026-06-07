@@ -3,6 +3,7 @@ import type { BudgetScope } from '../../today/types';
 import {
   allocatedMinutes,
   budgetBarSegments,
+  completedTodayTasks,
   effectiveAvailable,
   interruptedMinutes,
   loggedMinutes,
@@ -57,9 +58,7 @@ function DayBudget() {
   const segments = budgetBarSegments(state);
   const pcts = toBarPercents(segments);
   const gained = timeGainedMinutes(state);
-  const hasCompleted = state.tasks.some(
-    (t) => t.status === 'done' && t.day === state.day && t.estimateMinutes > 0,
-  );
+  const hasCompleted = completedTodayTasks(state).some((t) => t.estimateMinutes > 0);
   return (
     <>
       <div className="budget-stats">
