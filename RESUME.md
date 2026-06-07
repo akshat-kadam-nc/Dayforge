@@ -28,7 +28,11 @@ Personal time-management web app being built with Claude Code. This file lets a 
   - Completing from the checkbox opens **Log allocated / Log custom / Don't log**; done rows + budget card + completed fold show **time gained/lost** (Σ estimate−logged).
   - Menus render via `components/today/PortalMenu.tsx` (body portal, flips/clamps) — fixes the clipped-dropdown bug.
   - **Onboarding**: new accounts start at a full 24h; first-run `RoutineModal` (sleep/commute/work hours + working days) drives `availableMinutes = 1440 − sleep − commute − (work on workdays)`. Server `services/availability.ts`; `/today` + `/budget` compute per-day; `/me/settings` saves routine + flips `onboarded`; editable in Settings. (The old hardcoded 6h default is gone.)
-- **Next:** streak logic (hardcoded `streakDays={12}` in TodayPage), recurring tasks, manual fixed blocks. Security TODO: encrypt stored Google tokens; rotate Atlas password. Cleanup: throwaway test accounts in DB (`gcal-test@axiom.app`, `onboard-test-*`, `ui-onboard-*`).
+- **Timer fix + task scheduling done** (commits `78fcdcd`, `8da748d`).
+  - Concurrent timers fixed: one **strip per running task**, each ticking 1s/sec (was one summed strip advancing N×/sec). Each strip has ⚡ Interrupt / ⏸ Pause / ⏹ Stop & Complete. Rows show second-level logged time (`HH:MM:SS / estimate`). Completed-today is a table (Logged / Δ vs plan / Created / Completed); tasks carry `createdAt` + `completedAt`.
+  - Task buckets: `/today` returns today + all unfinished other-day tasks (no destructive rollover); client buckets into **Pending** (overdue, with created date) and **Scheduled** (future, collapsed). Budget/counts use only `state.day` tasks (`todaysTasks`). **Day crossover** auto-reloads (interval + focus) so finished-day tasks fall into Pending.
+  - **Due dates**: Task has `dueAt` + `deadlineType` (soft/hard); rows show a due badge, overdue flags amber (soft) / red (hard). Create form adds start day (future-dating), deadline date/time, soft/hard toggle. Kebab has "Move to today".
+- **Next:** streak logic (hardcoded `streakDays={12}` in TodayPage), recurring tasks, manual fixed blocks, the Calendar view (to manage scheduled/future tasks). Security TODO: encrypt stored Google tokens; rotate Atlas password. Cleanup: throwaway test accounts in DB (`gcal-test@axiom.app`, `onboard-test-*`, `ui-onboard-*`).
 
 ## Run it
 ```
