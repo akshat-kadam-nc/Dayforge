@@ -14,8 +14,20 @@ const credentials = z.object({
   name: z.string().min(1).optional(),
 });
 
-function publicUser(user: { _id: unknown; email: string; name: string }) {
-  return { id: String(user._id), email: user.email, name: user.name };
+function publicUser(user: {
+  _id: unknown;
+  email: string;
+  name: string;
+  onboarded?: boolean;
+  routine?: unknown;
+}) {
+  return {
+    id: String(user._id),
+    email: user.email,
+    name: user.name,
+    onboarded: !!user.onboarded,
+    routine: user.routine ?? null,
+  };
 }
 
 authRouter.post(

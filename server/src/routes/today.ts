@@ -10,6 +10,7 @@ import { asyncHandler } from '../middleware/error.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requireDb } from '../middleware/requireDb.js';
 import { dayKey, normaliseDay } from '../util/day.js';
+import { availableForDay } from '../services/availability.js';
 
 export const todayRouter = Router();
 todayRouter.use(requireDb, requireAuth);
@@ -62,7 +63,7 @@ todayRouter.get(
 
     res.json({
       day,
-      availableMinutes: user?.dailyAvailableMinutes ?? 360,
+      availableMinutes: availableForDay(user, day),
       areas,
       tracks,
       goals,

@@ -257,6 +257,8 @@ export interface TodayActions {
   logInterruption: (input: CreateInterruptionInput) => Promise<void>;
   saveReconciliation: (input: ReconciliationInput) => Promise<void>;
   setEventDeduct: (seriesKey: string, deduct: boolean) => void;
+  /** Re-pull the day (e.g. after the routine changes available minutes). */
+  reload: () => void;
 }
 
 const TodayContext = createContext<{
@@ -435,6 +437,12 @@ export function TodayProvider({ children }: { children: ReactNode }) {
       const ev = state.calendarEvents.find((e) => e.seriesKey === seriesKey);
       dispatch({ type: 'SET_EVENT_DEDUCT', seriesKey, deduct });
       void repo.setSeriesDeduct(seriesKey, deduct, ev?.title);
+    },
+    reload: () => {
+      const day = todayKey();
+      void repo.load(day).then((slices) => dispatch({ type: 'HYDRATE', slices })).catch((e) => console.error('[today] reload failed', e));
+      void repo.loadDueReconciliations(day).then((due) => dispatch({ type: 'SET_DUE_RECONCILIATIONS', due })).catch(() => {});
+      void repo.loadCalendarEvents(day).then((events) => dispatch({ type: 'SET_CALENDAR_EVENTS', events })).catch(() => {});
     },
   };
 

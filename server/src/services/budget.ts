@@ -1,6 +1,7 @@
 import { TaskModel } from '../models/Task.js';
 import { InterruptionModel } from '../models/Interruption.js';
 import { UserModel } from '../models/User.js';
+import { availableForRange } from './availability.js';
 
 export interface BudgetAggregate {
   availableMinutes: number;
@@ -16,7 +17,7 @@ export async function computeBudget(
   userId: unknown,
   start: string,
   end: string,
-  days: number,
+  _days?: number,
 ): Promise<BudgetAggregate> {
   const dayFilter = { userId, day: { $gte: start, $lte: end } };
   const [user, tasks, interruptions] = await Promise.all([
@@ -36,7 +37,7 @@ export async function computeBudget(
   }
 
   return {
-    availableMinutes: (user?.dailyAvailableMinutes ?? 360) * days,
+    availableMinutes: availableForRange(user, start, end),
     allocated,
     logged,
     interrupted: interruptions.reduce((s, i) => s + (i.minutes ?? 0), 0),

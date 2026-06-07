@@ -8,18 +8,25 @@ import { requireDb } from '../middleware/requireDb.js';
 export const meRouter = Router();
 meRouter.use(requireDb, requireAuth);
 
-const settingsInput = z.object({
-  dailyAvailableMinutes: z.number().int().min(0).max(1440),
+const routineInput = z.object({
+  sleepMinutes: z.number().int().min(0).max(1440),
+  commuteMinutes: z.number().int().min(0).max(1440),
+  workMinutes: z.number().int().min(0).max(1440),
+  workdays: z.array(z.number().int().min(0).max(6)),
 });
 
+// Save the routine. Completing it flips `onboarded` on so the cockpit stops
+// treating the day as fully open.
 meRouter.patch(
   '/settings',
   asyncHandler(async (req, res) => {
-    const data = settingsInput.parse(req.body);
-    const user = await UserModel.findByIdAndUpdate(req.userId, data, { new: true });
+    const routine = routineInput.parse(req.body.routine ?? req.body);
+    const user = await UserModel.findByIdAndUpdate(
+      req.userId,
+      { routine, onboarded: true },
+      { new: true },
+    );
     if (!user) throw new HttpError(404, 'User not found');
-    res.json({
-      settings: { dailyAvailableMinutes: user.dailyAvailableMinutes },
-    });
+    res.json({ onboarded: user.onboarded, routine: user.routine });
   }),
 );

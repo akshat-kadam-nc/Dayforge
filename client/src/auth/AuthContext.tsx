@@ -1,10 +1,13 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { api, getToken, setToken } from '../api/client';
+import type { Routine } from '../profile/api';
 
 export interface User {
   id: string;
   email: string;
   name: string;
+  onboarded: boolean;
+  routine?: Routine | null;
 }
 
 interface AuthState {
@@ -16,9 +19,11 @@ interface AuthState {
   register: (email: string, password: string, name?: string) => Promise<void>;
   continueAsGuest: () => void;
   logout: () => void;
+  /** Merge fields into the current user (e.g. after onboarding). */
+  updateUser: (patch: Partial<User>) => void;
 }
 
-const GUEST_USER: User = { id: 'guest', email: 'demo@axiom.local', name: 'Akshu' };
+const GUEST_USER: User = { id: 'guest', email: 'demo@axiom.local', name: 'Akshu', onboarded: true };
 
 const AuthContext = createContext<AuthState | null>(null);
 
@@ -65,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
         setIsGuest(false);
       },
+      updateUser: (patch) => setUser((u) => (u ? { ...u, ...patch } : u)),
     }),
     [user, loading, isGuest],
   );

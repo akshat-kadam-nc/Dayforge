@@ -5,12 +5,22 @@ import { useToday } from '../today/useToday';
 import { AddVentureModal } from '../components/today/AddVentureModal';
 import { TrackManager } from '../components/today/TrackManager';
 import { GoogleAccountsSection } from '../components/GoogleAccountsSection';
+import { RoutineModal } from '../components/RoutineModal';
+
+const DAY_ABBR: Record<number, string> = { 0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat' };
+
+function fmtH(mins: number): string {
+  const h = mins / 60;
+  return Number.isInteger(h) ? `${h}h` : `${h.toFixed(1)}h`;
+}
 
 export function SettingsPage() {
   const { user, logout, isGuest } = useAuth();
   const { state } = useToday();
   const [adding, setAdding] = useState(false);
   const [openArea, setOpenArea] = useState<string | null>(null);
+  const [editRoutine, setEditRoutine] = useState(false);
+  const routine = user?.routine;
 
   return (
     <Placeholder title="Settings" emoji="⚙️">
@@ -18,6 +28,30 @@ export function SettingsPage() {
         Signed in as <strong>{user?.email}</strong>
         {isGuest && ' (demo mode — changes are not saved)'}.
       </p>
+
+      {!isGuest && (
+        <div className="settings-section">
+          <div className="settings-section-head">
+            <h3>Daily routine</h3>
+            <button type="button" className="btn-ghost btn-sm" onClick={() => setEditRoutine(true)}>
+              {routine && user?.onboarded ? 'Edit' : 'Set up'}
+            </button>
+          </div>
+          {routine && user?.onboarded ? (
+            <ul className="routine-summary">
+              <li><span>Sleep</span><strong>{fmtH(routine.sleepMinutes)}/day</strong></li>
+              <li><span>Commute</span><strong>{routine.commuteMinutes}m/day</strong></li>
+              <li><span>Work</span><strong>{fmtH(routine.workMinutes)}/working day</strong></li>
+              <li>
+                <span>Working days</span>
+                <strong>{routine.workdays.length ? [...routine.workdays].sort().map((d) => DAY_ABBR[d]).join(' ') : 'none'}</strong>
+              </li>
+            </ul>
+          ) : (
+            <p className="muted">Your day is fully open (24h). Set your routine to see real free time.</p>
+          )}
+        </div>
+      )}
 
       <div className="settings-section">
         <div className="settings-section-head">
@@ -57,6 +91,7 @@ export function SettingsPage() {
       <button className="btn" onClick={logout}>Log out</button>
 
       {adding && <AddVentureModal onClose={() => setAdding(false)} />}
+      {editRoutine && <RoutineModal mode="edit" onClose={() => setEditRoutine(false)} />}
     </Placeholder>
   );
 }
