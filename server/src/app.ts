@@ -12,6 +12,7 @@ import { interruptionsRouter } from './routes/interruptions.js';
 import { timelogsRouter } from './routes/timelogs.js';
 import { todayRouter } from './routes/today.js';
 import { budgetRouter } from './routes/budget.js';
+import { reconciliationsRouter } from './routes/reconciliations.js';
 import { meRouter } from './routes/me.js';
 
 export function createApp() {
@@ -34,6 +35,7 @@ export function createApp() {
   app.use('/api/timelogs', timelogsRouter);
   app.use('/api/today', todayRouter);
   app.use('/api/budget', budgetRouter);
+  app.use('/api/reconciliations', reconciliationsRouter);
 
   app.use(errorHandler);
 

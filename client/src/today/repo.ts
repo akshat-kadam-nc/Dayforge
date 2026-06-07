@@ -8,6 +8,8 @@ import type {
   Interruption,
   InterruptionType,
   LifeArea,
+  ReconciliationDue,
+  ReconciliationInput,
   Task,
   TimeLog,
 } from './types';
@@ -33,6 +35,14 @@ function scopeRange(scope: BudgetScope, key: string): { start: string; end: stri
   }
   const last = new Date(y, m, 0);
   return { start: keyOf(new Date(y, m - 1, 1)), end: keyOf(last), days: last.getDate() };
+}
+
+function weekOfYear(key: string): number {
+  const [y, m, d] = key.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  const start = new Date(y, 0, 1);
+  const days = Math.floor((date.getTime() - start.getTime()) / 86400000);
+  return Math.ceil((days + start.getDay() + 1) / 7);
 }
 
 /** The slices the cockpit hydrates from. */
@@ -81,6 +91,8 @@ export interface TodayRepo {
   createInterruption(input: CreateInterruptionInput): Promise<Interruption>;
   createTimeLog(input: CreateTimeLogInput): Promise<void>;
   loadBudget(scope: BudgetScope, day: string): Promise<BudgetSummary>;
+  loadDueReconciliations(day: string): Promise<ReconciliationDue[]>;
+  saveReconciliation(input: ReconciliationInput): Promise<void>;
 }
 
 // ---- Demo mode: in-memory, seeded, no persistence ----
@@ -134,6 +146,35 @@ export const localRepo: TodayRepo = {
     return { id: `i${Date.now()}`, ...input };
   },
   async createTimeLog() {},
+  async loadDueReconciliations(day) {
+    // Demo: surface a single weekly close for the current week, derived from the seed.
+    const s = makeInitialState();
+    const { start, end, days } = scopeRange('week', day);
+    const k = 5.4;
+    const perArea = s.areas.map((a) => ({
+      areaId: a.id,
+      minutes: Math.round(s.tasks.filter((t) => t.areaId === a.id).reduce((x, t) => x + t.estimateMinutes, 0) * k),
+    }));
+    const allocated = perArea.reduce((x, p) => x + p.minutes, 0);
+    return [
+      {
+        scope: 'week',
+        periodKey: start,
+        start,
+        end,
+        days,
+        label: `Week ${weekOfYear(end)}`,
+        stats: {
+          availableMinutes: 360 * days,
+          allocated,
+          logged: Math.round(allocated * 0.62),
+          interrupted: Math.round(s.interruptions.reduce((x, i) => x + i.minutes, 0) * 3),
+          perArea,
+        },
+      },
+    ];
+  },
+  async saveReconciliation() {},
   async loadBudget(scope, day) {
     // Demo has only one seeded day, so scale it to a plausible week/month window.
     const s = makeInitialState();
@@ -283,5 +324,12 @@ export const apiRepo: TodayRepo = {
   },
   async loadBudget(scope, day) {
     return api<BudgetSummary>(`/budget?scope=${scope}&day=${encodeURIComponent(day)}`);
+  },
+  async loadDueReconciliations(day) {
+    const r = await api<{ due: ReconciliationDue[] }>(`/reconciliations/due?day=${encodeURIComponent(day)}`);
+    return r.due;
+  },
+  async saveReconciliation(input) {
+    await api('/reconciliations', { method: 'POST', body: JSON.stringify(input) });
   },
 };

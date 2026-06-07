@@ -139,6 +139,7 @@ export function makeInitialState(): TodayState {
     collapsedAreas: {},
     budgetScope: 'day',
     scopeSummary: null,
+    dueReconciliations: [],
     availableMinutes: 360, // 6h discretionary today
   };
 }

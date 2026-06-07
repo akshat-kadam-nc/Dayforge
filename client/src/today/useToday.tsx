@@ -13,6 +13,8 @@ import type {
   Goal,
   Interruption,
   LifeArea,
+  ReconciliationDue,
+  ReconciliationInput,
   Task,
   TaskStatus,
   TodayState,
@@ -43,6 +45,7 @@ function emptyState(): TodayState {
     collapsedAreas: {},
     budgetScope: 'day',
     scopeSummary: null,
+    dueReconciliations: [],
     availableMinutes: 360,
   };
 }
@@ -56,6 +59,8 @@ type Action =
   | { type: 'TOGGLE_AREA'; areaId: string }
   | { type: 'SET_SCOPE'; scope: BudgetScope }
   | { type: 'SET_SCOPE_SUMMARY'; summary: BudgetSummary | null }
+  | { type: 'SET_DUE_RECONCILIATIONS'; due: ReconciliationDue[] }
+  | { type: 'REMOVE_DUE_RECONCILIATION'; scope: string; periodKey: string }
   | { type: 'ADD_TASK'; task: Task }
   | { type: 'REMOVE_TASK'; taskId: string }
   | { type: 'SET_STATUS'; taskId: string; status: TaskStatus }
@@ -131,6 +136,15 @@ function reducer(state: TodayState, action: Action): TodayState {
       return { ...state, budgetScope: action.scope, scopeSummary: null };
     case 'SET_SCOPE_SUMMARY':
       return { ...state, scopeSummary: action.summary };
+    case 'SET_DUE_RECONCILIATIONS':
+      return { ...state, dueReconciliations: action.due };
+    case 'REMOVE_DUE_RECONCILIATION':
+      return {
+        ...state,
+        dueReconciliations: state.dueReconciliations.filter(
+          (r) => !(r.scope === action.scope && r.periodKey === action.periodKey),
+        ),
+      };
     case 'ADD_TASK':
       return { ...state, tasks: [...state.tasks, action.task] };
     case 'REMOVE_TASK': {
@@ -194,6 +208,7 @@ export interface TodayActions {
   deleteTrack: (id: string) => void;
   addGoal: (input: CreateGoalInput) => Promise<void>;
   logInterruption: (input: CreateInterruptionInput) => Promise<void>;
+  saveReconciliation: (input: ReconciliationInput) => Promise<void>;
 }
 
 const TodayContext = createContext<{
@@ -221,6 +236,20 @@ export function TodayProvider({ children }: { children: ReactNode }) {
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
+    return () => {
+      cancelled = true;
+    };
+  }, [repo]);
+
+  // Load any due period closes (weekly/monthly/half-year) alongside the day.
+  useEffect(() => {
+    let cancelled = false;
+    repo
+      .loadDueReconciliations(todayKey())
+      .then((due) => {
+        if (!cancelled) dispatch({ type: 'SET_DUE_RECONCILIATIONS', due });
+      })
+      .catch((err) => console.error('[today] failed to load reconciliations', err));
     return () => {
       cancelled = true;
     };
@@ -315,6 +344,10 @@ export function TodayProvider({ children }: { children: ReactNode }) {
       persistRun();
       const interruption = await repo.createInterruption(input);
       dispatch({ type: 'ADD_INTERRUPTION', interruption });
+    },
+    saveReconciliation: async (input) => {
+      await repo.saveReconciliation(input);
+      dispatch({ type: 'REMOVE_DUE_RECONCILIATION', scope: input.scope, periodKey: input.periodKey });
     },
   };
 

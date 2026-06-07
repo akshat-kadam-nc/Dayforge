@@ -189,6 +189,26 @@
 .scope-range { margin-top: 9px; font-size: 10.5px; font-weight: 800; color: var(--c-muted); letter-spacing: 0.3px; }
 .scope-loading { padding: 18px 4px; font-size: 12.5px; font-weight: 700; color: var(--c-muted); }
 
+.nudge-recon { background: rgba(16,185,129,0.12); border: 1.5px solid rgba(16,185,129,0.35); color: #047857; font-family: inherit; text-align: left; }
+
+/* Reconciliation modal */
+.recon-card { max-width: 460px; }
+.recon-range { margin: -4px 0 2px; font-size: 11px; font-weight: 800; color: var(--c-muted); }
+.recon-stats { display: flex; gap: 8px; flex-wrap: wrap; }
+.recon-stats .stat-pill { flex: 1 1 calc(50% - 4px); }
+.recon-areas { display: flex; flex-wrap: wrap; gap: 6px; }
+.recon-area-chip { font-size: 10.5px; font-weight: 800; padding: 3px 9px; border-radius: var(--r-pill); }
+.recon-q { text-transform: none !important; letter-spacing: normal !important; font-size: 12.5px !important; color: var(--c-primary) !important; }
+.recon-card textarea {
+  font: inherit; font-weight: 600; padding: 8px 11px; border-radius: 10px;
+  border: 1.5px solid var(--border-med); background: white; color: var(--c-primary); resize: vertical;
+}
+.recon-card textarea:focus { outline: 2px solid rgba(124,58,237,0.4); border-color: transparent; }
+.recon-rating { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; font-weight: 800; color: var(--c-secondary); }
+.recon-stars { display: flex; gap: 2px; }
+.recon-star { background: none; border: none; cursor: pointer; font-size: 22px; line-height: 1; color: rgba(120,80,220,0.2); padding: 0 1px; }
+.recon-star.on { color: #f59e0b; }
+
 /* Interruptions */
 .interrupt-block { background: rgba(244,63,94,0.06); border: 1.5px solid rgba(244,63,94,0.25); border-radius: var(--r-lg); overflow: hidden; backdrop-filter: var(--blur); box-shadow: var(--shadow); }
 .interrupt-head { display: flex; align-items: center; gap: 9px; padding: 10px 15px; border-bottom: 1.5px solid rgba(244,63,94,0.15); }

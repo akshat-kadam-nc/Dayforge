@@ -11,17 +11,51 @@ export type TaskSource = 'manual' | 'calendar' | 'recurring';
 
 export type BudgetScope = 'day' | 'week' | 'month';
 
-/** Aggregated budget for a week/month window (the server sums across days). */
-export interface BudgetSummary {
-  scope: BudgetScope;
-  start: string;
-  end: string;
-  days: number;
+/** Budget totals over some window; shared by scope summaries and reconciliations. */
+export interface BudgetStats {
   availableMinutes: number;
   allocated: number;
   logged: number;
   interrupted: number;
   perArea: { areaId: string; minutes: number }[];
+}
+
+/** Aggregated budget for a week/month window (the server sums across days). */
+export interface BudgetSummary extends BudgetStats {
+  scope: BudgetScope;
+  start: string;
+  end: string;
+  days: number;
+}
+
+export type ReconScope = 'week' | 'month' | 'half_year';
+
+export interface ReconResponse {
+  key: string;
+  question: string;
+  answer: string;
+}
+
+/** A finished period awaiting its structured close, with a budget snapshot. */
+export interface ReconciliationDue {
+  scope: ReconScope;
+  periodKey: string;
+  start: string;
+  end: string;
+  days: number;
+  label: string;
+  stats: BudgetStats;
+}
+
+export interface ReconciliationInput {
+  scope: ReconScope;
+  periodKey: string;
+  periodStart: string;
+  periodEnd: string;
+  label: string;
+  rating?: number;
+  responses: ReconResponse[];
+  stats: BudgetStats;
 }
 
 export type InterruptionType = 'fire' | 'rabbit_hole' | 'distraction';
@@ -117,6 +151,8 @@ export interface TodayState {
   budgetScope: BudgetScope;
   /** Aggregated budget for the active week/month scope; null in day scope. */
   scopeSummary: BudgetSummary | null;
+  /** Finished periods awaiting their structured close (week/month/half-year). */
+  dueReconciliations: ReconciliationDue[];
   /** Discretionary minutes available today after fixed blocks. */
   availableMinutes: number;
 }
