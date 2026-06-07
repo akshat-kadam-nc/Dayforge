@@ -209,6 +209,21 @@
 .recon-star { background: none; border: none; cursor: pointer; font-size: 22px; line-height: 1; color: rgba(120,80,220,0.2); padding: 0 1px; }
 .recon-star.on { color: #f59e0b; }
 
+/* Calendar events block */
+.vent-head.static { cursor: default; }
+.cal-badge { background: rgba(66,133,244,0.14) !important; color: #1a73e8 !important; }
+.cal-event { gap: 10px; }
+.cal-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.cal-event.muted { opacity: 0.55; }
+.cal-event.muted .task-name { text-decoration: line-through; }
+.tag-series { background: rgba(66,133,244,0.12); color: #1a73e8; }
+.deduct-toggle {
+  flex-shrink: 0; border: 1.5px solid rgba(66,133,244,0.35); background: rgba(66,133,244,0.1);
+  color: #1a73e8; font-family: inherit; font-size: 10.5px; font-weight: 800; padding: 4px 9px;
+  border-radius: var(--r-pill); cursor: pointer;
+}
+.deduct-toggle.on { background: var(--c-accent); border-color: var(--c-accent); color: white; }
+
 /* Interruptions */
 .interrupt-block { background: rgba(244,63,94,0.06); border: 1.5px solid rgba(244,63,94,0.25); border-radius: var(--r-lg); overflow: hidden; backdrop-filter: var(--blur); box-shadow: var(--shadow); }
 .interrupt-head { display: flex; align-items: center; gap: 9px; padding: 10px 15px; border-bottom: 1.5px solid rgba(244,63,94,0.15); }

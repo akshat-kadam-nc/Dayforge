@@ -96,6 +96,22 @@ export interface Task {
   deferredCount: number;
 }
 
+/** A synced calendar event. Deducting ones become fixed blocks in the budget. */
+export interface CalendarEvent {
+  id: string;
+  /** Recurring series id (instances share it); equals id for one-offs. */
+  seriesKey: string;
+  title: string;
+  start: string;
+  end: string;
+  allDay: boolean;
+  durationMinutes: number;
+  accountId: string;
+  color: string;
+  /** Whether this event deducts from the budget. */
+  deduct: boolean;
+}
+
 export interface Interruption {
   id: string;
   type: InterruptionType;
@@ -153,6 +169,8 @@ export interface TodayState {
   scopeSummary: BudgetSummary | null;
   /** Finished periods awaiting their structured close (week/month/half-year). */
   dueReconciliations: ReconciliationDue[];
+  /** Synced Google Calendar events for the day. */
+  calendarEvents: CalendarEvent[];
   /** Discretionary minutes available today after fixed blocks. */
   availableMinutes: number;
 }

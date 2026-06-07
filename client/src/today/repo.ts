@@ -3,6 +3,7 @@ import { makeInitialState } from './seed';
 import type {
   BudgetScope,
   BudgetSummary,
+  CalendarEvent,
   FunctionTrack,
   Goal,
   Interruption,
@@ -13,6 +14,7 @@ import type {
   Task,
   TimeLog,
 } from './types';
+import { getGoogleEvents, muteSeries, unmuteSeries } from '../google/api';
 
 /** Today's day key in YYYY-MM-DD (local), matching the server's dayKey(). */
 export function todayKey(): string {
@@ -93,6 +95,8 @@ export interface TodayRepo {
   loadBudget(scope: BudgetScope, day: string): Promise<BudgetSummary>;
   loadDueReconciliations(day: string): Promise<ReconciliationDue[]>;
   saveReconciliation(input: ReconciliationInput): Promise<void>;
+  loadCalendarEvents(day: string): Promise<CalendarEvent[]>;
+  setSeriesDeduct(seriesKey: string, deduct: boolean, label?: string): Promise<void>;
 }
 
 // ---- Demo mode: in-memory, seeded, no persistence ----
@@ -175,6 +179,20 @@ export const localRepo: TodayRepo = {
     ];
   },
   async saveReconciliation() {},
+  async loadCalendarEvents() {
+    // Demo: two illustrative events so the calendar block + mute toggle are visible.
+    return [
+      {
+        id: 'demo-ev1', seriesKey: 'demo-standup', title: 'Daily standup (recurring)',
+        start: '', end: '', allDay: false, durationMinutes: 30, accountId: 'demo', color: '#4285F4', deduct: true,
+      },
+      {
+        id: 'demo-ev2', seriesKey: 'demo-allhands', title: 'Company off-site', start: '', end: '',
+        allDay: true, durationMinutes: 0, accountId: 'demo', color: '#0F9D58', deduct: false,
+      },
+    ];
+  },
+  async setSeriesDeduct() {},
   async loadBudget(scope, day) {
     // Demo has only one seeded day, so scale it to a plausible week/month window.
     const s = makeInitialState();
@@ -331,5 +349,13 @@ export const apiRepo: TodayRepo = {
   },
   async saveReconciliation(input) {
     await api('/reconciliations', { method: 'POST', body: JSON.stringify(input) });
+  },
+  async loadCalendarEvents(day) {
+    return getGoogleEvents(day);
+  },
+  async setSeriesDeduct(seriesKey, deduct, label) {
+    // deduct=true means "count it" → no exclusion; deduct=false → mute the series.
+    if (deduct) await unmuteSeries(seriesKey);
+    else await muteSeries(seriesKey, label);
   },
 };

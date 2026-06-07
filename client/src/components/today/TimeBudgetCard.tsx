@@ -3,6 +3,7 @@ import type { BudgetScope } from '../../today/types';
 import {
   allocatedMinutes,
   budgetBarSegments,
+  effectiveAvailable,
   interruptedMinutes,
   loggedMinutes,
   toBarPercents,
@@ -57,7 +58,7 @@ function DayBudget() {
   return (
     <>
       <div className="budget-stats">
-        <Stat value={formatMinutes(state.availableMinutes)} label="Available" />
+        <Stat value={formatMinutes(effectiveAvailable(state))} label="Available" />
         <Stat value={formatMinutes(allocatedMinutes(state))} label="Allocated" color="var(--warning)" />
         <Stat value={formatMinutes(interruptedMinutes(state))} label="Interrupted" color="var(--fire)" />
         <Stat value={formatMinutes(loggedMinutes(state))} label="Logged" color="var(--success)" />

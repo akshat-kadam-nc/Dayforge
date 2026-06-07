@@ -140,6 +140,7 @@ export function makeInitialState(): TodayState {
     budgetScope: 'day',
     scopeSummary: null,
     dueReconciliations: [],
+    calendarEvents: [],
     availableMinutes: 360, // 6h discretionary today
   };
 }

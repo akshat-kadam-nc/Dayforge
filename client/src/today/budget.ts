@@ -38,9 +38,21 @@ export function interruptedMinutes(state: TodayState): number {
   return state.interruptions.reduce((sum, i) => sum + i.minutes, 0);
 }
 
+/** Timed calendar events that are set to deduct from the budget. */
+export function calendarDeductMinutes(state: TodayState): number {
+  return state.calendarEvents
+    .filter((e) => e.deduct && !e.allDay)
+    .reduce((sum, e) => sum + e.durationMinutes, 0);
+}
+
+/** Discretionary minutes left after calendar blocks eat into the day's budget. */
+export function effectiveAvailable(state: TodayState): number {
+  return Math.max(0, state.availableMinutes - calendarDeductMinutes(state));
+}
+
 /** Positive when planned work exceeds the discretionary budget. */
 export function overflowMinutes(state: TodayState): number {
-  return allocatedMinutes(state) - state.availableMinutes;
+  return allocatedMinutes(state) - effectiveAvailable(state);
 }
 
 const INTERRUPT_COLOR = '#f43f5e';
@@ -66,9 +78,14 @@ export function ringSegments(state: TodayState): Segment[] {
     minutes: b.minutes,
     color: b.color,
   }));
+  // Deducting calendar events behave like fixed blocks on the ring.
+  const calendar = state.calendarEvents
+    .filter((e) => e.deduct && !e.allDay && e.durationMinutes > 0)
+    .map((e) => ({ id: `cal:${e.id}`, label: e.title, minutes: e.durationMinutes, color: e.color }));
   const interrupt = interruptedMinutes(state);
   return [
     ...fixed,
+    ...calendar,
     ...areaSegments(state),
     ...(interrupt > 0
       ? [{ id: 'interruptions', label: 'Interruptions', minutes: interrupt, color: INTERRUPT_COLOR }]

@@ -4,6 +4,7 @@ import { NudgeRow } from '../components/today/NudgeRow';
 import { TimeBudgetCard } from '../components/today/TimeBudgetCard';
 import { AllocationRing } from '../components/today/AllocationRing';
 import { VentureBlock } from '../components/today/VentureBlock';
+import { CalendarEventsBlock } from '../components/today/CalendarEventsBlock';
 import { InterruptionsBlock } from '../components/today/InterruptionsBlock';
 import { CompletedFold } from '../components/today/CompletedFold';
 import { GoalsSidebar } from '../components/today/GoalsSidebar';
@@ -43,6 +44,7 @@ function Cockpit() {
                 <VentureBlock key={area.id} area={area} />
               ))}
 
+              <CalendarEventsBlock />
               <InterruptionsBlock />
               <CompletedFold />
             </>

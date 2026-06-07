@@ -9,6 +9,7 @@ import {
 import type {
   BudgetScope,
   BudgetSummary,
+  CalendarEvent,
   FunctionTrack,
   Goal,
   Interruption,
@@ -46,6 +47,7 @@ function emptyState(): TodayState {
     budgetScope: 'day',
     scopeSummary: null,
     dueReconciliations: [],
+    calendarEvents: [],
     availableMinutes: 360,
   };
 }
@@ -61,6 +63,8 @@ type Action =
   | { type: 'SET_SCOPE_SUMMARY'; summary: BudgetSummary | null }
   | { type: 'SET_DUE_RECONCILIATIONS'; due: ReconciliationDue[] }
   | { type: 'REMOVE_DUE_RECONCILIATION'; scope: string; periodKey: string }
+  | { type: 'SET_CALENDAR_EVENTS'; events: CalendarEvent[] }
+  | { type: 'SET_EVENT_DEDUCT'; seriesKey: string; deduct: boolean }
   | { type: 'ADD_TASK'; task: Task }
   | { type: 'REMOVE_TASK'; taskId: string }
   | { type: 'SET_STATUS'; taskId: string; status: TaskStatus }
@@ -90,7 +94,14 @@ function commitActiveRun(state: TodayState): TodayState {
 function reducer(state: TodayState, action: Action): TodayState {
   switch (action.type) {
     case 'HYDRATE':
-      return { ...emptyState(), ...action.slices };
+      // Merge over current state (not emptyState) so transient slices loaded by
+      // their own effects — calendar events, due closes, scope summary — survive
+      // whichever fetch resolves last. Reset only the timer.
+      return {
+        ...state,
+        ...action.slices,
+        timer: { activeTaskId: null, startedAt: null, elapsedSeconds: 0 },
+      };
     case 'TICK': {
       if (!state.timer.activeTaskId) return state;
       return { ...state, timer: { ...state.timer, elapsedSeconds: state.timer.elapsedSeconds + 1 } };
@@ -143,6 +154,16 @@ function reducer(state: TodayState, action: Action): TodayState {
         ...state,
         dueReconciliations: state.dueReconciliations.filter(
           (r) => !(r.scope === action.scope && r.periodKey === action.periodKey),
+        ),
+      };
+    case 'SET_CALENDAR_EVENTS':
+      return { ...state, calendarEvents: action.events };
+    case 'SET_EVENT_DEDUCT':
+      // Toggling deduction applies to the whole series (all instances share seriesKey).
+      return {
+        ...state,
+        calendarEvents: state.calendarEvents.map((e) =>
+          e.seriesKey === action.seriesKey ? { ...e, deduct: action.deduct } : e,
         ),
       };
     case 'ADD_TASK':
@@ -209,6 +230,7 @@ export interface TodayActions {
   addGoal: (input: CreateGoalInput) => Promise<void>;
   logInterruption: (input: CreateInterruptionInput) => Promise<void>;
   saveReconciliation: (input: ReconciliationInput) => Promise<void>;
+  setEventDeduct: (seriesKey: string, deduct: boolean) => void;
 }
 
 const TodayContext = createContext<{
@@ -250,6 +272,20 @@ export function TodayProvider({ children }: { children: ReactNode }) {
         if (!cancelled) dispatch({ type: 'SET_DUE_RECONCILIATIONS', due });
       })
       .catch((err) => console.error('[today] failed to load reconciliations', err));
+    return () => {
+      cancelled = true;
+    };
+  }, [repo]);
+
+  // Load synced calendar events for the day (empty unless Google is connected).
+  useEffect(() => {
+    let cancelled = false;
+    repo
+      .loadCalendarEvents(todayKey())
+      .then((events) => {
+        if (!cancelled) dispatch({ type: 'SET_CALENDAR_EVENTS', events });
+      })
+      .catch((err) => console.error('[today] failed to load calendar events', err));
     return () => {
       cancelled = true;
     };
@@ -348,6 +384,11 @@ export function TodayProvider({ children }: { children: ReactNode }) {
     saveReconciliation: async (input) => {
       await repo.saveReconciliation(input);
       dispatch({ type: 'REMOVE_DUE_RECONCILIATION', scope: input.scope, periodKey: input.periodKey });
+    },
+    setEventDeduct: (seriesKey, deduct) => {
+      const ev = state.calendarEvents.find((e) => e.seriesKey === seriesKey);
+      dispatch({ type: 'SET_EVENT_DEDUCT', seriesKey, deduct });
+      void repo.setSeriesDeduct(seriesKey, deduct, ev?.title);
     },
   };
 
