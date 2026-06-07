@@ -1,12 +1,112 @@
-import { Placeholder } from '../components/Placeholder';
+import { useEffect, useMemo, useState } from 'react';
+import { useAuth } from '../auth/AuthContext';
+import { apiCalendarRepo, localCalendarRepo, type CalendarRepo } from '../calendar/repo';
+import type { CalendarPayload } from '../calendar/api';
+import type { CalendarEvent } from '../today/types';
+import {
+  monthGridRange, monthTitle, shiftMonth, todayKey, parseKey,
+} from '../calendar/grid';
+import { getGoogleStatus, type GoogleAccount } from '../google/api';
+import { ViewToggle, type CalendarView } from '../components/calendar/ViewToggle';
+import { MonthGrid } from '../components/calendar/MonthGrid';
+import { DayDetail } from '../components/calendar/DayDetail';
+import { CalendarLegend } from '../components/calendar/CalendarLegend';
+import { WeekStub } from '../components/calendar/WeekStub';
+import '../styles/today.css';
+import '../styles/calendar.css';
 
 export function CalendarPage() {
+  const { isGuest } = useAuth();
+  const repo: CalendarRepo = isGuest ? localCalendarRepo : apiCalendarRepo;
+
+  const [view, setView] = useState<CalendarView>('month');
+  const [anchor, setAnchor] = useState<string>(todayKey());
+  const [selectedDay, setSelectedDay] = useState<string>(todayKey());
+  const [payload, setPayload] = useState<CalendarPayload | null>(null);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [accounts, setAccounts] = useState<GoogleAccount[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // The day-key window to fetch. Month/Day both load the full month grid so the
+  // detail and the grid share one payload.
+  const range = useMemo(() => monthGridRange(anchor), [anchor]);
+
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    setError(null);
+    Promise.all([repo.load(range.from, range.to), repo.loadEvents(range.from, range.to)])
+      .then(([p, ev]) => {
+        if (!alive) return;
+        setPayload(p);
+        setEvents(ev);
+      })
+      .catch((e) => alive && setError(e?.message ?? 'Failed to load calendar'))
+      .finally(() => alive && setLoading(false));
+    return () => {
+      alive = false;
+    };
+  }, [repo, range.from, range.to]);
+
+  // Google account legend (real accounts only; silently skip if unconfigured).
+  useEffect(() => {
+    if (isGuest) return;
+    getGoogleStatus().then((s) => setAccounts(s.accounts)).catch(() => setAccounts([]));
+  }, [isGuest]);
+
+  function goToday() {
+    const t = todayKey();
+    setAnchor(t);
+    setSelectedDay(t);
+  }
+
+  function selectDay(key: string) {
+    setSelectedDay(key);
+    setAnchor(key);
+    setView('day');
+  }
+
+  const dayTasks = payload?.tasks.filter((t) => t.day === selectedDay) ?? [];
+  const dayEvents = events.filter((e) => e.start.slice(0, 10) === selectedDay);
+  const title = view === 'day'
+    ? parseKey(selectedDay).toLocaleDateString([], { month: 'long', day: 'numeric' })
+    : monthTitle(anchor);
+
   return (
-    <Placeholder title="Calendar" emoji="🗓️">
-      <p className="muted">
-        Day / Week / Month toggle. Month is a GCal-style grid synced across multiple Google
-        accounts, with per-day allocation bars and overflow flags. See <code>mockups/month.html</code>.
-      </p>
-    </Placeholder>
+    <div className="calendar-page">
+      <div className="cal-topbar">
+        <ViewToggle view={view} onChange={setView} />
+        <div className="month-nav">
+          <button onClick={() => setAnchor((a) => shiftMonth(a, -1))} aria-label="Previous month">‹</button>
+          <span className="month-title">{title}</span>
+          <button onClick={() => setAnchor((a) => shiftMonth(a, 1))} aria-label="Next month">›</button>
+        </div>
+        <button className="today-btn" onClick={goToday}>Today</button>
+        <CalendarLegend accounts={accounts} />
+      </div>
+
+      {error && <div className="cal-error">{error}</div>}
+      {loading && !payload ? (
+        <div className="cal-grid-wrap"><p className="muted" style={{ margin: 'auto' }}>Loading…</p></div>
+      ) : view === 'week' ? (
+        <WeekStub />
+      ) : view === 'day' ? (
+        <DayDetail
+          day={selectedDay}
+          tasks={dayTasks}
+          events={dayEvents}
+          areas={payload?.areas ?? []}
+        />
+      ) : (
+        <MonthGrid
+          anchor={anchor}
+          days={payload?.days ?? []}
+          events={events}
+          areas={payload?.areas ?? []}
+          onSelectDay={selectDay}
+        />
+      )}
+    </div>
   );
 }

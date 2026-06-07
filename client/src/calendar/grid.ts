@@ -1,0 +1,88 @@
+import type { LifeArea } from '../today/types';
+import type { CalendarDay } from './api';
+
+const MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+/** Local YYYY-MM-DD key, matching the server's dayKey(). */
+export function keyOf(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+export function todayKey(): string {
+  return keyOf(new Date());
+}
+
+export function parseKey(key: string): Date {
+  const [y, m, d] = key.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+export function addDaysKey(key: string, n: number): string {
+  const d = parseKey(key);
+  d.setDate(d.getDate() + n);
+  return keyOf(d);
+}
+
+export interface MonthCell {
+  key: string;
+  dayNum: number;
+  otherMonth: boolean;
+}
+
+/** A 6x7 Monday-start matrix of day keys covering the month that `anchor` is in. */
+export function monthMatrix(anchorKey: string): MonthCell[] {
+  const base = parseKey(anchorKey);
+  const first = new Date(base.getFullYear(), base.getMonth(), 1);
+  const month = base.getMonth();
+  // Offset back to the Monday on/before the 1st (getDay: Sun=0..Sat=6).
+  const offset = (first.getDay() + 6) % 7;
+  const gridStart = new Date(first.getFullYear(), first.getMonth(), 1 - offset);
+  const cells: MonthCell[] = [];
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + i);
+    cells.push({ key: keyOf(d), dayNum: d.getDate(), otherMonth: d.getMonth() !== month });
+  }
+  return cells;
+}
+
+/** Inclusive [start, end] keys for the full 6-week grid window of a month. */
+export function monthGridRange(anchorKey: string): { from: string; to: string } {
+  const cells = monthMatrix(anchorKey);
+  return { from: cells[0].key, to: cells[cells.length - 1].key };
+}
+
+export function monthTitle(anchorKey: string): string {
+  const d = parseKey(anchorKey);
+  return `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+/** Shift the anchor by whole months, clamping the day to a valid value. */
+export function shiftMonth(anchorKey: string, n: number): string {
+  const d = parseKey(anchorKey);
+  return keyOf(new Date(d.getFullYear(), d.getMonth() + n, 1));
+}
+
+export interface AllocSegment {
+  color: string;
+  /** 0-100 width percent of the bar. */
+  pct: number;
+}
+
+/**
+ * Per-area segments for a day's allocation bar, scaled against available
+ * minutes so a full day reads as a full bar and overflow visibly saturates it.
+ */
+export function allocationSegments(day: CalendarDay, areas: LifeArea[]): AllocSegment[] {
+  const denom = Math.max(day.availableMinutes, day.allocated, 1);
+  const colorOf = new Map(areas.map((a) => [a.id, a.color]));
+  return day.perArea
+    .filter((p) => p.minutes > 0)
+    .map((p) => ({ color: colorOf.get(p.areaId) ?? '#94a3b8', pct: (p.minutes / denom) * 100 }));
+}
+
+export const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+export { MONTHS };
