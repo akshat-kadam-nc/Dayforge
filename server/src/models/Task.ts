@@ -26,6 +26,8 @@ const taskSchema = new Schema(
     status: { type: String, enum: TASK_STATUSES, default: 'not_started' },
     source: { type: String, enum: TASK_SOURCES, default: 'manual' },
     estimateMinutes: { type: Number, min: 0, default: 0 },
+    /** Committed minutes worked, accrued from the timer + manual logging. */
+    loggedMinutes: { type: Number, min: 0, default: 0 },
     scheduledAt: { type: String },
     delegateName: { type: String, trim: true },
     deferredCount: { type: Number, min: 0, default: 0 },

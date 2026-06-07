@@ -19,6 +19,7 @@ const taskInput = z.object({
   status: z.enum(TASK_STATUSES).optional(),
   source: z.enum(TASK_SOURCES).optional(),
   estimateMinutes: z.number().int().min(0).optional(),
+  loggedMinutes: z.number().min(0).optional(),
   scheduledAt: z.string().optional(),
   delegateName: z.string().optional(),
   day: z.string().optional(),

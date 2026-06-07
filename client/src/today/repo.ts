@@ -87,7 +87,7 @@ export interface TodayRepo {
   deleteTrack(id: string): Promise<void>;
   createGoal(input: CreateGoalInput): Promise<Goal>;
   createTask(input: CreateTaskInput): Promise<Task>;
-  updateTask(id: string, patch: Partial<Pick<Task, 'status'>>): Promise<void>;
+  updateTask(id: string, patch: Partial<Pick<Task, 'status' | 'loggedMinutes'>>): Promise<void>;
   deferTask(id: string): Promise<void>;
   deleteTask(id: string): Promise<void>;
   createInterruption(input: CreateInterruptionInput): Promise<Interruption>;
@@ -141,6 +141,7 @@ export const localRepo: TodayRepo = {
       status: 'not_started',
       source: 'manual',
       deferredCount: 0,
+      loggedMinutes: 0,
     };
   },
   async updateTask() {},
@@ -246,6 +247,7 @@ function mapTask(d: ServerDoc & Record<string, unknown>): Task {
     scheduledAt: d.scheduledAt as string | undefined,
     delegateName: d.delegateName as string | undefined,
     deferredCount: (d.deferredCount as number) ?? 0,
+    loggedMinutes: (d.loggedMinutes as number) ?? 0,
   };
 }
 function mapInterruption(d: ServerDoc & Record<string, unknown>): Interruption {

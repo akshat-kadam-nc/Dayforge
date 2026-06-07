@@ -6,6 +6,7 @@ import {
   effectiveAvailable,
   interruptedMinutes,
   loggedMinutes,
+  timeGainedMinutes,
   toBarPercents,
   type Segment,
 } from '../../today/budget';
@@ -55,6 +56,8 @@ function DayBudget() {
   const { state } = useToday();
   const segments = budgetBarSegments(state);
   const pcts = toBarPercents(segments);
+  const gained = timeGainedMinutes(state);
+  const hasCompleted = state.tasks.some((t) => t.status === 'done' && t.estimateMinutes > 0);
   return (
     <>
       <div className="budget-stats">
@@ -65,6 +68,13 @@ function DayBudget() {
       </div>
       <BudgetBar segments={pcts} />
       <SegmentLabels segments={segments} />
+      {hasCompleted && (
+        <div className={`time-delta ${gained >= 0 ? 'gain' : 'loss'}`}>
+          {gained >= 0
+            ? `⏱ ${formatMinutes(gained)} gained vs plan today`
+            : `⏱ ${formatMinutes(-gained)} over plan today`}
+        </div>
+      )}
     </>
   );
 }

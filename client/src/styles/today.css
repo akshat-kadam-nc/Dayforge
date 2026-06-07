@@ -224,6 +224,39 @@
 }
 .deduct-toggle.on { background: var(--c-accent); border-color: var(--c-accent); color: white; }
 
+/* Timer rework: per-task controls, logged time, gained/lost */
+.task-item.running-row { background: rgba(124,58,237,0.05); }
+.play-btn.pause { color: #b45309; border-color: rgba(217,119,6,0.4); }
+.play-btn.stop-complete { color: #16a34a; border-color: rgba(22,163,74,0.45); }
+.logged-live { color: var(--c-accent); font-weight: 800; }
+.tag-gain { background: rgba(22,163,74,0.14); color: #15803d; }
+.tag-loss { background: rgba(239,68,68,0.13); color: #b91c1c; }
+.time-delta { margin-top: 9px; font-size: 11.5px; font-weight: 800; }
+.time-delta.gain { color: #15803d; }
+.time-delta.loss { color: #b91c1c; }
+.fold-logged { margin-left: auto; font-size: 11px; font-weight: 800; color: var(--c-secondary); }
+.fold-gain { font-size: 11px; font-weight: 800; color: #15803d; margin-left: 8px; }
+.fold-loss { font-size: 11px; font-weight: 800; color: #b91c1c; margin-left: 8px; }
+
+/* Portal dropdown (kebab + complete-with-log), rendered at <body> so it isn't clipped */
+.portal-menu {
+  position: fixed; z-index: 1000; min-width: 188px;
+  background: white; border: 1.5px solid var(--border-med); border-radius: 11px;
+  box-shadow: 0 8px 28px rgba(60,20,120,0.22); padding: 5px;
+  display: flex; flex-direction: column; gap: 2px; font-family: 'Nunito', sans-serif;
+}
+.portal-menu button {
+  text-align: left; background: none; border: none; cursor: pointer; font-family: inherit;
+  font-size: 12.5px; font-weight: 700; color: var(--c-primary); padding: 8px 10px; border-radius: 8px;
+}
+.portal-menu button:hover { background: rgba(124,58,237,0.08); }
+.portal-menu button.danger { color: #b91c1c; }
+.portal-menu button.danger:hover { background: rgba(239,68,68,0.08); }
+.pm-label { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--c-muted); padding: 4px 10px 2px; }
+.pm-custom { display: flex; gap: 6px; align-items: center; padding: 2px 4px; }
+.pm-custom input { width: 70px; font: inherit; font-weight: 700; padding: 6px 8px; border-radius: 8px; border: 1.5px solid var(--border-med); }
+.pm-custom button { flex: 1; background: rgba(124,58,237,0.1) !important; text-align: center !important; }
+
 /* Interruptions */
 .interrupt-block { background: rgba(244,63,94,0.06); border: 1.5px solid rgba(244,63,94,0.25); border-radius: var(--r-lg); overflow: hidden; backdrop-filter: var(--blur); box-shadow: var(--shadow); }
 .interrupt-head { display: flex; align-items: center; gap: 9px; padding: 10px 15px; border-bottom: 1.5px solid rgba(244,63,94,0.15); }

@@ -14,6 +14,7 @@ import type {
   Goal,
   Interruption,
   LifeArea,
+  LogMode,
   ReconciliationDue,
   ReconciliationInput,
   Task,
@@ -42,7 +43,7 @@ function emptyState(): TodayState {
     interruptions: [],
     fixedBlocks: [],
     logs: [],
-    timer: { activeTaskId: null, startedAt: null, elapsedSeconds: 0 },
+    timer: { runs: {} },
     collapsedAreas: {},
     budgetScope: 'day',
     scopeSummary: null,
@@ -55,9 +56,12 @@ function emptyState(): TodayState {
 type Action =
   | { type: 'HYDRATE'; slices: TodaySlices }
   | { type: 'TICK' }
-  | { type: 'START_TIMER'; taskId: string }
-  | { type: 'STOP_TIMER' }
-  | { type: 'TOGGLE_DONE'; taskId: string }
+  | { type: 'PLAY'; taskId: string }
+  | { type: 'PAUSE'; taskId: string }
+  | { type: 'PAUSE_ALL' }
+  | { type: 'STOP_COMPLETE'; taskId: string }
+  | { type: 'COMPLETE_WITH_LOG'; taskId: string; loggedMinutes: number }
+  | { type: 'UNCOMPLETE'; taskId: string }
   | { type: 'TOGGLE_AREA'; areaId: string }
   | { type: 'SET_SCOPE'; scope: BudgetScope }
   | { type: 'SET_SCOPE_SUMMARY'; summary: BudgetSummary | null }
@@ -75,20 +79,23 @@ type Action =
   | { type: 'ADD_GOAL'; goal: Goal }
   | { type: 'ADD_INTERRUPTION'; interruption: Interruption };
 
-/** Commit the active run's accrued seconds into a merged TimeLog and clear the timer. */
-function commitActiveRun(state: TodayState): TodayState {
-  const { activeTaskId, elapsedSeconds } = state.timer;
-  if (!activeTaskId) return state;
-  const minutes = elapsedSeconds / 60;
-  const task = state.tasks.find((t) => t.id === activeTaskId);
-  let logs = state.logs;
-  if (task && minutes > 0) {
-    const existing = logs.find((l) => l.taskId === activeTaskId);
-    logs = existing
-      ? logs.map((l) => (l.taskId === activeTaskId ? { ...l, minutes: l.minutes + minutes } : l))
-      : [...logs, { taskId: activeTaskId, areaId: task.areaId, minutes }];
-  }
-  return { ...state, logs, timer: { activeTaskId: null, startedAt: null, elapsedSeconds: 0 } };
+/** Commit one task's live run into its loggedMinutes and drop the run. */
+function commitRun(state: TodayState, taskId: string): TodayState {
+  const run = state.timer.runs[taskId];
+  if (!run) return state;
+  const add = run.elapsedSeconds / 60;
+  const runs = { ...state.timer.runs };
+  delete runs[taskId];
+  return {
+    ...state,
+    tasks: state.tasks.map((t) => (t.id === taskId ? { ...t, loggedMinutes: t.loggedMinutes + add } : t)),
+    timer: { runs },
+  };
+}
+
+/** Commit every running task (used by Pause all / interrupt is now independent). */
+function commitAllRuns(state: TodayState): TodayState {
+  return Object.keys(state.timer.runs).reduce((s, id) => commitRun(s, id), state);
 }
 
 function reducer(state: TodayState, action: Action): TodayState {
@@ -100,38 +107,57 @@ function reducer(state: TodayState, action: Action): TodayState {
       return {
         ...state,
         ...action.slices,
-        timer: { activeTaskId: null, startedAt: null, elapsedSeconds: 0 },
+        timer: { runs: {} },
       };
     case 'TICK': {
-      if (!state.timer.activeTaskId) return state;
-      return { ...state, timer: { ...state.timer, elapsedSeconds: state.timer.elapsedSeconds + 1 } };
+      const ids = Object.keys(state.timer.runs);
+      if (ids.length === 0) return state;
+      const runs: TodayState['timer']['runs'] = {};
+      for (const id of ids) {
+        runs[id] = { ...state.timer.runs[id], elapsedSeconds: state.timer.runs[id].elapsedSeconds + 1 };
+      }
+      return { ...state, timer: { runs } };
     }
-    case 'START_TIMER': {
-      const committed = commitActiveRun(state);
+    case 'PLAY': {
+      // Start a concurrent run without disturbing other running tasks.
+      if (state.timer.runs[action.taskId]) return state;
       return {
-        ...committed,
-        tasks: committed.tasks.map((t) =>
-          t.id === action.taskId ? { ...t, status: 'in_progress' } : t,
-        ),
-        timer: { activeTaskId: action.taskId, startedAt: Date.now(), elapsedSeconds: 0 },
+        ...state,
+        tasks: state.tasks.map((t) => (t.id === action.taskId ? { ...t, status: 'in_progress' } : t)),
+        timer: { runs: { ...state.timer.runs, [action.taskId]: { startedAt: Date.now(), elapsedSeconds: 0 } } },
       };
     }
-    case 'STOP_TIMER':
-      return commitActiveRun(state);
-    case 'TOGGLE_DONE': {
-      const task = state.tasks.find((t) => t.id === action.taskId);
-      if (!task) return state;
-      const base =
-        task.status !== 'done' && state.timer.activeTaskId === action.taskId
-          ? commitActiveRun(state)
-          : state;
+    case 'PAUSE':
+      // Keep the logged time; task stays in progress, just no longer running.
+      return commitRun(state, action.taskId);
+    case 'PAUSE_ALL':
+      return commitAllRuns(state);
+    case 'STOP_COMPLETE': {
+      const committed = commitRun(state, action.taskId);
       return {
-        ...base,
-        tasks: base.tasks.map((t) =>
-          t.id === action.taskId
-            ? { ...t, status: t.status === 'done' ? 'not_started' : 'done' }
-            : t,
+        ...committed,
+        tasks: committed.tasks.map((t) => (t.id === action.taskId ? { ...t, status: 'done' } : t)),
+      };
+    }
+    case 'COMPLETE_WITH_LOG': {
+      // User declares the final time taken; discard any uncommitted live run.
+      const runs = { ...state.timer.runs };
+      delete runs[action.taskId];
+      return {
+        ...state,
+        tasks: state.tasks.map((t) =>
+          t.id === action.taskId ? { ...t, status: 'done', loggedMinutes: action.loggedMinutes } : t,
         ),
+        timer: { runs },
+      };
+    }
+    case 'UNCOMPLETE': {
+      const runs = { ...state.timer.runs };
+      delete runs[action.taskId];
+      return {
+        ...state,
+        tasks: state.tasks.map((t) => (t.id === action.taskId ? { ...t, status: 'not_started' } : t)),
+        timer: { runs },
       };
     }
     case 'TOGGLE_AREA':
@@ -169,15 +195,13 @@ function reducer(state: TodayState, action: Action): TodayState {
     case 'ADD_TASK':
       return { ...state, tasks: [...state.tasks, action.task] };
     case 'REMOVE_TASK': {
-      // Committing first keeps any logged time if the timer was on this task.
-      const base = state.timer.activeTaskId === action.taskId ? commitActiveRun(state) : state;
+      // Commit any live run first so the time isn't lost on defer.
+      const base = commitRun(state, action.taskId);
       return { ...base, tasks: base.tasks.filter((t) => t.id !== action.taskId) };
     }
     case 'SET_STATUS': {
       const base =
-        action.status !== 'in_progress' && state.timer.activeTaskId === action.taskId
-          ? commitActiveRun(state)
-          : state;
+        action.status !== 'in_progress' ? commitRun(state, action.taskId) : state;
       return {
         ...base,
         tasks: base.tasks.map((t) =>
@@ -203,20 +227,22 @@ function reducer(state: TodayState, action: Action): TodayState {
       };
     case 'ADD_GOAL':
       return { ...state, goals: [...state.goals, action.goal] };
-    case 'ADD_INTERRUPTION': {
-      // Logging an interruption pauses whatever task is running.
-      const paused = commitActiveRun(state);
-      return { ...paused, interruptions: [...paused.interruptions, action.interruption] };
-    }
+    case 'ADD_INTERRUPTION':
+      // Concurrency is intentional now, so an interruption no longer pauses
+      // running tasks — it's just logged. Pause manually if you stepped away.
+      return { ...state, interruptions: [...state.interruptions, action.interruption] };
     default:
       return state;
   }
 }
 
 export interface TodayActions {
-  startTimer: (taskId: string) => void;
-  stopTimer: () => void;
-  toggleDone: (taskId: string) => void;
+  play: (taskId: string) => void;
+  pause: (taskId: string) => void;
+  pauseAll: () => void;
+  stopComplete: (taskId: string) => void;
+  completeWithLog: (taskId: string, mode: LogMode, customMinutes?: number) => void;
+  uncomplete: (taskId: string) => void;
   toggleArea: (areaId: string) => void;
   setScope: (scope: BudgetScope) => void;
   addTask: (input: CreateTaskInput) => Promise<void>;
@@ -291,40 +317,57 @@ export function TodayProvider({ children }: { children: ReactNode }) {
     };
   }, [repo]);
 
-  // Tick once a second while a timer is running.
+  // Tick once a second while any task is running.
+  const runningCount = Object.keys(state.timer.runs).length;
   useEffect(() => {
-    if (!state.timer.activeTaskId) return;
+    if (runningCount === 0) return;
     const id = setInterval(() => dispatch({ type: 'TICK' }), 1000);
     return () => clearInterval(id);
-  }, [state.timer.activeTaskId]);
+  }, [runningCount]);
 
-  // Persist the active run as a TimeLog before it's cleared locally.
-  function persistRun() {
-    const { activeTaskId, elapsedSeconds } = state.timer;
-    if (!activeTaskId || elapsedSeconds <= 0) return;
-    const task = state.tasks.find((t) => t.id === activeTaskId);
-    if (task) {
-      void repo.createTimeLog({ taskId: activeTaskId, areaId: task.areaId, minutes: elapsedSeconds / 60 });
-    }
+  /** A task's committed minutes once its current live run is folded in. */
+  function committedAfterRun(taskId: string): number {
+    const task = state.tasks.find((t) => t.id === taskId);
+    const live = (state.timer.runs[taskId]?.elapsedSeconds ?? 0) / 60;
+    return (task?.loggedMinutes ?? 0) + live;
   }
 
   // Actions are rebuilt each render so they read fresh state (no stale closures).
   const actions: TodayActions = {
-    startTimer: (taskId) => {
-      persistRun();
-      dispatch({ type: 'START_TIMER', taskId });
+    play: (taskId) => {
+      dispatch({ type: 'PLAY', taskId });
       void repo.updateTask(taskId, { status: 'in_progress' });
     },
-    stopTimer: () => {
-      persistRun();
-      dispatch({ type: 'STOP_TIMER' });
+    pause: (taskId) => {
+      const loggedMinutes = committedAfterRun(taskId);
+      dispatch({ type: 'PAUSE', taskId });
+      void repo.updateTask(taskId, { loggedMinutes, status: 'in_progress' });
     },
-    toggleDone: (taskId) => {
+    pauseAll: () => {
+      for (const taskId of Object.keys(state.timer.runs)) {
+        void repo.updateTask(taskId, { loggedMinutes: committedAfterRun(taskId), status: 'in_progress' });
+      }
+      dispatch({ type: 'PAUSE_ALL' });
+    },
+    stopComplete: (taskId) => {
+      const loggedMinutes = committedAfterRun(taskId);
+      dispatch({ type: 'STOP_COMPLETE', taskId });
+      void repo.updateTask(taskId, { loggedMinutes, status: 'done' });
+    },
+    completeWithLog: (taskId, mode, customMinutes) => {
       const task = state.tasks.find((t) => t.id === taskId);
-      const completing = !!task && task.status !== 'done';
-      if (completing && state.timer.activeTaskId === taskId) persistRun();
-      dispatch({ type: 'TOGGLE_DONE', taskId });
-      void repo.updateTask(taskId, { status: completing ? 'done' : 'not_started' });
+      const loggedMinutes =
+        mode === 'allocated'
+          ? (task?.estimateMinutes ?? 0)
+          : mode === 'custom'
+            ? Math.max(0, customMinutes ?? 0)
+            : 0;
+      dispatch({ type: 'COMPLETE_WITH_LOG', taskId, loggedMinutes });
+      void repo.updateTask(taskId, { loggedMinutes, status: 'done' });
+    },
+    uncomplete: (taskId) => {
+      dispatch({ type: 'UNCOMPLETE', taskId });
+      void repo.updateTask(taskId, { status: 'not_started' });
     },
     toggleArea: (areaId) => dispatch({ type: 'TOGGLE_AREA', areaId }),
     setScope: (scope) => {
@@ -341,20 +384,24 @@ export function TodayProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'ADD_TASK', task });
     },
     deferTask: (taskId) => {
-      // Pushing to tomorrow removes it from today; commit any running time first.
-      if (state.timer.activeTaskId === taskId) persistRun();
+      // Keep any live run's time before the task leaves today.
+      if (state.timer.runs[taskId]) {
+        void repo.updateTask(taskId, { loggedMinutes: committedAfterRun(taskId) });
+      }
       dispatch({ type: 'REMOVE_TASK', taskId });
       void repo.deferTask(taskId);
     },
     deleteTask: (taskId) => {
-      if (state.timer.activeTaskId === taskId) persistRun();
       dispatch({ type: 'REMOVE_TASK', taskId });
       void repo.deleteTask(taskId);
     },
     setStatus: (taskId, status) => {
-      if (status !== 'in_progress' && state.timer.activeTaskId === taskId) persistRun();
+      const patch: Partial<Pick<Task, 'status' | 'loggedMinutes'>> = { status };
+      if (status !== 'in_progress' && state.timer.runs[taskId]) {
+        patch.loggedMinutes = committedAfterRun(taskId);
+      }
       dispatch({ type: 'SET_STATUS', taskId, status });
-      void repo.updateTask(taskId, { status });
+      void repo.updateTask(taskId, patch);
     },
     addArea: async (input) => {
       const area = await repo.createArea(input);
@@ -377,7 +424,6 @@ export function TodayProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'ADD_GOAL', goal });
     },
     logInterruption: async (input) => {
-      persistRun();
       const interruption = await repo.createInterruption(input);
       dispatch({ type: 'ADD_INTERRUPTION', interruption });
     },

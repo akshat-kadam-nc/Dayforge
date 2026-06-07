@@ -53,6 +53,7 @@ export function makeInitialState(): TodayState {
         source: 'manual',
         goalId: 'g-batch4',
         deferredCount: 0,
+        loggedMinutes: 23,
       },
       {
         id: 't2',
@@ -63,6 +64,7 @@ export function makeInitialState(): TodayState {
         estimateMinutes: 45,
         source: 'manual',
         deferredCount: 2,
+        loggedMinutes: 0,
       },
       {
         id: 't3',
@@ -74,6 +76,7 @@ export function makeInitialState(): TodayState {
         source: 'calendar',
         scheduledAt: '11:00',
         deferredCount: 0,
+        loggedMinutes: 0,
       },
       {
         id: 't4',
@@ -85,6 +88,7 @@ export function makeInitialState(): TodayState {
         source: 'manual',
         goalId: 'g-zumalm',
         deferredCount: 0,
+        loggedMinutes: 0,
       },
       {
         id: 't5',
@@ -96,6 +100,7 @@ export function makeInitialState(): TodayState {
         source: 'manual',
         delegateName: 'Rahul',
         deferredCount: 0,
+        loggedMinutes: 0,
       },
       {
         id: 't6',
@@ -107,6 +112,7 @@ export function makeInitialState(): TodayState {
         source: 'calendar',
         scheduledAt: '16:00',
         deferredCount: 0,
+        loggedMinutes: 0,
       },
     ],
     interruptions: [
@@ -135,7 +141,7 @@ export function makeInitialState(): TodayState {
     logs: [
       { taskId: 't1', areaId: 'develearn', minutes: 23 },
     ],
-    timer: { activeTaskId: null, startedAt: null, elapsedSeconds: 0 },
+    timer: { runs: {} },
     collapsedAreas: {},
     budgetScope: 'day',
     scopeSummary: null,

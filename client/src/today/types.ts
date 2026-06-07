@@ -94,7 +94,12 @@ export interface Task {
   delegateName?: string;
   /** How many times this task has rolled forward unfinished. */
   deferredCount: number;
+  /** Committed minutes worked on this task (excludes any live, uncommitted run). */
+  loggedMinutes: number;
 }
+
+/** How to record time when completing a task from the checkbox. */
+export type LogMode = 'allocated' | 'custom' | 'none';
 
 /** A synced calendar event. Deducting ones become fixed blocks in the budget. */
 export interface CalendarEvent {
@@ -145,12 +150,17 @@ export interface TimeLog {
   minutes: number;
 }
 
-export interface TimerState {
-  activeTaskId: string | null;
-  /** Wall-clock ms when the current run started; null when stopped. */
-  startedAt: number | null;
-  /** Seconds accrued in the current run before the latest tick. */
+/** One in-progress run of a task (uncommitted time). */
+export interface TimerRun {
+  /** Wall-clock ms when this run started. */
+  startedAt: number;
+  /** Seconds accrued in this run so far. */
   elapsedSeconds: number;
+}
+
+/** Multiple tasks can run concurrently; each has its own live run. */
+export interface TimerState {
+  runs: Record<string, TimerRun>;
 }
 
 export interface TodayState {

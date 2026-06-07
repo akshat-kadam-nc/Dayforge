@@ -1,4 +1,4 @@
-import type { LifeArea, TodayState } from './types';
+import type { LifeArea, Task, TodayState } from './types';
 
 const MINUTES_IN_DAY = 1440;
 export const RING_RADIUS = 46;
@@ -11,10 +11,24 @@ export interface Segment {
   color: string;
 }
 
-/** Minutes accrued by the currently running timer (committed logs excluded). */
+/** Whether a task currently has a live (uncommitted) run. */
+export function isRunning(state: TodayState, taskId: string): boolean {
+  return !!state.timer.runs[taskId];
+}
+
+/** Live, uncommitted minutes accrued by a single task's current run. */
+export function liveMinutesForTask(state: TodayState, taskId: string): number {
+  return (state.timer.runs[taskId]?.elapsedSeconds ?? 0) / 60;
+}
+
+/** Total live minutes across every concurrently running task. */
 export function liveRunMinutes(state: TodayState): number {
-  if (!state.timer.activeTaskId) return 0;
-  return state.timer.elapsedSeconds / 60;
+  return Object.values(state.timer.runs).reduce((sum, r) => sum + r.elapsedSeconds / 60, 0);
+}
+
+/** A task's logged time = committed minutes + its live run. */
+export function taskLoggedMinutes(state: TodayState, task: Task): number {
+  return task.loggedMinutes + liveMinutesForTask(state, task.id);
 }
 
 /** Sum of planned estimates across all of today's tasks. */
@@ -28,10 +42,17 @@ export function allocatedForArea(state: TodayState, areaId: string): number {
     .reduce((sum, t) => sum + t.estimateMinutes, 0);
 }
 
-/** Committed logged time plus whatever the live timer has accrued. */
+/** Logged time across all tasks (committed per-task minutes + any live runs). */
 export function loggedMinutes(state: TodayState): number {
-  const committed = state.logs.reduce((sum, l) => sum + l.minutes, 0);
-  return committed + liveRunMinutes(state);
+  return state.tasks.reduce((sum, t) => sum + taskLoggedMinutes(state, t), 0);
+}
+
+/** Net minutes gained (finished under estimate) minus lost (over) across done tasks.
+ *  Positive = time gained, negative = time lost. */
+export function timeGainedMinutes(state: TodayState): number {
+  return state.tasks
+    .filter((t) => t.status === 'done')
+    .reduce((sum, t) => sum + (t.estimateMinutes - t.loggedMinutes), 0);
 }
 
 export function interruptedMinutes(state: TodayState): number {
