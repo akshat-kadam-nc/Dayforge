@@ -16,7 +16,10 @@ Personal time-management web app being built with Claude Code. This file lets a 
 - **Phase 3 (part 1) done** — function-track UI + deferred-task rollover.
   - Tracks: full CRUD wired through the repo seam (`createTrack`/`updateTrack`/`deleteTrack`) + `useToday` actions. Settings page has an expandable per-venture **TrackManager** (add / rename / recolor / delete). FAB "New task" modal now has a track picker filtered by the chosen venture.
   - Rollover: `GET /today` auto-pulls unfinished tasks (`not_started|in_progress|blocked|deferred`) from past days forward to the real current day, `deferredCount++`, `in_progress→not_started` (done stays on its day for history). `POST /tasks/:id/defer` pushes one task to tomorrow. TaskRow shows a `⤵ N×` carry badge, a blocked state, and a `⋯` menu (Defer / Mark blocked / Delete).
-- **Next: Phase 3 (part 2 / unscoped)** — recurring tasks + fixed blocks. Then **Phase 4** — Google Calendar → fixed blocks, weekly/monthly reconciliation prompts, wallpaper picker, streak logic, real week/month budget scopes.
+- **Phase 4 (part 1) done** — wallpaper picker + real week/month budget scopes.
+  - Wallpaper: `client/src/wallpaper/WallpaperContext.tsx` (localStorage-persisted selection + transient preview), slide-in `components/WallpaperPicker.tsx` (9 presets across 4 sections + custom image upload, live preview, apply/cancel), opened from the Today header button. `WallpaperLayer` renders the active selection. Preset CSS lives in `styles/global.css`; `wp-poke-dusk` still in `today.css`.
+  - Budget scopes: `GET /api/budget?scope&day` aggregates available (daily × days), allocated/logged/interrupted, and per-area allocation over a day / week (Mon–Sun) / month window (`scopeRange` in `util/day.ts`). The Time Budget card's toggle now fetches + renders the real aggregate (per-area + free/over bar, period range); day scope keeps the 24h view. Demo mode synthesises scaled numbers.
+- **Next: Phase 4 (part 2)** — Google Calendar → fixed blocks, weekly/monthly reconciliation prompts, streak logic. Plus still-unbuilt Phase 3 leftovers: recurring tasks + fixed blocks.
 
 ## Run it
 ```
