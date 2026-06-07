@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useToday } from '../today/useToday';
 import { AddVentureModal } from '../components/today/AddVentureModal';
 import { TrackManager } from '../components/today/TrackManager';
+import { GoogleAccountsSection } from '../components/GoogleAccountsSection';
 
 export function SettingsPage() {
   const { user, logout, isGuest } = useAuth();
@@ -51,7 +52,7 @@ export function SettingsPage() {
         )}
       </div>
 
-      <p className="muted">Wallpaper picker and Google Calendar accounts come later.</p>
+      <GoogleAccountsSection isGuest={isGuest} />
 
       <button className="btn" onClick={logout}>Log out</button>
 

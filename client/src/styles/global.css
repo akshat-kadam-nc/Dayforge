@@ -531,3 +531,14 @@ input:focus {
   font-family: inherit; font-size: 13px; font-weight: 800; color: var(--c-secondary); cursor: pointer;
 }
 .wp-cancel-btn:hover { background: rgba(0,0,0,0.08); }
+
+/* ── Google Calendar settings ── */
+.g-banner { margin: 8px 0; font-size: 12px; font-weight: 800; color: #047857; background: rgba(16,185,129,0.1); border-radius: 8px; padding: 7px 10px; }
+.g-account-list { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-direction: column; gap: 8px; }
+.g-account { display: flex; align-items: center; gap: 9px; }
+.g-dot { width: 12px; height: 12px; border-radius: 4px; flex-shrink: 0; }
+.g-email { flex: 1; font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.g-toggle { border: 1.5px solid rgba(120,80,220,0.25); background: rgba(255,255,255,0.6); color: var(--c-secondary); font-family: inherit; font-size: 11px; font-weight: 800; padding: 4px 11px; border-radius: 100px; cursor: pointer; }
+.g-toggle.on { background: var(--c-accent); border-color: var(--c-accent); color: white; }
+.g-disconnect { border: none; background: none; color: #b04a6a; font-family: inherit; font-size: 11.5px; font-weight: 800; cursor: pointer; }
+.settings-section code { font-size: 11px; background: rgba(120,80,220,0.1); padding: 1px 5px; border-radius: 5px; }
