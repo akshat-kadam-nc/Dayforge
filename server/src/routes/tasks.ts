@@ -52,10 +52,14 @@ tasksRouter.patch(
   '/:id',
   asyncHandler(async (req, res) => {
     const data = taskInput.partial().parse(req.body);
+    // Stamp/clear completion time when the status crosses the done boundary.
+    const patch: Record<string, unknown> = { ...data };
+    if (data.status === 'done') patch.completedAt = new Date();
+    else if (data.status) patch.completedAt = null;
     // Scope the update by userId so one user can never touch another's task.
     const task = await TaskModel.findOneAndUpdate(
       { _id: req.params.id, userId: req.userId },
-      data,
+      patch,
       { new: true },
     );
     if (!task) throw new HttpError(404, 'Task not found');

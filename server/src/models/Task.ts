@@ -31,6 +31,8 @@ const taskSchema = new Schema(
     scheduledAt: { type: String },
     delegateName: { type: String, trim: true },
     deferredCount: { type: Number, min: 0, default: 0 },
+    /** When the task was marked done (cleared if reopened). */
+    completedAt: { type: Date },
     day: { type: String, required: true, default: () => dayKey(), index: true },
   },
   { timestamps: true },

@@ -96,6 +96,9 @@ export interface Task {
   deferredCount: number;
   /** Committed minutes worked on this task (excludes any live, uncommitted run). */
   loggedMinutes: number;
+  /** ISO timestamps. createdAt set on creation; completedAt set when marked done. */
+  createdAt?: string;
+  completedAt?: string;
 }
 
 /** How to record time when completing a task from the checkbox. */

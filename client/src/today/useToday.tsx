@@ -134,19 +134,23 @@ function reducer(state: TodayState, action: Action): TodayState {
       return commitAllRuns(state);
     case 'STOP_COMPLETE': {
       const committed = commitRun(state, action.taskId);
+      const now = new Date().toISOString();
       return {
         ...committed,
-        tasks: committed.tasks.map((t) => (t.id === action.taskId ? { ...t, status: 'done' } : t)),
+        tasks: committed.tasks.map((t) => (t.id === action.taskId ? { ...t, status: 'done', completedAt: now } : t)),
       };
     }
     case 'COMPLETE_WITH_LOG': {
       // User declares the final time taken; discard any uncommitted live run.
       const runs = { ...state.timer.runs };
       delete runs[action.taskId];
+      const now = new Date().toISOString();
       return {
         ...state,
         tasks: state.tasks.map((t) =>
-          t.id === action.taskId ? { ...t, status: 'done', loggedMinutes: action.loggedMinutes } : t,
+          t.id === action.taskId
+            ? { ...t, status: 'done', loggedMinutes: action.loggedMinutes, completedAt: now }
+            : t,
         ),
         timer: { runs },
       };
@@ -156,7 +160,9 @@ function reducer(state: TodayState, action: Action): TodayState {
       delete runs[action.taskId];
       return {
         ...state,
-        tasks: state.tasks.map((t) => (t.id === action.taskId ? { ...t, status: 'not_started' } : t)),
+        tasks: state.tasks.map((t) =>
+          t.id === action.taskId ? { ...t, status: 'not_started', completedAt: undefined } : t,
+        ),
         timer: { runs },
       };
     }

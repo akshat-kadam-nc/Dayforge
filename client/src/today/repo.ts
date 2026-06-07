@@ -142,6 +142,7 @@ export const localRepo: TodayRepo = {
       source: 'manual',
       deferredCount: 0,
       loggedMinutes: 0,
+      createdAt: new Date().toISOString(),
     };
   },
   async updateTask() {},
@@ -248,6 +249,8 @@ function mapTask(d: ServerDoc & Record<string, unknown>): Task {
     delegateName: d.delegateName as string | undefined,
     deferredCount: (d.deferredCount as number) ?? 0,
     loggedMinutes: (d.loggedMinutes as number) ?? 0,
+    createdAt: d.createdAt as string | undefined,
+    completedAt: d.completedAt as string | undefined,
   };
 }
 function mapInterruption(d: ServerDoc & Record<string, unknown>): Interruption {

@@ -54,6 +54,7 @@ export function makeInitialState(): TodayState {
         goalId: 'g-batch4',
         deferredCount: 0,
         loggedMinutes: 23,
+        createdAt: '2026-06-08T07:15:00',
       },
       {
         id: 't2',
@@ -65,6 +66,7 @@ export function makeInitialState(): TodayState {
         source: 'manual',
         deferredCount: 2,
         loggedMinutes: 0,
+        createdAt: '2026-06-08T08:30:00',
       },
       {
         id: 't3',
@@ -77,6 +79,7 @@ export function makeInitialState(): TodayState {
         scheduledAt: '11:00',
         deferredCount: 0,
         loggedMinutes: 0,
+        createdAt: '2026-06-08T08:30:00',
       },
       {
         id: 't4',
@@ -89,6 +92,7 @@ export function makeInitialState(): TodayState {
         goalId: 'g-zumalm',
         deferredCount: 0,
         loggedMinutes: 0,
+        createdAt: '2026-06-08T08:30:00',
       },
       {
         id: 't5',
@@ -101,6 +105,7 @@ export function makeInitialState(): TodayState {
         delegateName: 'Rahul',
         deferredCount: 0,
         loggedMinutes: 0,
+        createdAt: '2026-06-08T08:30:00',
       },
       {
         id: 't6',
@@ -113,6 +118,7 @@ export function makeInitialState(): TodayState {
         scheduledAt: '16:00',
         deferredCount: 0,
         loggedMinutes: 0,
+        createdAt: '2026-06-08T08:30:00',
       },
     ],
     interruptions: [

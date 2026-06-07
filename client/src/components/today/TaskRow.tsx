@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react';
 import { useToday } from '../../today/useToday';
 import type { Task } from '../../today/types';
-import { formatMinutes } from '../../today/format';
-import { isRunning, taskLoggedMinutes } from '../../today/budget';
+import { formatClock, formatMinutes } from '../../today/format';
+import { isRunning, taskLoggedSeconds } from '../../today/budget';
 import { PortalMenu } from './PortalMenu';
 
 export function TaskRow({ task }: { task: Task }) {
@@ -14,7 +14,8 @@ export function TaskRow({ task }: { task: Task }) {
   const isCalendar = task.source === 'calendar';
   const isBlocked = task.status === 'blocked';
 
-  const logged = taskLoggedMinutes(state, task);
+  const loggedSecs = taskLoggedSeconds(state, task);
+  const showClock = loggedSecs > 0 || running;
   const gained = task.estimateMinutes - task.loggedMinutes; // for done tasks
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -61,8 +62,12 @@ export function TaskRow({ task }: { task: Task }) {
           {task.delegateName && <span className="tag tag-deleg">👤 {task.delegateName}</span>}
           <span className="task-dur">
             {schedule}
-            <span className={running ? 'logged-live' : ''}>{formatMinutes(logged)}</span>
-            {' / '}
+            {showClock && (
+              <>
+                <span className={running ? 'logged-live' : ''}>{formatClock(loggedSecs)}</span>
+                {' / '}
+              </>
+            )}
             {formatMinutes(task.estimateMinutes)}
           </span>
           {isDone && task.estimateMinutes > 0 && (

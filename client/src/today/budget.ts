@@ -31,6 +31,11 @@ export function taskLoggedMinutes(state: TodayState, task: Task): number {
   return task.loggedMinutes + liveMinutesForTask(state, task.id);
 }
 
+/** A task's logged time in whole seconds (committed + live run), for HH:MM:SS display. */
+export function taskLoggedSeconds(state: TodayState, task: Task): number {
+  return Math.round(task.loggedMinutes * 60) + (state.timer.runs[task.id]?.elapsedSeconds ?? 0);
+}
+
 /** Sum of planned estimates across all of today's tasks. */
 export function allocatedMinutes(state: TodayState): number {
   return state.tasks.reduce((sum, t) => sum + t.estimateMinutes, 0);
