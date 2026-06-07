@@ -43,10 +43,11 @@ The API boots without a DB; DB-backed routes return 503 until `MONGODB_URI` is s
 ## Built so far (all on `main`, pushed)
 Scaffold → Phase 1/2 (cockpit + Atlas persistence) → function-track UI → wallpaper picker + real week/month budget scopes → auto-prompted weekly/monthly/half-year **reconciliation** → **Google Calendar** read-only sync (connected, events become budget-deducting fixed blocks, per-series mute) → **routine-based onboarding** (24h start, sleep/commute/work setup) → **timer/logging rework** (per-task loggedMinutes, concurrent multi-strip timers each 1s/sec, Pause / Stop & Complete, complete-with-log options, time gained/lost) → **task scheduling** (Pending/Scheduled buckets, due dates + soft/hard deadlines, future start days, day-crossover auto-reload, Move-to-today) → Completed-today keyed off completedAt.
 
-Latest commits: `d85130c` (completed-today fix), `8da748d` (buckets/due/crossover), `78fcdcd` (multi-strip timer fix).
+Then **Calendar view** (`feature/calendar-view` branch): Day/Week/Month toggle replacing the placeholder. Month is a GCal-style grid (event chips + per-area allocation bar + overflow corner flag + delegation follow-up 👥 dot + completed count); Week is a 7-column day breakdown; Day is a read-only detail hosting **completed-task history** (logged vs estimate), events, and planned tasks. View-aware prev/next nav, Today button, full-width layout. Server: `GET /api/calendar?from=&to=` per-day aggregates (reuses `availableForDay`) + range tasks. Client: `calendar/` module (api/grid/repo seam with demo synthesis), `components/calendar/*`, `styles/calendar.css`. Real-account path needs server/.env to verify against live data.
+
+Latest commits: `735eea9` (calendar month+day), `d85130c` (completed-today fix), `8da748d` (buckets/due/crossover).
 
 ## Next (not started)
-- **Calendar view** (Day/Week/Month route — currently a placeholder). Should host **completed-task history** (read-only; data already supports it — add a `GET /api/tasks?from=&to=` range endpoint; don't let editing past days mutate closed reconciliation snapshots) and management of scheduled/future + due tasks. This is the priority next piece.
 - **Streak logic** — currently hardcoded `streakDays={12}` in `TodayPage`; derive from activity/reconciliation history.
 - **Recurring tasks** and **manual fixed blocks** (sleep/standing meetings beyond GCal) — still unbuilt.
 - **Goals** and **Team/Delegation** pages are placeholders (locked feature set has full specs in project-context).

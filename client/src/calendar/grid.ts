@@ -65,6 +65,25 @@ export function shiftMonth(anchorKey: string, n: number): string {
   return keyOf(new Date(d.getFullYear(), d.getMonth() + n, 1));
 }
 
+/** The 7 day keys (Mon..Sun) of the week containing `anchor`. */
+export function weekDays(anchorKey: string): string[] {
+  const d = parseKey(anchorKey);
+  const offset = (d.getDay() + 6) % 7; // back to Monday
+  const monday = new Date(d.getFullYear(), d.getMonth(), d.getDate() - offset);
+  return Array.from({ length: 7 }, (_, i) => keyOf(new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i)));
+}
+
+/** "Jun 8 – 14" / "Jun 30 – Jul 6" for the week containing `anchor`. */
+export function weekRangeLabel(anchorKey: string): string {
+  const days = weekDays(anchorKey);
+  const a = parseKey(days[0]);
+  const b = parseKey(days[6]);
+  const m = (d: Date) => MONTHS[d.getMonth()].slice(0, 3);
+  return a.getMonth() === b.getMonth()
+    ? `${m(a)} ${a.getDate()} – ${b.getDate()}`
+    : `${m(a)} ${a.getDate()} – ${m(b)} ${b.getDate()}`;
+}
+
 export interface AllocSegment {
   color: string;
   /** 0-100 width percent of the bar. */

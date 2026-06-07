@@ -36,7 +36,7 @@ export function MonthGrid({ anchor, days, events, areas, onSelectDay }: MonthGri
           const dayEvents = eventsByDay.get(cell.key) ?? [];
           const segments = data ? allocationSegments(data, areas) : [];
           const isToday = cell.key === today;
-          const shown = dayEvents.slice(0, 2);
+          const shown = dayEvents.slice(0, 4);
           const moreEvents = dayEvents.length - shown.length;
           return (
             <div

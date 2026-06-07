@@ -4,14 +4,14 @@ import { apiCalendarRepo, localCalendarRepo, type CalendarRepo } from '../calend
 import type { CalendarPayload } from '../calendar/api';
 import type { CalendarEvent } from '../today/types';
 import {
-  monthGridRange, monthTitle, shiftMonth, todayKey, parseKey,
+  monthGridRange, monthTitle, shiftMonth, todayKey, parseKey, addDaysKey, weekRangeLabel,
 } from '../calendar/grid';
 import { getGoogleStatus, type GoogleAccount } from '../google/api';
 import { ViewToggle, type CalendarView } from '../components/calendar/ViewToggle';
 import { MonthGrid } from '../components/calendar/MonthGrid';
 import { DayDetail } from '../components/calendar/DayDetail';
 import { CalendarLegend } from '../components/calendar/CalendarLegend';
-import { WeekStub } from '../components/calendar/WeekStub';
+import { WeekView } from '../components/calendar/WeekView';
 import '../styles/today.css';
 import '../styles/calendar.css';
 
@@ -67,20 +67,35 @@ export function CalendarPage() {
     setView('day');
   }
 
+  // Prev/next steps by the active unit: month / week / day.
+  function step(dir: -1 | 1) {
+    if (view === 'month') {
+      setAnchor((a) => shiftMonth(a, dir));
+    } else if (view === 'week') {
+      setAnchor((a) => addDaysKey(a, dir * 7));
+    } else {
+      const next = addDaysKey(selectedDay, dir);
+      setSelectedDay(next);
+      setAnchor(next);
+    }
+  }
+
   const dayTasks = payload?.tasks.filter((t) => t.day === selectedDay) ?? [];
   const dayEvents = events.filter((e) => e.start.slice(0, 10) === selectedDay);
   const title = view === 'day'
     ? parseKey(selectedDay).toLocaleDateString([], { month: 'long', day: 'numeric' })
-    : monthTitle(anchor);
+    : view === 'week'
+      ? weekRangeLabel(anchor)
+      : monthTitle(anchor);
 
   return (
     <div className="calendar-page">
       <div className="cal-topbar">
         <ViewToggle view={view} onChange={setView} />
         <div className="month-nav">
-          <button onClick={() => setAnchor((a) => shiftMonth(a, -1))} aria-label="Previous month">‹</button>
+          <button onClick={() => step(-1)} aria-label="Previous">‹</button>
           <span className="month-title">{title}</span>
-          <button onClick={() => setAnchor((a) => shiftMonth(a, 1))} aria-label="Next month">›</button>
+          <button onClick={() => step(1)} aria-label="Next">›</button>
         </div>
         <button className="today-btn" onClick={goToday}>Today</button>
         <CalendarLegend accounts={accounts} />
@@ -90,7 +105,14 @@ export function CalendarPage() {
       {loading && !payload ? (
         <div className="cal-grid-wrap"><p className="muted" style={{ margin: 'auto' }}>Loading…</p></div>
       ) : view === 'week' ? (
-        <WeekStub />
+        <WeekView
+          anchor={anchor}
+          days={payload?.days ?? []}
+          tasks={payload?.tasks ?? []}
+          events={events}
+          areas={payload?.areas ?? []}
+          onSelectDay={selectDay}
+        />
       ) : view === 'day' ? (
         <DayDetail
           day={selectedDay}
