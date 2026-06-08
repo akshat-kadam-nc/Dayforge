@@ -29,6 +29,7 @@ export function LoginPage() {
     <div className="auth-screen">
       <form className="glass-card auth-card" onSubmit={onSubmit}>
         <div className="brand">
+          <img className="brand-mark-img" src="/favicon.svg" alt="" />
           <img className="brand-wordmark" src="/brand/wordmark.png" alt="Dayforge" />
         </div>
         <p className="muted">Know where your time actually goes.</p>
