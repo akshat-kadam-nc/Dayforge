@@ -104,4 +104,43 @@ export function allocationSegments(day: CalendarDay, areas: LifeArea[]): AllocSe
 
 export const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
+/** ISO-8601 week number (weeks start Monday; week 1 holds the year's first Thursday). */
+export function isoWeek(key: string): number {
+  const d = parseKey(key);
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = (date.getUTCDay() + 6) % 7; // Mon=0..Sun=6
+  date.setUTCDate(date.getUTCDate() - dayNum + 3); // shift to the week's Thursday
+  const firstThursday = new Date(Date.UTC(date.getUTCFullYear(), 0, 4));
+  const firstDayNum = (firstThursday.getUTCDay() + 6) % 7;
+  firstThursday.setUTCDate(firstThursday.getUTCDate() - firstDayNum + 3);
+  return 1 + Math.round((date.getTime() - firstThursday.getTime()) / (7 * 86400000));
+}
+
+/** Whole-month delta between two day keys (ref is the reference, e.g. today). */
+export function monthDiff(key: string, ref: string): number {
+  const a = parseKey(key);
+  const b = parseKey(ref);
+  return (a.getFullYear() - b.getFullYear()) * 12 + (a.getMonth() - b.getMonth());
+}
+
+/** Whole-week delta between the Monday-weeks containing two day keys. */
+export function weekDiff(key: string, ref: string): number {
+  const monday = (k: string) => {
+    const d = parseKey(k);
+    const off = (d.getDay() + 6) % 7;
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate() - off).getTime();
+  };
+  return Math.round((monday(key) - monday(ref)) / (7 * 86400000));
+}
+
+/** Human relative phrase: "This week", "Next week", "2 weeks ago", etc. */
+export function relPhrase(delta: number, unit: 'week' | 'month'): string {
+  if (delta === 0) return unit === 'week' ? 'This week' : 'This month';
+  const n = Math.abs(delta);
+  const noun = n === 1 ? unit : `${unit}s`;
+  if (delta === 1) return unit === 'week' ? 'Next week' : 'Next month';
+  if (delta === -1) return unit === 'week' ? 'Last week' : 'Last month';
+  return delta > 0 ? `${n} ${noun} ahead` : `${n} ${noun} ago`;
+}
+
 export { MONTHS };

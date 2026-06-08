@@ -5,6 +5,7 @@ import type { CalendarPayload } from '../calendar/api';
 import type { CalendarEvent } from '../today/types';
 import {
   monthGridRange, monthTitle, shiftMonth, todayKey, parseKey, addDaysKey, weekRangeLabel,
+  isoWeek, monthDiff, weekDiff, relPhrase,
 } from '../calendar/grid';
 import { getGoogleStatus, type GoogleAccount } from '../google/api';
 import { ViewToggle, type CalendarView } from '../components/calendar/ViewToggle';
@@ -106,22 +107,34 @@ export function CalendarPage() {
 
   const dayTasks = payload?.tasks.filter((t) => t.day === selectedDay) ?? [];
   const dayEvents = events.filter((e) => e.start.slice(0, 10) === selectedDay);
+  const today = todayKey();
+  const focusKey = view === 'day' ? selectedDay : anchor;
   const title = view === 'day'
-    ? parseKey(selectedDay).toLocaleDateString([], { month: 'long', day: 'numeric' })
+    ? parseKey(selectedDay).toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })
     : view === 'week'
-      ? weekRangeLabel(anchor)
+      ? `${weekRangeLabel(anchor)}, ${parseKey(anchor).getFullYear()}`
       : monthTitle(anchor);
+  const todayLabel = parseKey(today).toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' });
+  // Reference line so you always know where you are: relative position + week + today.
+  const rel = view === 'month'
+    ? relPhrase(monthDiff(focusKey, today), 'month')
+    : relPhrase(weekDiff(focusKey, today), 'week');
+  const isNow = view === 'month' ? monthDiff(focusKey, today) === 0 : weekDiff(focusKey, today) === 0;
+  const context = `${rel} · Week ${isoWeek(focusKey)} · ${parseKey(focusKey).getFullYear()} · Today ${todayLabel}`;
 
   return (
     <div className="calendar-page">
       <div className="cal-topbar">
         <ViewToggle view={view} onChange={setView} />
-        <div className="month-nav">
-          <button onClick={() => step(-1)} aria-label="Previous" title="Previous (←)">‹</button>
-          <span className="month-title">{title}</span>
-          <button onClick={() => step(1)} aria-label="Next" title="Next (→)">›</button>
+        <div className="period-nav">
+          <div className="period-nav-row">
+            <button className="nav-arrow" onClick={() => step(-1)} aria-label="Previous" title="Previous (←)">‹</button>
+            <span className="month-title">{title}</span>
+            <button className="nav-arrow" onClick={() => step(1)} aria-label="Next" title="Next (→)">›</button>
+          </div>
+          <span className={`period-context${isNow ? ' is-now' : ''}`}>{context}</span>
         </div>
-        <button className="today-btn" onClick={goToday} title="Jump to today (T)">Today</button>
+        <button className="today-btn" onClick={goToday} title="Jump to today (T)" disabled={isNow}>Today</button>
         <CalendarLegend accounts={accounts} />
       </div>
 
