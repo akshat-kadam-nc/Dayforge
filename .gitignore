@@ -10,3 +10,7 @@ build/
 # Vite / PWA
 client/dev-dist/
 *.tsbuildinfo
+
+# Vite dep cache
+client/.vite/
+.vite/
