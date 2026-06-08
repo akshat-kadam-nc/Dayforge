@@ -1,8 +1,8 @@
-# AXIOM
+# Dayforge
 
 Personal time-management PWA. The point of the app: an accurate, real-time view of where the day's time is going and how much is actually left. Built MERN + TypeScript.
 
-Working name AXIOM is a placeholder.
+Dayforge is the product name. The repo directory and internal package/identifier names are still `axiom` (the original working name) and are intentionally left unchanged to avoid breaking storage keys and data.
 
 ## Layout
 

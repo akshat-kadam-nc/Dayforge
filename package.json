@@ -2,7 +2,7 @@
   "name": "axiom",
   "version": "0.0.1",
   "private": true,
-  "description": "AXIOM — personal time-management PWA (MERN, TypeScript)",
+  "description": "Dayforge — personal time-management PWA (MERN, TypeScript)",
   "workspaces": [
     "server",
     "client"

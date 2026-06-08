@@ -1,4 +1,4 @@
-/* AXIOM baseline: light, playful, Nunito, frosted glass over a soft gradient.
+/* Dayforge baseline: light, playful, Nunito, frosted glass over a soft gradient.
    The full themed wallpaper system from the mockups layers on top of this. */
 
 :root {
@@ -168,26 +168,16 @@ code {
 .brand {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
+  padding: 4px 0 2px;
 }
 
-.brand h1 {
-  margin: 0;
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: 1px;
-}
-
-.brand-mark {
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-  border-radius: 12px;
-  background: var(--accent);
-  color: #fff;
-  font-weight: 800;
-  font-size: 22px;
+.brand-wordmark {
+  height: 34px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
 }
 
 label {

@@ -61,7 +61,7 @@ export function RoutineModal({ mode, onClose }: { mode: 'onboard' | 'edit'; onCl
       <div className="modal-card routine-card" onClick={(e) => e.stopPropagation()}>
         <h2 className="modal-title">{mode === 'onboard' ? '👋 Set up your day' : '⏰ Daily routine'}</h2>
         <p className="muted routine-intro">
-          You start with a full 24h. Tell us your routine so AXIOM can show your real free time.
+          You start with a full 24h. Tell us your routine so Dayforge can show your real free time.
         </p>
 
         <label>
