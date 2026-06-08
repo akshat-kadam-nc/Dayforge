@@ -13,6 +13,9 @@ export function GoalsSidebar() {
   const { state } = useToday();
   const [addingGoal, setAddingGoal] = useState(false);
 
+  // The rail only surfaces this week's goals; higher levels live on the Goals page.
+  const weeklyGoals = state.goals.filter((g) => g.period === 'weekly');
+
   const splits = [
     ...state.areas.map((a) => ({
       id: a.id,
@@ -41,10 +44,10 @@ export function GoalsSidebar() {
             <button type="button" className="sidebar-add" onClick={() => setAddingGoal(true)}>＋</button>
           )}
         </div>
-        {state.goals.length === 0 && (
+        {weeklyGoals.length === 0 && (
           <p className="muted sidebar-empty">No goals yet.</p>
         )}
-        {state.goals.map((g) => (
+        {weeklyGoals.map((g) => (
           <div key={g.id} className="goal-card">
             <div className="goal-top">
               <span className="goal-icon">{g.icon}</span>

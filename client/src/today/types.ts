@@ -148,14 +148,22 @@ export interface Interruption {
   minutes: number;
 }
 
+/** Goal hierarchy levels, low to high: weekly rolls up to annual. */
+export type GoalPeriod = 'weekly' | 'monthly' | 'half_year' | 'annual';
+
+export const GOAL_PERIODS: GoalPeriod[] = ['weekly', 'monthly', 'half_year', 'annual'];
+
 export interface Goal {
   id: string;
   areaId: string;
   text: string;
   icon: string;
-  /** 0-100 progress. */
+  /** 0-100 manual progress; for weekly goals it's a fallback when no tasks are linked. */
   pct: number;
   color: string;
+  period: GoalPeriod;
+  /** Goal one period-level up, if linked. */
+  parentId?: string;
 }
 
 /** A fixed, non-task block that consumes the day (sleep, standing meetings). */

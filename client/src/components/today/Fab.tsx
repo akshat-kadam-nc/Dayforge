@@ -11,6 +11,7 @@ export function Fab() {
   const [title, setTitle] = useState('');
   const [areaId, setAreaId] = useState(state.areas[0]?.id ?? '');
   const [trackId, setTrackId] = useState('');
+  const [goalId, setGoalId] = useState('');
   const [minutes, setMinutes] = useState(30);
   const [startDay, setStartDay] = useState(todayKey());
   const [dueDate, setDueDate] = useState('');
@@ -18,6 +19,8 @@ export function Fab() {
   const [deadlineType, setDeadlineType] = useState<DeadlineType>('soft');
 
   const areaTracks = state.tracks.filter((t) => t.areaId === areaId);
+  // Daily tasks link to weekly goals only; scope the picker to the chosen area.
+  const areaGoals = state.goals.filter((g) => g.period === 'weekly' && g.areaId === areaId);
 
   // Keep the selected venture valid as areas load/change.
   useEffect(() => {
@@ -28,6 +31,11 @@ export function Fab() {
   useEffect(() => {
     if (trackId && !areaTracks.some((t) => t.id === trackId)) setTrackId('');
   }, [areaTracks, trackId]);
+
+  // Likewise drop a linked goal that doesn't belong to the chosen venture.
+  useEffect(() => {
+    if (goalId && !areaGoals.some((g) => g.id === goalId)) setGoalId('');
+  }, [areaGoals, goalId]);
 
   function openAdd() {
     // A task needs a venture; route to venture creation first if there are none.
@@ -44,12 +52,14 @@ export function Fab() {
       areaId,
       estimateMinutes: minutes,
       trackId: trackId || undefined,
+      goalId: goalId || undefined,
       day: startDay,
       dueAt,
       deadlineType: dueAt ? deadlineType : undefined,
     });
     setTitle('');
     setTrackId('');
+    setGoalId('');
     setMinutes(30);
     setStartDay(todayKey());
     setDueDate('');
@@ -95,6 +105,17 @@ export function Fab() {
                   <option value="">No track</option>
                   {areaTracks.map((t) => (
                     <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              </label>
+            )}
+            {areaGoals.length > 0 && (
+              <label>
+                Weekly goal
+                <select value={goalId} onChange={(e) => setGoalId(e.target.value)}>
+                  <option value="">No goal</option>
+                  {areaGoals.map((g) => (
+                    <option key={g.id} value={g.id}>{g.icon} {g.text}</option>
                   ))}
                 </select>
               </label>

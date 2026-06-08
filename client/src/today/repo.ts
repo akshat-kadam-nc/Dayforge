@@ -77,7 +77,15 @@ export interface CreateTaskInput {
 }
 export interface CreateAreaInput { name: string; icon: string; color: string }
 export interface CreateTrackInput { areaId: string; name: string; color: string }
-export interface CreateGoalInput { areaId: string; text: string; icon: string; pct: number; color: string }
+export interface CreateGoalInput {
+  areaId: string;
+  text: string;
+  icon: string;
+  pct: number;
+  color: string;
+  period?: import('./types').GoalPeriod;
+  parentId?: string | null;
+}
 export interface CreateInterruptionInput { type: InterruptionType; title: string; note?: string; minutes: number }
 export interface CreateTimeLogInput { taskId: string; areaId: string; minutes: number }
 
@@ -134,7 +142,12 @@ export const localRepo: TodayRepo = {
   },
   async deleteTrack() {},
   async createGoal(input) {
-    return { id: `g${Date.now()}`, ...input };
+    return {
+      id: `g${Date.now()}`,
+      ...input,
+      period: input.period ?? 'weekly',
+      parentId: input.parentId ?? undefined,
+    };
   },
   async createTask(input) {
     return {
@@ -244,8 +257,17 @@ function mapArea(d: ServerDoc & Omit<LifeArea, 'id'>): LifeArea {
 function mapTrack(d: ServerDoc & Omit<FunctionTrack, 'id'>): FunctionTrack {
   return { id: d._id, areaId: String(d.areaId), name: d.name, color: d.color };
 }
-function mapGoal(d: ServerDoc & Omit<Goal, 'id'>): Goal {
-  return { id: d._id, areaId: String(d.areaId), text: d.text, icon: d.icon, pct: d.pct, color: d.color };
+function mapGoal(d: ServerDoc & Record<string, unknown>): Goal {
+  return {
+    id: d._id,
+    areaId: String(d.areaId),
+    text: d.text as string,
+    icon: d.icon as string,
+    pct: (d.pct as number) ?? 0,
+    color: d.color as string,
+    period: (d.period as Goal['period']) ?? 'weekly',
+    parentId: d.parentId ? String(d.parentId) : undefined,
+  };
 }
 function mapTask(d: ServerDoc & Record<string, unknown>): Task {
   return {
@@ -289,7 +311,7 @@ export const apiRepo: TodayRepo = {
       availableMinutes: number;
       areas: (ServerDoc & Omit<LifeArea, 'id'>)[];
       tracks: (ServerDoc & Omit<FunctionTrack, 'id'>)[];
-      goals: (ServerDoc & Omit<Goal, 'id'>)[];
+      goals: (ServerDoc & Record<string, unknown>)[];
       tasks: (ServerDoc & Record<string, unknown>)[];
       interruptions: (ServerDoc & Record<string, unknown>)[];
       logs: (ServerDoc & Record<string, unknown>)[];
@@ -331,7 +353,7 @@ export const apiRepo: TodayRepo = {
     await api(`/tracks/${id}`, { method: 'DELETE' });
   },
   async createGoal(input) {
-    const r = await api<{ goal: ServerDoc & Omit<Goal, 'id'> }>('/goals', {
+    const r = await api<{ goal: ServerDoc & Record<string, unknown> }>('/goals', {
       method: 'POST',
       body: JSON.stringify(input),
     });

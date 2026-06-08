@@ -34,9 +34,19 @@ const TRACKS = [
 ];
 
 const GOALS = [
-  { id: 'g-batch4', areaId: 'develearn', text: 'Batch 4 lesson plan — 6 sessions', icon: '📚', pct: 33, color: '#f97316' },
-  { id: 'g-zumalm', areaId: 'zuma', text: 'Ship ZumaLM v1.2 to production', icon: '🤖', pct: 70, color: '#8b5cf6' },
-  { id: 'g-linkedin', areaId: 'brand', text: 'Publish 3 technical LinkedIn posts', icon: '✍️', pct: 33, color: '#ec4899' },
+  // DeveLearn: a full annual → half-year → monthly → weekly chain.
+  { id: 'g-dl-annual', areaId: 'develearn', text: 'Grow DeveLearn to 500 active students', icon: '🏆', pct: 0, color: '#f97316', period: 'annual' as const },
+  { id: 'g-dl-half', areaId: 'develearn', text: 'Reach 200 students by H1', icon: '📈', pct: 0, color: '#f97316', period: 'half_year' as const, parentId: 'g-dl-annual' },
+  { id: 'g-dl-month', areaId: 'develearn', text: 'Run Python Batch 4 end-to-end', icon: '📚', pct: 0, color: '#f97316', period: 'monthly' as const, parentId: 'g-dl-half' },
+  { id: 'g-batch4', areaId: 'develearn', text: 'Batch 4 lesson plan — 6 sessions', icon: '📚', pct: 33, color: '#f97316', period: 'weekly' as const, parentId: 'g-dl-month' },
+  // Zuma: full chain too.
+  { id: 'g-zu-annual', areaId: 'zuma', text: 'Make ZumaLM market-ready', icon: '🚀', pct: 0, color: '#8b5cf6', period: 'annual' as const },
+  { id: 'g-zu-half', areaId: 'zuma', text: 'Land first 10 paying teams', icon: '📈', pct: 0, color: '#8b5cf6', period: 'half_year' as const, parentId: 'g-zu-annual' },
+  { id: 'g-zu-month', areaId: 'zuma', text: 'Ship ZumaLM v1.2 to production', icon: '🤖', pct: 0, color: '#8b5cf6', period: 'monthly' as const, parentId: 'g-zu-half' },
+  { id: 'g-zumalm', areaId: 'zuma', text: 'v1.2 release checklist', icon: '🤖', pct: 70, color: '#8b5cf6', period: 'weekly' as const, parentId: 'g-zu-month' },
+  // Personal Brand: a partial chain (monthly + weekly, no annual above).
+  { id: 'g-br-month', areaId: 'brand', text: 'Build a consistent LinkedIn presence', icon: '✍️', pct: 0, color: '#ec4899', period: 'monthly' as const },
+  { id: 'g-linkedin', areaId: 'brand', text: 'Publish 3 technical LinkedIn posts', icon: '✍️', pct: 33, color: '#ec4899', period: 'weekly' as const, parentId: 'g-br-month' },
 ];
 
 function keyShift(n: number): string {
@@ -169,6 +179,23 @@ export function makeInitialState(): TodayState {
         day: tomorrow,
         dueAt: keyShift(3) + 'T12:00:00',
         deadlineType: 'soft',
+      },
+      // Completed work linked to weekly goals, so the Goals page derives
+      // estimate-weighted progress (done-estimate / total-estimate) in demo.
+      {
+        id: 'g-batch4-d1', title: 'Batch 4 — Session 1 slides', areaId: 'develearn', trackId: 'dl-teaching',
+        status: 'done', estimateMinutes: 60, source: 'manual', goalId: 'g-batch4', deferredCount: 0,
+        loggedMinutes: 72, createdAt: yesterday + 'T09:00:00', completedAt: yesterday + 'T11:00:00', day: yesterday,
+      },
+      {
+        id: 'g-batch4-d2', title: 'Batch 4 — Session 2 exercises', areaId: 'develearn', trackId: 'dl-teaching',
+        status: 'done', estimateMinutes: 30, source: 'manual', goalId: 'g-batch4', deferredCount: 0,
+        loggedMinutes: 28, createdAt: yesterday + 'T12:00:00', completedAt: yesterday + 'T12:40:00', day: yesterday,
+      },
+      {
+        id: 'g-linkedin-d1', title: 'Draft post — "Why MERN for solo founders"', areaId: 'brand', trackId: 'br-content',
+        status: 'done', estimateMinutes: 45, source: 'manual', goalId: 'g-linkedin', deferredCount: 0,
+        loggedMinutes: 50, createdAt: yesterday + 'T16:00:00', completedAt: yesterday + 'T17:00:00', day: yesterday,
       },
       // Chore session block + a few demo chores for the Chores card.
       {

@@ -11,6 +11,8 @@ const goalSchema = new Schema(
     pct: { type: Number, min: 0, max: 100, default: 0 },
     color: { type: String, default: '#8b5cf6' },
     period: { type: String, enum: GOAL_PERIODS, default: 'weekly' },
+    // Optional link to the goal one period-level up (weekly→monthly→half_year→annual).
+    parentId: { type: Types.ObjectId, ref: 'Goal', default: null, index: true },
   },
   { timestamps: true },
 );
