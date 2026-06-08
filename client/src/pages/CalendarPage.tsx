@@ -80,6 +80,30 @@ export function CalendarPage() {
     }
   }
 
+  // Keyboard navigation, GCal-style: ←/→ step the active unit, t jumps to today.
+  // Ignored while typing in a field so it never hijacks form input.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const el = e.target as HTMLElement | null;
+      const tag = el?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el?.isContentEditable) return;
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        step(-1);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        step(1);
+      } else if (e.key === 't' || e.key === 'T') {
+        e.preventDefault();
+        goToday();
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // step/goToday close over view + selectedDay; re-bind when those change.
+  }, [view, selectedDay]);
+
   const dayTasks = payload?.tasks.filter((t) => t.day === selectedDay) ?? [];
   const dayEvents = events.filter((e) => e.start.slice(0, 10) === selectedDay);
   const title = view === 'day'
@@ -93,11 +117,11 @@ export function CalendarPage() {
       <div className="cal-topbar">
         <ViewToggle view={view} onChange={setView} />
         <div className="month-nav">
-          <button onClick={() => step(-1)} aria-label="Previous">‹</button>
+          <button onClick={() => step(-1)} aria-label="Previous" title="Previous (←)">‹</button>
           <span className="month-title">{title}</span>
-          <button onClick={() => step(1)} aria-label="Next">›</button>
+          <button onClick={() => step(1)} aria-label="Next" title="Next (→)">›</button>
         </div>
-        <button className="today-btn" onClick={goToday}>Today</button>
+        <button className="today-btn" onClick={goToday} title="Jump to today (T)">Today</button>
         <CalendarLegend accounts={accounts} />
       </div>
 
