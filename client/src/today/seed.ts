@@ -199,6 +199,12 @@ export function makeInitialState(): TodayState {
         status: 'done', estimateMinutes: 5, source: 'manual', deferredCount: 0,
         loggedMinutes: 0, createdAt: today + 'T08:00:00', completedAt: today + 'T09:10:00', day: today,
       },
+      {
+        // Open chore from yesterday: should carry into today's card.
+        id: 'chore-carry', title: 'Return call to printing vendor', areaId: 'develearn', kind: 'chore',
+        status: 'not_started', estimateMinutes: 10, source: 'manual', deferredCount: 0,
+        loggedMinutes: 0, createdAt: yesterday + 'T15:00:00', day: yesterday,
+      },
     ]),
     interruptions: [
       {

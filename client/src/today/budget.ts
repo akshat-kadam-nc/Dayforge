@@ -49,9 +49,21 @@ export function budgetTasks(state: TodayState): Task[] {
   return todaysTasks(state).filter((t) => t.kind === 'task');
 }
 
-/** Today's chores (the small batched items), open and done. */
-export function todayChores(state: TodayState): Task[] {
-  return todaysTasks(state).filter((t) => t.kind === 'chore');
+/** Chores to show in today's card: today's chores (any status) plus any
+ *  still-open chore carried over from an earlier day. Done past chores drop off.
+ *  This is the chore equivalent of deadline overflow — unfinished small stuff
+ *  follows you forward instead of being silently lost. */
+export function activeChores(state: TodayState): Task[] {
+  return state.tasks.filter(
+    (t) =>
+      t.kind === 'chore' &&
+      (t.day === state.day || (t.day < state.day && t.status !== 'done')),
+  );
+}
+
+/** Whether a chore has been carried over from a previous day. */
+export function isCarriedChore(state: TodayState, chore: Task): boolean {
+  return chore.day < state.day;
 }
 
 /** The single chore-session block for the shown day, if one exists. */

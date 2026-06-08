@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useToday } from '../../today/useToday';
 import { CHORE_ESTIMATES } from '../../today/types';
 import {
-  choreSession, todayChores, choresPlannedMinutes, choresLoggedMinutes,
+  choreSession, activeChores, isCarriedChore, choresPlannedMinutes, choresLoggedMinutes,
   isRunning, taskLoggedSeconds, CHORES_COLOR,
 } from '../../today/budget';
 import { formatClock, formatMinutes } from '../../today/format';
@@ -18,9 +18,10 @@ const ALLOC_OPTIONS = [30, 60, 90];
 export function ChoresCard() {
   const { state, actions } = useToday();
   const session = choreSession(state);
-  const chores = todayChores(state);
+  const chores = activeChores(state);
   const open = chores.filter((c) => c.status !== 'done');
   const done = chores.filter((c) => c.status === 'done');
+  const carriedCount = open.filter((c) => isCarriedChore(state, c)).length;
   const planned = choresPlannedMinutes(state);
   const logged = choresLoggedMinutes(state);
   const running = session ? isRunning(state, session.id) : false;
@@ -48,7 +49,10 @@ export function ChoresCard() {
         <span className="chores-title">
           <span className="chores-dot" style={{ background: CHORES_COLOR }} /> Chores
         </span>
-        <span className="chores-count">{open.length} left{done.length > 0 ? ` · ${done.length} done` : ''}</span>
+        <span className="chores-count">
+          {open.length} left{done.length > 0 ? ` · ${done.length} done` : ''}
+          {carriedCount > 0 && <span className="chores-carried" title="Carried over from earlier days"> · {carriedCount} carried</span>}
+        </span>
       </div>
 
       {/* Session: allocate a block, then run the timer while ticking chores off. */}
@@ -106,6 +110,9 @@ export function ChoresCard() {
             </button>
             <span className="chore-area-dot" style={{ background: colorOf.get(c.areaId) ?? '#94a3b8' }} />
             <span className="chore-item-title">{c.title}</span>
+            {c.status !== 'done' && isCarriedChore(state, c) && (
+              <span className="chore-carry" title={`Carried over from ${c.day}`}>↩</span>
+            )}
             <span className="chore-item-est">{c.estimateMinutes}m</span>
           </div>
         ))}
