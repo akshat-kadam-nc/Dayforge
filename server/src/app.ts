@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
 import { env } from './config/env.js';
 import { isDbConnected } from './db.js';
 import { errorHandler } from './middleware/error.js';
@@ -40,6 +42,19 @@ export function createApp() {
   app.use('/api/reconciliations', reconciliationsRouter);
   app.use('/api/google', googleRouter);
   app.use('/api/calendar', calendarRouter);
+
+  // Single-origin production: serve the built client and let the SPA handle
+  // client-side routes. Unknown /api/* paths still fall through to the error
+  // handler (404) rather than returning index.html.
+  if (env.serveClient) {
+    // Compiled location is server/dist/app.js → repo client/dist is two up.
+    const clientDist = resolve(dirname(fileURLToPath(import.meta.url)), '../../client/dist');
+    app.use(express.static(clientDist));
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api/')) return next();
+      res.sendFile(resolve(clientDist, 'index.html'));
+    });
+  }
 
   app.use(errorHandler);
 

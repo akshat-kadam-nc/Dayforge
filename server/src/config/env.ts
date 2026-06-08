@@ -12,6 +12,14 @@ export const env = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
   clientOrigin: process.env.CLIENT_ORIGIN ?? 'http://localhost:5173',
   nodeEnv: process.env.NODE_ENV ?? 'development',
+  /**
+   * In a single-origin deploy the API process also serves the built client
+   * (client/dist) with an SPA fallback. On by default in production; in dev the
+   * Vite server owns :5173 and proxies /api, so this stays off.
+   */
+  serveClient:
+    process.env.SERVE_CLIENT === 'true' ||
+    (process.env.SERVE_CLIENT !== 'false' && (process.env.NODE_ENV ?? 'development') === 'production'),
   googleClientId: process.env.GOOGLE_CLIENT_ID ?? '',
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
   googleRedirectUri: process.env.GOOGLE_REDIRECT_URI ?? 'http://localhost:4000/api/google/callback',

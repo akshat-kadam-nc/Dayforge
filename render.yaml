@@ -1,0 +1,36 @@
+# Render Blueprint — single-origin deploy of Dayforge (API + built client on one
+# free Web Service). Create the service via Render dashboard → New → Blueprint,
+# or set the same fields manually. Secrets marked sync:false are filled in the
+# dashboard (never commit them).
+services:
+  - type: web
+    name: dayforge
+    runtime: node
+    plan: free
+    # Free web services sleep after ~15 min idle and cold-start on next request.
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: npm start --workspace server
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SERVE_CLIENT
+        value: "true"
+      - key: NODE_VERSION
+        value: "22"
+      # Signed once by Render and kept stable across deploys.
+      - key: JWT_SECRET
+        generateValue: true
+      # Fill these in the dashboard:
+      - key: MONGODB_URI
+        sync: false
+      - key: CLIENT_ORIGIN # https://<your-service>.onrender.com
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI # https://<your-service>.onrender.com/api/google/callback
+        sync: false
