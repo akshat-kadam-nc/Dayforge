@@ -19,7 +19,7 @@ function fmtCreated(iso?: string): string {
 export function TaskBuckets({ which }: { which: 'pending' | 'upcoming' }) {
   const { state } = useToday();
   const tasks = state.tasks
-    .filter((t) => (which === 'pending' ? t.day < state.day : t.day > state.day) && t.status !== 'done')
+    .filter((t) => t.kind === 'task' && (which === 'pending' ? t.day < state.day : t.day > state.day) && t.status !== 'done')
     .sort((a, b) => a.day.localeCompare(b.day));
   if (tasks.length === 0) return null;
 

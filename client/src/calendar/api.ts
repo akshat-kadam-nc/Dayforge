@@ -30,7 +30,8 @@ function mapTask(d: ServerDoc & Record<string, unknown>): Task {
   return {
     id: d._id,
     title: d.title as string,
-    areaId: String(d.areaId),
+    areaId: d.areaId ? String(d.areaId) : '',
+    kind: (d.kind as Task['kind']) ?? 'task',
     trackId: d.trackId ? String(d.trackId) : undefined,
     goalId: d.goalId ? String(d.goalId) : undefined,
     status: d.status as Task['status'],

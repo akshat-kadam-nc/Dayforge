@@ -8,7 +8,7 @@ import { TaskRow } from './TaskRow';
 export function VentureBlock({ area }: { area: LifeArea }) {
   const { state, actions } = useToday();
   const tasks = state.tasks.filter(
-    (t) => t.areaId === area.id && t.day === state.day && t.status !== 'done',
+    (t) => t.kind === 'task' && t.areaId === area.id && t.day === state.day && t.status !== 'done',
   );
   if (tasks.length === 0) return null;
 

@@ -62,7 +62,9 @@ export interface TodaySlices {
 
 export interface CreateTaskInput {
   title: string;
-  areaId: string;
+  /** Omitted only for a chore_session (cross-area). */
+  areaId?: string;
+  kind?: import('./types').TaskKind;
   estimateMinutes: number;
   trackId?: string;
   goalId?: string;
@@ -92,7 +94,7 @@ export interface TodayRepo {
   deleteTrack(id: string): Promise<void>;
   createGoal(input: CreateGoalInput): Promise<Goal>;
   createTask(input: CreateTaskInput): Promise<Task>;
-  updateTask(id: string, patch: Partial<Pick<Task, 'status' | 'loggedMinutes' | 'day'>>): Promise<void>;
+  updateTask(id: string, patch: Partial<Pick<Task, 'status' | 'loggedMinutes' | 'day' | 'estimateMinutes'>>): Promise<void>;
   deferTask(id: string): Promise<void>;
   deleteTask(id: string): Promise<void>;
   createInterruption(input: CreateInterruptionInput): Promise<Interruption>;
@@ -138,7 +140,8 @@ export const localRepo: TodayRepo = {
     return {
       id: `t${Date.now()}`,
       title: input.title,
-      areaId: input.areaId,
+      areaId: input.areaId ?? '',
+      kind: input.kind ?? 'task',
       trackId: input.trackId,
       goalId: input.goalId,
       delegateName: input.delegateName,
@@ -248,7 +251,8 @@ function mapTask(d: ServerDoc & Record<string, unknown>): Task {
   return {
     id: d._id,
     title: d.title as string,
-    areaId: String(d.areaId),
+    areaId: d.areaId ? String(d.areaId) : '',
+    kind: (d.kind as Task['kind']) ?? 'task',
     trackId: d.trackId ? String(d.trackId) : undefined,
     goalId: d.goalId ? String(d.goalId) : undefined,
     status: d.status as Task['status'],

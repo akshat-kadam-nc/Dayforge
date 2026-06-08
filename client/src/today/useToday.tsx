@@ -72,6 +72,7 @@ type Action =
   | { type: 'SET_EVENT_DEDUCT'; seriesKey: string; deduct: boolean }
   | { type: 'ADD_TASK'; task: Task }
   | { type: 'REMOVE_TASK'; taskId: string }
+  | { type: 'SET_ESTIMATE'; taskId: string; estimateMinutes: number }
   | { type: 'SET_STATUS'; taskId: string; status: TaskStatus }
   | { type: 'MOVE_TO_TODAY'; taskId: string }
   | { type: 'ADD_AREA'; area: LifeArea }
@@ -207,6 +208,13 @@ function reducer(state: TodayState, action: Action): TodayState {
       const base = commitRun(state, action.taskId);
       return { ...base, tasks: base.tasks.filter((t) => t.id !== action.taskId) };
     }
+    case 'SET_ESTIMATE':
+      return {
+        ...state,
+        tasks: state.tasks.map((t) =>
+          t.id === action.taskId ? { ...t, estimateMinutes: action.estimateMinutes } : t,
+        ),
+      };
     case 'SET_STATUS': {
       const base =
         action.status !== 'in_progress' ? commitRun(state, action.taskId) : state;
@@ -259,6 +267,12 @@ export interface TodayActions {
   toggleArea: (areaId: string) => void;
   setScope: (scope: BudgetScope) => void;
   addTask: (input: CreateTaskInput) => Promise<void>;
+  /** Add a small end-of-day chore (estimate locked to 5/10/15 by the UI). */
+  addChore: (input: { title: string; areaId: string; estimateMinutes: number }) => Promise<void>;
+  /** Set the chore-session block size for today, creating the session if absent. */
+  setChoreAllocation: (minutes: number) => Promise<void>;
+  /** Ensure a chore session exists, then start its timer. Returns nothing. */
+  startChores: () => Promise<void>;
   deferTask: (taskId: string) => void;
   deleteTask: (taskId: string) => void;
   moveToToday: (taskId: string) => void;
@@ -420,6 +434,38 @@ export function TodayProvider({ children }: { children: ReactNode }) {
     addTask: async (input) => {
       const task = await repo.createTask(input);
       dispatch({ type: 'ADD_TASK', task });
+    },
+    addChore: async ({ title, areaId, estimateMinutes }) => {
+      // Chores always fall due at end of the shown day; they can overflow like tasks.
+      const [y, m, d] = state.day.split('-').map(Number);
+      const dueAt = new Date(y, m - 1, d, 23, 59, 0).toISOString();
+      const task = await repo.createTask({
+        title, areaId, estimateMinutes, kind: 'chore', day: state.day, dueAt, deadlineType: 'soft',
+      });
+      dispatch({ type: 'ADD_TASK', task });
+    },
+    setChoreAllocation: async (minutes) => {
+      const session = state.tasks.find((t) => t.kind === 'chore_session' && t.day === state.day);
+      if (session) {
+        dispatch({ type: 'SET_ESTIMATE', taskId: session.id, estimateMinutes: minutes });
+        void repo.updateTask(session.id, { estimateMinutes: minutes });
+      } else {
+        const task = await repo.createTask({
+          title: 'Chores', kind: 'chore_session', estimateMinutes: minutes, day: state.day,
+        });
+        dispatch({ type: 'ADD_TASK', task });
+      }
+    },
+    startChores: async () => {
+      let session = state.tasks.find((t) => t.kind === 'chore_session' && t.day === state.day);
+      if (!session) {
+        session = await repo.createTask({
+          title: 'Chores', kind: 'chore_session', estimateMinutes: 60, day: state.day,
+        });
+        dispatch({ type: 'ADD_TASK', task: session });
+      }
+      dispatch({ type: 'PLAY', taskId: session.id });
+      void repo.updateTask(session.id, { status: 'in_progress' });
     },
     deferTask: (taskId) => {
       // Keep any live run's time before the task leaves today.

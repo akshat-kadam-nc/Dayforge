@@ -65,6 +65,7 @@ export const localCalendarRepo: CalendarRepo = {
           id: `demo-${key}-${a.id}`,
           title: `${a.name} block`,
           areaId: a.id,
+          kind: 'task',
           status: done ? 'done' : 'not_started',
           estimateMinutes: est,
           source: 'manual',

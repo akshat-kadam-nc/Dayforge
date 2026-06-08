@@ -1,4 +1,9 @@
-import type { TodayState } from './types';
+import type { Task, TaskKind, TodayState } from './types';
+
+/** Default kind to 'task' so the seed literals can omit it. */
+function withKind(ts: (Omit<Task, 'kind'> & { kind?: TaskKind })[]): Task[] {
+  return ts.map((t) => ({ ...t, kind: t.kind ?? 'task' }));
+}
 
 /**
  * Phase 1 seed: Akshu's real ventures and a representative day, mirroring the
@@ -51,7 +56,7 @@ export function makeInitialState(): TodayState {
     fixedBlocks: [
       { id: 'sleep', label: 'Sleep', minutes: 420, color: '#94a3b8' },
     ],
-    tasks: [
+    tasks: withKind([
       {
         id: 't1',
         title: 'Prepare Python Batch 4 — Functions & Scope',
@@ -165,7 +170,36 @@ export function makeInitialState(): TodayState {
         dueAt: keyShift(3) + 'T12:00:00',
         deadlineType: 'soft',
       },
-    ],
+      // Chore session block + a few demo chores for the Chores card.
+      {
+        id: 'chore-session',
+        title: 'Chores',
+        areaId: '',
+        kind: 'chore_session',
+        status: 'not_started',
+        estimateMinutes: 60,
+        source: 'manual',
+        deferredCount: 0,
+        loggedMinutes: 0,
+        createdAt: today + 'T08:00:00',
+        day: today,
+      },
+      {
+        id: 'chore-1', title: 'Reply to Zubin on WhatsApp', areaId: 'zuma', kind: 'chore',
+        status: 'not_started', estimateMinutes: 5, source: 'manual', deferredCount: 0,
+        loggedMinutes: 0, createdAt: today + 'T08:00:00', day: today,
+      },
+      {
+        id: 'chore-2', title: 'Send fee receipt to franchise partner', areaId: 'develearn', kind: 'chore',
+        status: 'not_started', estimateMinutes: 10, source: 'manual', deferredCount: 0,
+        loggedMinutes: 0, createdAt: today + 'T08:00:00', day: today,
+      },
+      {
+        id: 'chore-3', title: 'Approve leave request', areaId: 'next', kind: 'chore',
+        status: 'done', estimateMinutes: 5, source: 'manual', deferredCount: 0,
+        loggedMinutes: 0, createdAt: today + 'T08:00:00', completedAt: today + 'T09:10:00', day: today,
+      },
+    ]),
     interruptions: [
       {
         id: 'i1',

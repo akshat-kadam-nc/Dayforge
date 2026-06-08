@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { TaskModel, TASK_STATUSES, TASK_SOURCES, DEADLINE_TYPES } from '../models/Task.js';
+import { TaskModel, TASK_STATUSES, TASK_SOURCES, DEADLINE_TYPES, TASK_KINDS } from '../models/Task.js';
 import { asyncHandler, HttpError } from '../middleware/error.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requireDb } from '../middleware/requireDb.js';
@@ -13,7 +13,10 @@ tasksRouter.use(requireDb, requireAuth);
 
 const taskInput = z.object({
   title: z.string().min(1),
-  areaId: z.string().min(1),
+  // Optional at the schema level so a cross-area chore_session can omit it; the
+  // create route enforces it for every other kind.
+  areaId: z.string().min(1).optional(),
+  kind: z.enum(TASK_KINDS).optional(),
   trackId: z.string().optional(),
   goalId: z.string().optional(),
   status: z.enum(TASK_STATUSES).optional(),
@@ -41,6 +44,9 @@ tasksRouter.post(
   '/',
   asyncHandler(async (req, res) => {
     const data = taskInput.parse(req.body);
+    if (data.kind !== 'chore_session' && !data.areaId) {
+      throw new HttpError(400, 'areaId is required');
+    }
     const task = await TaskModel.create({
       ...data,
       day: normaliseDay(data.day),

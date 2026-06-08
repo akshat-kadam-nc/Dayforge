@@ -16,11 +16,19 @@ export const TASK_STATUSES = [
 
 export const TASK_SOURCES = ['manual', 'calendar', 'recurring'] as const;
 export const DEADLINE_TYPES = ['soft', 'hard'] as const;
+/**
+ * `task` is a normal estimated task. `chore` is a small (5/10/15-min) end-of-day
+ * item tackled in a batch. `chore_session` is the single timed block per day the
+ * chores are worked within (its loggedMinutes is the day's Chores budget block).
+ */
+export const TASK_KINDS = ['task', 'chore', 'chore_session'] as const;
 
 const taskSchema = new Schema(
   {
     userId: { type: Types.ObjectId, ref: 'User', required: true, index: true },
-    areaId: { type: Types.ObjectId, ref: 'LifeArea', required: true, index: true },
+    // Required for tasks/chores; chore_session is cross-area so it carries none.
+    areaId: { type: Types.ObjectId, ref: 'LifeArea', index: true },
+    kind: { type: String, enum: TASK_KINDS, default: 'task', index: true },
     trackId: { type: Types.ObjectId, ref: 'FunctionTrack' },
     goalId: { type: Types.ObjectId, ref: 'Goal' },
     title: { type: String, required: true, trim: true },

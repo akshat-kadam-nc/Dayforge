@@ -11,6 +11,16 @@ export type DeadlineType = 'soft' | 'hard';
 /** How a task entered the day. */
 export type TaskSource = 'manual' | 'calendar' | 'recurring';
 
+/**
+ * `task` = normal estimated work. `chore` = a small end-of-day item (5/10/15
+ * min) batched in the Chores card. `chore_session` = the single timed block the
+ * chores are worked within; its logged time is the day's Chores budget block.
+ */
+export type TaskKind = 'task' | 'chore' | 'chore_session';
+
+/** Allowed minute estimates for a chore. Anything larger should be a task. */
+export const CHORE_ESTIMATES = [5, 10, 15] as const;
+
 export type BudgetScope = 'day' | 'week' | 'month';
 
 /** Budget totals over some window; shared by scope summaries and reconciliations. */
@@ -82,7 +92,10 @@ export interface FunctionTrack {
 export interface Task {
   id: string;
   title: string;
+  /** Empty for a chore_session (cross-area). Required for tasks and chores. */
   areaId: string;
+  /** Defaults to 'task'. See TaskKind. */
+  kind: TaskKind;
   trackId?: string;
   status: TaskStatus;
   /** Planned minutes. */

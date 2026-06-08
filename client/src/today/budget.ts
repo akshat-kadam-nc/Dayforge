@@ -42,6 +42,36 @@ export function todaysTasks(state: TodayState): Task[] {
   return state.tasks.filter((t) => t.day === state.day);
 }
 
+/** Today's tasks that count toward the per-area budget: normal tasks only.
+ *  Chores roll up into a single Chores block via the chore_session, so the
+ *  individual chores and the session itself are excluded here. */
+export function budgetTasks(state: TodayState): Task[] {
+  return todaysTasks(state).filter((t) => t.kind === 'task');
+}
+
+/** Today's chores (the small batched items), open and done. */
+export function todayChores(state: TodayState): Task[] {
+  return todaysTasks(state).filter((t) => t.kind === 'chore');
+}
+
+/** The single chore-session block for the shown day, if one exists. */
+export function choreSession(state: TodayState): Task | undefined {
+  return todaysTasks(state).find((t) => t.kind === 'chore_session');
+}
+
+export const CHORES_COLOR = '#14b8a6';
+
+/** Planned minutes set aside for chores (the session's estimate). */
+export function choresPlannedMinutes(state: TodayState): number {
+  return choreSession(state)?.estimateMinutes ?? 0;
+}
+
+/** Time actually spent on chores = the session's logged minutes + live run. */
+export function choresLoggedMinutes(state: TodayState): number {
+  const s = choreSession(state);
+  return s ? taskLoggedMinutes(state, s) : 0;
+}
+
 /** Local YYYY-MM-DD for an ISO timestamp (matches day-key convention). */
 function localDayOf(iso: string): string {
   const d = new Date(iso);
@@ -53,25 +83,30 @@ function localDayOf(iso: string): string {
 export function completedTodayTasks(state: TodayState): Task[] {
   return state.tasks.filter(
     (t) =>
+      t.kind === 'task' &&
       t.status === 'done' &&
       (t.completedAt ? localDayOf(t.completedAt) === state.day : t.day === state.day),
   );
 }
 
-/** Sum of planned estimates across all of today's tasks. */
+/** Sum of planned estimates across today's tasks plus the chores block. */
 export function allocatedMinutes(state: TodayState): number {
-  return todaysTasks(state).reduce((sum, t) => sum + t.estimateMinutes, 0);
+  return budgetTasks(state).reduce((sum, t) => sum + t.estimateMinutes, 0) + choresPlannedMinutes(state);
 }
 
 export function allocatedForArea(state: TodayState, areaId: string): number {
-  return todaysTasks(state)
+  return budgetTasks(state)
     .filter((t) => t.areaId === areaId)
     .reduce((sum, t) => sum + t.estimateMinutes, 0);
 }
 
-/** Logged time across today's tasks (committed per-task minutes + any live runs). */
+/** Logged time across today's tasks (committed per-task minutes + any live runs)
+ *  plus the chore session's logged time. */
 export function loggedMinutes(state: TodayState): number {
-  return todaysTasks(state).reduce((sum, t) => sum + taskLoggedMinutes(state, t), 0);
+  return (
+    budgetTasks(state).reduce((sum, t) => sum + taskLoggedMinutes(state, t), 0) +
+    choresLoggedMinutes(state)
+  );
 }
 
 /** Net minutes gained (finished under estimate) minus lost (over) across tasks
@@ -132,10 +167,14 @@ export function ringSegments(state: TodayState): Segment[] {
     .filter((e) => e.deduct && !e.allDay && e.durationMinutes > 0)
     .map((e) => ({ id: `cal:${e.id}`, label: e.title, minutes: e.durationMinutes, color: e.color }));
   const interrupt = interruptedMinutes(state);
+  const chores = choresPlannedMinutes(state);
   return [
     ...fixed,
     ...calendar,
     ...areaSegments(state),
+    ...(chores > 0
+      ? [{ id: 'chores', label: 'Chores', minutes: chores, color: CHORES_COLOR }]
+      : []),
     ...(interrupt > 0
       ? [{ id: 'interruptions', label: 'Interruptions', minutes: interrupt, color: INTERRUPT_COLOR }]
       : []),
