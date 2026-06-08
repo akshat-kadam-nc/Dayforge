@@ -23,14 +23,15 @@ services:
       # Signed once by Render and kept stable across deploys.
       - key: JWT_SECRET
         generateValue: true
-      # Fill these in the dashboard:
+      # Served on a custom subdomain (added in Settings → Custom Domains).
+      - key: CLIENT_ORIGIN
+        value: https://dayforge.akshatkadam.com
+      - key: GOOGLE_REDIRECT_URI
+        value: https://dayforge.akshatkadam.com/api/google/callback
+      # Secrets — fill in the dashboard, never committed:
       - key: MONGODB_URI
-        sync: false
-      - key: CLIENT_ORIGIN # https://<your-service>.onrender.com
         sync: false
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET
-        sync: false
-      - key: GOOGLE_REDIRECT_URI # https://<your-service>.onrender.com/api/google/callback
         sync: false
