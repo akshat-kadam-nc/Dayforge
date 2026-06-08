@@ -5,7 +5,8 @@ Personal time-management web app built with Claude Code for Akshu. MERN + TypeSc
 ## How to resume
 1. Open this repo in Claude Code.
 2. Read this file, then `project-context/` for durable context: `user_akshu.md` (who he is), `feedback_communication_style.md` (**how to write: direct, no em dashes, no filler, no AI-sounding phrasing**), `project_task_manager.md` (full locked feature set + UX), `MEMORY.md`.
-3. `git pull` first — `main` is the cross-machine sync point and is always kept current + pushed.
+3. **Current work is on the `feature/calendar-view` branch, NOT yet merged to `main`.** Check it out first: `git fetch origin && git checkout feature/calendar-view && git pull`. The Calendar view (below) lives only on this branch. `main` is the cross-machine sync point for finished work; merge this branch into `main` once the Calendar is signed off.
+4. Recreate `server/.env` on this machine (gitignored — keys below). Then `npm install && npm run build` to confirm green before changing anything.
 
 ## Run it
 ```
@@ -43,10 +44,26 @@ The API boots without a DB; DB-backed routes return 503 until `MONGODB_URI` is s
 ## Built so far (all on `main`, pushed)
 Scaffold → Phase 1/2 (cockpit + Atlas persistence) → function-track UI → wallpaper picker + real week/month budget scopes → auto-prompted weekly/monthly/half-year **reconciliation** → **Google Calendar** read-only sync (connected, events become budget-deducting fixed blocks, per-series mute) → **routine-based onboarding** (24h start, sleep/commute/work setup) → **timer/logging rework** (per-task loggedMinutes, concurrent multi-strip timers each 1s/sec, Pause / Stop & Complete, complete-with-log options, time gained/lost) → **task scheduling** (Pending/Scheduled buckets, due dates + soft/hard deadlines, future start days, day-crossover auto-reload, Move-to-today) → Completed-today keyed off completedAt.
 
-Latest commits: `d85130c` (completed-today fix), `8da748d` (buckets/due/crossover), `78fcdcd` (multi-strip timer fix).
+Then **Calendar view** (`feature/calendar-view` branch): Day/Week/Month toggle replacing the placeholder. Month is a GCal-style grid (event chips + per-area allocation bar + overflow corner flag + delegation follow-up 👥 dot + completed count); Week is a 7-column day breakdown; Day is a read-only detail hosting **completed-task history** (logged vs estimate), events, and planned tasks. View-aware prev/next nav, Today button, full-width layout. Server: `GET /api/calendar?from=&to=` per-day aggregates (reuses `availableForDay`) + range tasks. Client: `calendar/` module (api/grid/repo seam with demo synthesis), `components/calendar/*`, `styles/calendar.css`. Real-account path needs server/.env to verify against live data.
 
-## Next (not started)
-- **Calendar view** (Day/Week/Month route — currently a placeholder). Should host **completed-task history** (read-only; data already supports it — add a `GET /api/tasks?from=&to=` range endpoint; don't let editing past days mutate closed reconciliation snapshots) and management of scheduled/future + due tasks. This is the priority next piece.
+Latest commits (on `feature/calendar-view`): `4d35fa9` (bigger Month + Week view), `735eea9` (calendar month+day). Base off `main`: `d85130c` (completed-today fix), `8da748d` (buckets/due/crossover).
+
+## Calendar — where things live (for the next two tasks)
+- Page + state: `client/src/pages/CalendarPage.tsx` holds `view` (`day|week|month`), `anchor` (the in-view date), `selectedDay`. It fetches one payload per visible window via `monthGridRange(anchor)` (a 42-day Mon-start window) so Month/Week/Day all read the same data. `step(dir)` already does view-aware prev/next (month/week/day); `goToday()` snaps back.
+- Date helpers: `client/src/calendar/grid.ts` (`monthMatrix`, `monthGridRange`, `weekDays`, `weekRangeLabel`, `shiftMonth`, `addDaysKey`, `allocationSegments`).
+- Views: `client/src/components/calendar/{MonthGrid,WeekView,DayDetail,ViewToggle,CalendarLegend}.tsx`.
+- Data seam: `client/src/calendar/repo.ts` (`apiCalendarRepo` real vs `localCalendarRepo` demo synthesis) + `api.ts` (`getCalendar`). Server: `server/src/routes/calendar.ts` (`GET /api/calendar?from=&to=`).
+
+## Next session tasks (planned by Akshu)
+1. **Calendar period navigation** — extend so the Week/Month scale itself moves forward/back like Google Calendar. The view-aware `step(dir)` + arrows already exist; verify/round out the UX (keyboard arrows, swipe optional, ensure the fetch window follows the anchor smoothly across month boundaries, and that Week nav past a month edge still loads events/aggregates — `monthGridRange` re-derives from the new anchor so refetch happens, but confirm). Make it feel like GCal: smooth, obvious, no dead ends.
+2. **Today page design improvements** — Akshu will provide the specific details at session start. The cockpit is `client/src/pages/TodayPage.tsx` + `client/src/components/today/*`, styled in `client/src/styles/today.css`; reference mockup `mockups/today-v5.html`. Do not start until he gives the details.
+
+## Calendar — known limitations to be aware of
+- **Not yet verified against a real account** — only demo mode (DOM-verified; the preview screenshot tool was timing out on this machine, so checks were via `preview_eval` DOM probes). With `server/.env` set, confirm `/api/calendar` aggregates, per-day availability (routine/workday logic), completed history, and GCal events on a real login.
+- **Google account legend** (`CalendarLegend`) is **visual only** — the per-source on/off toggle isn't wired yet.
+- Demo `localCalendarRepo` synthesises a plausible month from the seed (FNV-1a hash for organic per-day variation); it is illustrative, not real data.
+
+## Other next (not started)
 - **Streak logic** — currently hardcoded `streakDays={12}` in `TodayPage`; derive from activity/reconciliation history.
 - **Recurring tasks** and **manual fixed blocks** (sleep/standing meetings beyond GCal) — still unbuilt.
 - **Goals** and **Team/Delegation** pages are placeholders (locked feature set has full specs in project-context).
