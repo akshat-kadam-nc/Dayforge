@@ -19,10 +19,7 @@ export function TodayHeader({ streakDays }: { streakDays: number }) {
 
   return (
     <header className="t-header">
-      <div className="t-logo">
-        <img className="t-logo-mark" src="/favicon.svg" alt="" />
-        <img className="t-logo-word" src="/brand/wordmark.png" alt="Dayforge" />
-      </div>
+      <div className="t-header-spacer" />
       <div className="t-header-center">
         <div className="t-header-day">{dayLabel(now)}</div>
         <div className="t-header-sub">Week {weekOfYear(now)} · {now.getFullYear()}</div>
