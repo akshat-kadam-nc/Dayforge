@@ -5,7 +5,10 @@
     "rootDir": "src",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "types": ["node"]
+    "types": ["node"],
+    // @types/node hoists to the workspace-root node_modules; list both so tsc
+    // resolves it under Render's Linux workspace layout, not just locally.
+    "typeRoots": ["./node_modules/@types", "../node_modules/@types"]
   },
   "include": ["src"]
 }
