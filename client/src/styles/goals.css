@@ -3,12 +3,12 @@
 .goals-page {
   /* These tokens live under .cockpit; redeclare them since this page sits
      outside the cockpit shell (same values as today.css). */
-  --surface: rgba(255, 255, 255, 0.72);
+  --surface: var(--glass-surface);
   --border: rgba(120, 80, 220, 0.15);
   --shadow: 0 4px 24px rgba(60, 20, 120, 0.12);
   --r: 16px;
   --r-lg: 22px;
-  --blur: blur(20px);
+  --blur: var(--glass-blur);
 
   font-family: 'Nunito', sans-serif;
   color: var(--c-primary);

@@ -1,4 +1,5 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { PHOTO_URL, isPhotoId } from './photos';
 
 export interface WallpaperPreset {
   id: string;
@@ -21,9 +22,18 @@ export const WALLPAPER_PRESETS: WallpaperPreset[] = [
   { id: 'wp-slate', label: 'Slate', section: '🎨 Solid & Minimal' },
 ];
 
-const DEFAULT_WP = 'wp-poke-dusk';
+/** Fresh-user default: a calm photo. Falls back to a gradient if it's missing. */
+const DEFAULT_WP = 'photo:dayforge-wallpaper-10';
+const FALLBACK_WP = 'wp-poke-dusk';
 const WP_KEY = 'axiom_wp';
 const WP_IMG_KEY = 'axiom_wp_image';
+
+/** Resolve a stored wp id to something renderable: a missing photo (e.g. its
+ *  file was removed) degrades to the gradient fallback instead of a blank bg. */
+function resolveWp(wp: string): string {
+  if (isPhotoId(wp) && !PHOTO_URL[wp]) return FALLBACK_WP;
+  return wp;
+}
 
 export interface WallpaperSelection {
   /** Preset id; ignored when `image` is set. */
@@ -48,7 +58,7 @@ const Ctx = createContext<WallpaperCtx | null>(null);
 
 export function WallpaperProvider({ children }: { children: ReactNode }) {
   const [applied, setApplied] = useState<WallpaperSelection>(() => ({
-    wp: localStorage.getItem(WP_KEY) || DEFAULT_WP,
+    wp: resolveWp(localStorage.getItem(WP_KEY) || DEFAULT_WP),
     image: localStorage.getItem(WP_IMG_KEY) || null,
   }));
   const [preview, setPreviewState] = useState<WallpaperSelection | null>(null);

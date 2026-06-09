@@ -28,6 +28,18 @@
   --dur-fast: 120ms;
   --dur: 200ms;
   --dur-slow: 320ms;
+
+  /* Liquid-glass surface system — shared so every page's components read the
+     same over any wallpaper. Page scopes alias --surface/--blur to these. */
+  --glass-surface: rgba(255, 255, 255, 0.80);
+  --glass-surface-strong: rgba(255, 255, 255, 0.9);
+  /* Kept modest: backdrop-filter over a raster photo is far costlier than over a
+     gradient, and the cockpit blurs many elements at once. 14px + light saturate
+     reads as glass without janking on lower-end devices. */
+  --glass-blur: blur(14px) saturate(135%);
+  --glass-edge: rgba(255, 255, 255, 0.55);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --glass-shadow: 0 8px 30px rgba(40, 20, 90, 0.16);
 }
 
 * {
@@ -107,12 +119,12 @@ body {
   position: relative;
   background:
     linear-gradient(160deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 60%),
-    var(--glass);
-  border: 1px solid var(--glass-border);
+    var(--glass-surface);
+  border: 1px solid var(--glass-edge);
   border-radius: var(--radius);
-  box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--glass-shadow), var(--glass-highlight);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   padding: 20px;
 }
 
@@ -352,8 +364,11 @@ input:focus {
   margin: 16px 0;
   padding: 14px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(120, 80, 220, 0.15);
+  background: var(--glass-surface);
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--glass-shadow), var(--glass-highlight);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
 }
 
 .settings-section-head {
@@ -469,6 +484,21 @@ input:focus {
 /* ── Wallpaper presets (full backgrounds) ──
    wp-poke-dusk lives in today.css; the rest are defined here so the wallpaper
    layer and picker (both at app-shell scope) can render them. */
+
+/* Photo wallpaper + readability scrim. The scrim sits above the photo and below
+   all content, giving the glass panes a calmer canvas without washing the image
+   out. Only rendered for image-based backgrounds (see WallpaperLayer). */
+.wp-photo { background-size: cover; background-position: center; }
+.wp-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(125% 100% at 50% 0%, rgba(8, 6, 28, 0.06), transparent 55%),
+    linear-gradient(180deg, rgba(8, 6, 28, 0.12) 0%, rgba(8, 6, 28, 0.04) 32%, rgba(8, 6, 28, 0.20) 100%);
+}
+
 .wp-dbz {
   background: radial-gradient(ellipse 60% 60% at 50% 50%, #fef08a 0%, #facc15 20%, #f97316 45%, #dc2626 70%, #1e1b4b 100%);
 }

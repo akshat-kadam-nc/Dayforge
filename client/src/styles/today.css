@@ -3,7 +3,7 @@
    its own header, scrolling body (main + sidebar), and timer strip. */
 
 .cockpit {
-  --surface: rgba(255, 255, 255, 0.72);
+  --surface: var(--glass-surface);
   --border: rgba(120, 80, 220, 0.15);
   --border-med: rgba(120, 80, 220, 0.22);
   --shadow: 0 4px 24px rgba(60, 20, 120, 0.12);
@@ -18,7 +18,7 @@
   --r: 16px;
   --r-lg: 22px;
   --r-pill: 100px;
-  --blur: blur(20px);
+  --blur: var(--glass-blur);
 
   position: fixed;
   inset: 0 0 var(--nav-h) 0;

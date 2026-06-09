@@ -1,5 +1,6 @@
 import { useRef } from 'react';
-import { WALLPAPER_PRESETS, useWallpaper, type WallpaperPreset } from '../wallpaper/WallpaperContext';
+import { WALLPAPER_PRESETS, useWallpaper } from '../wallpaper/WallpaperContext';
+import { PHOTO_WALLPAPERS } from '../wallpaper/photos';
 import { useToast } from './Toast';
 
 /** Gmail-style slide-in wallpaper picker: live preview on click, apply/cancel. */
@@ -31,6 +32,23 @@ export function WallpaperPicker() {
         <div className="wp-panel-body">
           <p className="wp-hint">Click a wallpaper to preview it instantly. Apply to save.</p>
 
+          {PHOTO_WALLPAPERS.length > 0 && (
+            <div>
+              <p className="wp-section-title">🖼 Photos</p>
+              <div className="wp-grid">
+                {PHOTO_WALLPAPERS.map((p) => (
+                  <Swatch
+                    key={p.id}
+                    label={p.label}
+                    image={p.url}
+                    selected={!active.image && active.wp === p.id}
+                    onSelect={() => setPreview({ wp: p.id, image: null })}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
           {sections.map((section) => (
             <div key={section}>
               <p className="wp-section-title">{section}</p>
@@ -38,7 +56,9 @@ export function WallpaperPicker() {
                 {WALLPAPER_PRESETS.filter((p) => p.section === section).map((p) => (
                   <Swatch
                     key={p.id}
-                    preset={p}
+                    label={p.label}
+                    presetId={p.id}
+                    presetStyle={p.style}
                     selected={!active.image && active.wp === p.id}
                     onSelect={() => setPreview({ wp: p.id, image: null })}
                   />
@@ -78,17 +98,47 @@ export function WallpaperPicker() {
   );
 }
 
-function Swatch({ preset, selected, onSelect }: { preset: WallpaperPreset; selected: boolean; onSelect: () => void }) {
+/** One wallpaper thumbnail. A photo passes `image` (rendered as a cover bg); a
+ *  gradient preset passes `presetId` (→ the `sw-*` class) and optional inline style. */
+function Swatch({
+  label,
+  selected,
+  onSelect,
+  presetId,
+  presetStyle,
+  image,
+}: {
+  label: string;
+  selected: boolean;
+  onSelect: () => void;
+  presetId?: string;
+  presetStyle?: string;
+  image?: string;
+}) {
+  const className = [
+    'wp-swatch',
+    presetId ? `sw-${presetId.replace(/^wp-/, '')}` : '',
+    image ? 'wp-swatch-photo' : '',
+    selected ? 'selected' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+  const style = image
+    ? { backgroundImage: `url(${image})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    : presetStyle
+    ? { background: presetStyle }
+    : undefined;
   return (
     <div
-      className={`wp-swatch sw-${preset.id.replace(/^wp-/, '')}${selected ? ' selected' : ''}`}
-      style={preset.style ? { background: preset.style } : undefined}
+      className={className}
+      style={style}
       onClick={onSelect}
       role="button"
       tabIndex={0}
+      aria-label={label}
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelect()}
     >
-      <div className="wp-swatch-label">{preset.label}</div>
+      <div className="wp-swatch-label">{label}</div>
       <div className="wp-swatch-check">✓</div>
     </div>
   );
