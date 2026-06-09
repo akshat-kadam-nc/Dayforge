@@ -1,6 +1,14 @@
-# Axiom — Resume Here
+# Dayforge — Resume Here
 
-Personal time-management web app built with Claude Code for Akshu. MERN + TypeScript, PWA-first. This file is the catch-up entry point for a fresh session.
+Personal time-management web app built with Claude Code for Akshu. MERN + TypeScript, PWA-first. This file is the catch-up entry point for a fresh session. (Rebranded AXIOM → Dayforge for user-facing strings; internal `axiom` identifiers, localStorage keys, and the Atlas db name are intentionally unchanged.)
+
+## DEPLOYED — LIVE
+- **Prod:** https://dayforge.akshatkadam.com (Render Web Service `dayforge`, also at https://dayforge-hk2e.onrender.com). Single-origin: Express serves `client/dist` + SPA fallback when `SERVE_CLIENT` is on. Free plan → sleeps after ~15 min idle, cold-starts on next request.
+- **Render is Blueprint-connected but FROZEN** on the build command from the first blueprint commit (`npm install && npm run build`); `render.yaml` edits do NOT auto-sync. Build works anyway via a repo-root `.npmrc` (`include=dev`) that forces devDeps to install under `NODE_ENV=production` (else `npm install` prunes tsc + @types/node → TS2688). To change the build command you must manually re-sync the Blueprint.
+- **Atlas:** db `axiom` on cluster `axiom-core.n8aodkh`. Render `MONGODB_URI` must include `/axiom` (no db name → driver lands in `test`, real accounts vanish). Network Access needs `0.0.0.0/0`.
+- **Verified live:** `/api/health` → `{"status":"ok","db":"connected"}`, SPA at `/`, real-account login (`akshat@nextplatforms.in`).
+- **CHORE DEBT (do later):** rotate the Atlas db-user password — shared in plaintext during setup and in chat. Change in Atlas → Database Access, then update `MONGODB_URI` in BOTH Render env and local `server/.env` (keep `@axiom-core.n8aodkh.mongodb.net/axiom?...` identical). Also delete throwaway `deploy-probe@axiom.app` (lives in the `test` db from a mis-set URI during deploy).
+- **STILL TODO for Google on prod:** add `https://dayforge.akshatkadam.com/api/google/callback` as an authorized redirect URI + the origin as a JS origin in Google Cloud (project `axiom-498710`), or Calendar connect fails in prod. `CLIENT_ORIGIN`/`GOOGLE_REDIRECT_URI` are in `render.yaml` but, given the frozen blueprint, confirm they're set in the Render dashboard.
 
 ## How to resume
 1. Open this repo in Claude Code.
