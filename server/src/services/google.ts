@@ -19,7 +19,10 @@ export function buildAuthUrl(state: string): string {
     response_type: 'code',
     scope: SCOPES.join(' '),
     access_type: 'offline', // request a refresh token
-    prompt: 'consent', // force refresh-token issuance on reconnect
+    // select_account forces the chooser so a 2nd/3rd Google account can be added
+    // instead of Google silently reusing the already-authorized one; consent
+    // forces refresh-token issuance on reconnect.
+    prompt: 'select_account consent',
     include_granted_scopes: 'true',
     state,
   });

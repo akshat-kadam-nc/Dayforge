@@ -68,7 +68,8 @@ googleRouter.get(
     let userId: string;
     try {
       userId = verifyToken(state).userId;
-    } catch {
+    } catch (err) {
+      console.error('[google] callback state verify failed', err);
       return back('error');
     }
 
@@ -77,8 +78,10 @@ googleRouter.get(
       const info = await fetchUserInfo(tokens.access_token);
       const count = await GoogleAccountModel.countDocuments({ userId });
       await upsertAccount(userId, info, tokens, ACCOUNT_COLORS[count % ACCOUNT_COLORS.length]);
+      console.log(`[google] connected ${info.email} (sub ${info.sub}) for user ${userId}`);
       return back('connected');
-    } catch {
+    } catch (err) {
+      console.error('[google] callback connect failed for user', userId, err);
       return back('error');
     }
   }),
