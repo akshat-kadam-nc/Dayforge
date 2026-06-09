@@ -1,0 +1,131 @@
+/* Team & Delegation — frosted glass over the wallpaper, matching the cockpit. */
+
+.app-content:has(.team) { max-width: 1320px; }
+
+.team {
+  --surface: rgba(255, 255, 255, 0.72);
+  --t-border: rgba(120, 80, 220, 0.15);
+  --pending: #f59e0b; --pending-soft: rgba(245, 158, 11, 0.13);
+  --progress: #3b82f6;
+  --done: #16a34a;
+  --blocked: #ef4444;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--c-primary);
+}
+
+.team-head { display: flex; align-items: center; justify-content: space-between; }
+.team-title { font-size: 16px; font-weight: 900; }
+.team-add-person {
+  font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer;
+  padding: 7px 14px; border-radius: 100px; border: 1.5px solid var(--border-med);
+  background: rgba(255, 255, 255, 0.6); color: var(--c-secondary);
+}
+.team-add-person:hover { border-color: var(--c-accent); color: var(--c-accent); }
+
+/* Follow-up strip */
+.fu-strip {
+  background: rgba(245, 158, 11, 0.1); border: 1.5px solid rgba(245, 158, 11, 0.35);
+  border-radius: 16px; padding: 10px 14px; display: flex; align-items: center; gap: 12px;
+  flex-wrap: wrap; backdrop-filter: blur(20px);
+}
+.fu-strip-title { font-size: 12.5px; font-weight: 900; color: #b45309; white-space: nowrap; }
+.fu-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.fu-pill {
+  background: rgba(255, 255, 255, 0.75); border: 1.5px solid rgba(245, 158, 11, 0.3);
+  border-radius: 100px; padding: 4px 11px 4px 5px; font-size: 11px; font-weight: 800;
+  color: #92400e; display: flex; align-items: center; gap: 6px; cursor: pointer; max-width: 320px;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.fu-pill.overdue { border-color: rgba(239, 68, 68, 0.4); color: #be123c; }
+.fu-ava { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 900; color: white; flex-shrink: 0; }
+
+/* Controls */
+.team-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.mode-toggle { display: flex; gap: 3px; background: rgba(255, 255, 255, 0.6); border: 1.5px solid var(--border-med); border-radius: 100px; padding: 3px; }
+.mode-toggle button { background: none; border: none; font-family: inherit; font-size: 12px; font-weight: 800; padding: 6px 16px; border-radius: 100px; cursor: pointer; color: var(--c-muted); }
+.mode-toggle button.active { background: var(--c-accent); color: white; }
+.filter-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { background: rgba(255, 255, 255, 0.6); border: 1.5px solid var(--border-med); border-radius: 100px; padding: 5px 13px; font-size: 11.5px; font-weight: 800; color: var(--c-secondary); cursor: pointer; }
+.chip.active { background: rgba(124, 58, 237, 0.12); color: var(--c-accent); border-color: rgba(124, 58, 237, 0.4); }
+.chip.alert { color: #be123c; }
+.chip.alert.active { background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.4); }
+.team-search { margin-left: auto; background: rgba(255, 255, 255, 0.7); border: 1.5px solid var(--border-med); border-radius: 100px; padding: 7px 14px; font: inherit; font-size: 12px; font-weight: 700; color: var(--c-secondary); width: 190px; }
+.team-search:focus { outline: 2px solid rgba(124, 58, 237, 0.4); border-color: transparent; }
+
+.team-loading, .team-empty { padding: 40px 0; text-align: center; }
+.team-empty { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+
+/* By Person: rail + detail */
+.team-split { display: grid; grid-template-columns: 290px 1fr; gap: 14px; align-items: start; }
+
+.people-rail {
+  background: var(--surface); border: 1.5px solid var(--border-med); border-radius: 22px;
+  padding: 8px; backdrop-filter: blur(20px); box-shadow: var(--shadow);
+  display: flex; flex-direction: column; gap: 3px; max-height: calc(100vh - 220px); overflow-y: auto;
+}
+.rail-title { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: var(--c-muted); padding: 8px 10px 4px; }
+.person { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 12px; cursor: pointer; border: none; background: none; font-family: inherit; text-align: left; width: 100%; }
+.person:hover { background: rgba(124, 58, 237, 0.05); }
+.person.selected { background: rgba(124, 58, 237, 0.12); }
+.person-ava { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; color: white; flex-shrink: 0; position: relative; }
+.person-dot { position: absolute; bottom: 0; right: 0; width: 11px; height: 11px; border-radius: 50%; border: 2px solid white; }
+.person-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.person-name { font-size: 13px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--c-primary); }
+.person-role { font-size: 10.5px; color: var(--c-muted); font-weight: 600; }
+.person-counts { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
+.count-open { font-size: 11px; font-weight: 900; color: var(--c-secondary); }
+.count-fu { font-size: 9.5px; font-weight: 800; color: #b45309; background: var(--pending-soft); padding: 1px 6px; border-radius: 100px; }
+.count-fu.none { color: var(--c-muted); background: rgba(0, 0, 0, 0.04); }
+
+.detail { background: var(--surface); border: 1.5px solid var(--border-med); border-radius: 22px; backdrop-filter: blur(20px); box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden; }
+.detail-head { display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-bottom: 1.5px solid var(--t-border); flex-wrap: wrap; }
+.detail-ava { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; color: white; flex-shrink: 0; }
+.detail-id { min-width: 0; }
+.detail-name { font-size: 17px; font-weight: 900; }
+.detail-role { font-size: 12px; color: var(--c-muted); font-weight: 700; }
+.detail-stats { margin-left: auto; display: flex; gap: 8px; }
+.dstat { text-align: center; background: rgba(255, 255, 255, 0.5); border: 1.5px solid var(--t-border); border-radius: 12px; padding: 6px 14px; }
+.dstat-val { font-size: 18px; font-weight: 900; line-height: 1.1; }
+.dstat-lbl { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-muted); }
+.assign-btn { background: var(--c-accent); color: white; border: none; font-family: inherit; font-size: 12px; font-weight: 800; padding: 9px 16px; border-radius: 100px; cursor: pointer; box-shadow: 0 2px 10px rgba(124, 58, 237, 0.35); }
+.detail-edit { background: none; border: 1.5px solid var(--border-med); border-radius: 10px; cursor: pointer; padding: 7px 10px; font-size: 12px; color: var(--c-secondary); }
+
+.deleg-list { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+.deleg-empty { padding: 24px 0; text-align: center; }
+
+/* Delegation row (shared) */
+.deleg-item { display: flex; align-items: center; gap: 12px; background: rgba(255, 255, 255, 0.6); border: 1.5px solid var(--t-border); border-radius: 16px; padding: 11px 14px; }
+.deleg-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.deleg-info { flex: 1; min-width: 0; }
+.deleg-name { font-size: 13px; font-weight: 800; color: var(--c-primary); }
+.deleg-meta { display: flex; align-items: center; gap: 8px; margin-top: 3px; flex-wrap: wrap; }
+.deleg-person { font-size: 11px; font-weight: 800; }
+.deleg-ctx { font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 6px; }
+.deleg-recur { font-size: 10px; font-weight: 800; color: #0369a1; background: rgba(14, 165, 233, 0.12); padding: 2px 8px; border-radius: 6px; }
+.deleg-date { font-size: 10.5px; font-weight: 700; color: var(--c-muted); }
+.deleg-date.overdue { color: #be123c; font-weight: 800; }
+.fu-flag { font-size: 10.5px; font-weight: 800; color: #b45309; background: var(--pending-soft); padding: 4px 10px; border-radius: 100px; white-space: nowrap; }
+.fu-flag.overdue { color: #be123c; background: rgba(239, 68, 68, 0.12); }
+.status-select { font-family: inherit; font-size: 11px; font-weight: 900; padding: 5px 8px; border-radius: 100px; border: 1.5px solid; background: rgba(255, 255, 255, 0.8); cursor: pointer; }
+.deleg-edit, .deleg-del { background: none; border: none; cursor: pointer; font-size: 12px; color: var(--c-muted); padding: 4px; }
+.deleg-edit:hover { color: var(--c-accent); }
+.deleg-del:hover { color: var(--blocked); }
+
+/* By Status board */
+.status-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; align-items: start; }
+.status-col { background: var(--surface); border: 1.5px solid var(--border-med); border-radius: 18px; padding: 10px; backdrop-filter: blur(20px); box-shadow: var(--shadow); }
+.status-col-head { font-size: 12px; font-weight: 900; padding: 4px 6px 10px; display: flex; align-items: center; gap: 7px; }
+.status-dot { width: 9px; height: 9px; border-radius: 50%; }
+.status-col-list { display: flex; flex-direction: column; gap: 8px; }
+.status-col .deleg-item { flex-wrap: wrap; }
+
+/* Modal: two-field row (reuses shared .modal-* from today.css) */
+.modal-row { display: flex; gap: 10px; }
+.modal-row label { flex: 1; }
+
+@media (max-width: 900px) {
+  .team-split { grid-template-columns: 1fr; }
+  .status-board { grid-template-columns: 1fr 1fr; }
+}

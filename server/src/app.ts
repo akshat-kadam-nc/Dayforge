@@ -17,6 +17,7 @@ import { budgetRouter } from './routes/budget.js';
 import { reconciliationsRouter } from './routes/reconciliations.js';
 import { googleRouter } from './routes/google.js';
 import { calendarRouter } from './routes/calendar.js';
+import { teamRouter } from './routes/team.js';
 import { meRouter } from './routes/me.js';
 
 export function createApp() {
@@ -42,6 +43,7 @@ export function createApp() {
   app.use('/api/reconciliations', reconciliationsRouter);
   app.use('/api/google', googleRouter);
   app.use('/api/calendar', calendarRouter);
+  app.use('/api/team', teamRouter);
 
   // Single-origin production: serve the built client and let the SPA handle
   // client-side routes. Unknown /api/* paths still fall through to the error
