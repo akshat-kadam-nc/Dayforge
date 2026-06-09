@@ -12,6 +12,7 @@ import {
 } from '../team/types';
 import { AssignModal } from '../components/team/AssignModal';
 import { PersonModal } from '../components/team/PersonModal';
+import { useToast } from '../components/Toast';
 import '../styles/team.css';
 
 type ViewMode = 'person' | 'status';
@@ -69,6 +70,7 @@ function dueThisWeek(d: Delegation): boolean {
 
 export function TeamPage() {
   const { isGuest } = useAuth();
+  const { toast } = useToast();
   const repo: TeamRepo = useMemo(() => (isGuest ? localTeamRepo : apiTeamRepo), [isGuest]);
 
   const [people, setPeople] = useState<Person[]>([]);
@@ -163,27 +165,33 @@ export function TeamPage() {
     setDelegations((prev) => prev.filter((x) => x.id !== d.id));
     try {
       await repo.deleteDelegation(d.id);
+      toast('Delegation removed', 'info');
     } catch {
       setDelegations((prev) => [...prev, d]);
+      toast('Could not remove delegation', 'error');
     }
   }
   async function saveAssign(editing: Delegation | undefined, input: DelegationInput) {
     if (editing) {
       const updated = await repo.updateDelegation(editing.id, input);
       setDelegations((prev) => prev.map((x) => (x.id === editing.id ? updated : x)));
+      toast('Delegation updated', 'success');
     } else {
       const created = await repo.createDelegation(input);
       setDelegations((prev) => [...prev, created]);
+      toast('Task delegated', 'success');
     }
   }
   async function savePerson(editing: Person | undefined, input: PersonInput) {
     if (editing) {
       const updated = await repo.updatePerson(editing.id, input);
       setPeople((prev) => prev.map((x) => (x.id === editing.id ? updated : x)));
+      toast('Report updated', 'success');
     } else {
       const created = await repo.createPerson(input);
       setPeople((prev) => [...prev, created]);
       setSelectedId(created.id);
+      toast(`${created.name} added`, 'success');
     }
   }
 

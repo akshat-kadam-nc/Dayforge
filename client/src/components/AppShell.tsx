@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { WallpaperLayer } from './WallpaperLayer';
 import { WallpaperPicker } from './WallpaperPicker';
 
@@ -12,11 +12,15 @@ const NAV = [
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const location = useLocation();
   return (
     <div className="app-shell">
       <WallpaperLayer />
       <WallpaperPicker />
-      <main className="app-content">{children}</main>
+      {/* Keyed on the route so each navigation replays the page-enter animation. */}
+      <main className="app-content page-enter" key={location.pathname}>
+        {children}
+      </main>
       <nav className="bottom-nav">
         {NAV.map((item) => (
           <NavLink

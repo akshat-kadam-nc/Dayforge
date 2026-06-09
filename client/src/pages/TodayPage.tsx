@@ -15,6 +15,7 @@ import { TimerStrip } from '../components/today/TimerStrip';
 import { CelebrationLayer } from '../components/today/CelebrationLayer';
 import { Fab } from '../components/today/Fab';
 import { EmptyState } from '../components/today/EmptyState';
+import { CockpitSkeleton } from '../components/Skeleton';
 import '../styles/today.css';
 
 const RAIL_KEY = 'axiom.today.railCollapsed';
@@ -42,9 +43,9 @@ function Cockpit() {
       <TodayHeader streakDays={state.streak} />
 
       <div className={`cockpit-body${railCollapsed ? ' rail-collapsed' : ''}`}>
-        <main className="cockpit-main">
+        <main className={`cockpit-main${!loading && hasAreas ? ' stagger' : ''}`}>
           {loading ? (
-            <div className="cockpit-loading muted">Loading your day…</div>
+            <CockpitSkeleton />
           ) : !hasAreas ? (
             <EmptyState />
           ) : (

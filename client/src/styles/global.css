@@ -101,14 +101,18 @@ body {
   box-shadow: 0 24px 70px rgba(2, 21, 44, 0.45);
 }
 
-/* Glass card */
+/* Glass card — frosted surface with a faint top sheen and layered shadow so it
+   reads as a real pane of glass, not a flat panel. */
 .glass-card {
-  background: var(--glass);
+  position: relative;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 60%),
+    var(--glass);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   padding: 20px;
 }
 
@@ -647,6 +651,147 @@ select:focus:not(:focus-visible),
 [role='button']:focus:not(:focus-visible) {
   outline: none;
 }
+
+/* ── Phase 4: page transitions + list stagger ──────────────────────────────
+   Each route swap replays a soft rise-and-fade; lists cascade their rows in. */
+.page-enter {
+  animation: page-enter var(--dur-slow) var(--ease-out);
+}
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Drop .stagger on a container; direct children fade up in sequence. The
+   delays are short so the whole cascade resolves quickly. */
+.stagger > * {
+  animation: stagger-in var(--dur-slow) var(--ease-out) backwards;
+}
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 45ms; }
+.stagger > *:nth-child(3) { animation-delay: 90ms; }
+.stagger > *:nth-child(4) { animation-delay: 135ms; }
+.stagger > *:nth-child(5) { animation-delay: 180ms; }
+.stagger > *:nth-child(6) { animation-delay: 225ms; }
+.stagger > *:nth-child(7) { animation-delay: 270ms; }
+.stagger > *:nth-child(8) { animation-delay: 315ms; }
+.stagger > *:nth-child(n + 9) { animation-delay: 360ms; }
+@keyframes stagger-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Phase 5: skeletons + toasts ───────────────────────────────────────────
+   Shimmer placeholders keep the layout stable while data loads. */
+.skeleton {
+  display: block;
+  background: linear-gradient(
+    100deg,
+    rgba(120, 90, 220, 0.10) 30%,
+    rgba(120, 90, 220, 0.20) 50%,
+    rgba(120, 90, 220, 0.10) 70%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.3s ease-in-out infinite;
+}
+@keyframes skeleton-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+.cockpit-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: page-enter var(--dur-slow) var(--ease-out);
+}
+.cockpit-skeleton .skel-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.45);
+  border: 1.5px solid var(--border-med);
+}
+.cockpit-skeleton .skel-ring {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.45);
+  border: 1.5px solid var(--border-med);
+}
+.cockpit-skeleton .skel-ring-legend {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Toasts: stack bottom-centre, above the nav, each slides up and auto-dismisses. */
+.toast-viewport {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--nav-h) + 20px);
+  transform: translateX(-50%);
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  pointer-events: none;
+  width: max-content;
+  max-width: 92vw;
+}
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 220px;
+  max-width: 92vw;
+  padding: 11px 12px 11px 14px;
+  border-radius: 14px;
+  background: rgba(28, 20, 56, 0.92);
+  color: #fff;
+  box-shadow: 0 14px 40px rgba(20, 10, 50, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font-size: 13.5px;
+  font-weight: 700;
+  animation: toast-in var(--dur-slow) var(--ease-spring);
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.toast-icon {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 900;
+  color: #fff;
+}
+.toast-success .toast-icon { background: #16a34a; }
+.toast-error .toast-icon { background: #e11d48; }
+.toast-info .toast-icon { background: var(--accent); }
+.toast-msg { flex: 1; line-height: 1.3; }
+.toast-close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+.toast-close:hover { color: #fff; }
 
 /* Respect users who ask for less motion. */
 @media (prefers-reduced-motion: reduce) {

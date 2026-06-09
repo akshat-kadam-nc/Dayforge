@@ -1,9 +1,11 @@
 import { useRef } from 'react';
 import { WALLPAPER_PRESETS, useWallpaper, type WallpaperPreset } from '../wallpaper/WallpaperContext';
+import { useToast } from './Toast';
 
 /** Gmail-style slide-in wallpaper picker: live preview on click, apply/cancel. */
 export function WallpaperPicker() {
   const { active, pickerOpen, closePicker, setPreview, applyPreview } = useWallpaper();
+  const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
 
   if (!pickerOpen) return null;
@@ -60,7 +62,16 @@ export function WallpaperPicker() {
 
         <div className="wp-panel-footer">
           <button type="button" className="wp-cancel-btn" onClick={closePicker}>Cancel</button>
-          <button type="button" className="wp-apply-btn" onClick={applyPreview}>Apply</button>
+          <button
+            type="button"
+            className="wp-apply-btn"
+            onClick={() => {
+              applyPreview();
+              toast('Wallpaper applied', 'success');
+            }}
+          >
+            Apply
+          </button>
         </div>
       </div>
     </div>

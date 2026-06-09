@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from './auth/AuthContext';
 import { AppShell } from './components/AppShell';
+import { ToastProvider } from './components/Toast';
 import { TodayProvider } from './today/useToday';
 import { WallpaperProvider } from './wallpaper/WallpaperContext';
 import { RoutineModal } from './components/RoutineModal';
@@ -13,6 +14,14 @@ import { TeamPage } from './pages/TeamPage';
 import { SettingsPage } from './pages/SettingsPage';
 
 export function App() {
+  return (
+    <ToastProvider>
+      <AppRoutes />
+    </ToastProvider>
+  );
+}
+
+function AppRoutes() {
   const { user, loading } = useAuth();
 
   if (loading) {
