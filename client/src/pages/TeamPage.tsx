@@ -13,6 +13,7 @@ import {
 import { AssignModal } from '../components/team/AssignModal';
 import { PersonModal } from '../components/team/PersonModal';
 import { useToast } from '../components/Toast';
+import { PageEmpty } from '../components/PageEmpty';
 import '../styles/team.css';
 
 type ViewMode = 'person' | 'status';
@@ -276,12 +277,16 @@ export function TeamPage() {
       {loading ? (
         <div className="team-loading muted">Loading your team…</div>
       ) : people.length === 0 ? (
-        <div className="team-empty">
-          <p className="muted">No reports yet. Add the people you delegate work to.</p>
-          <button className="btn" type="button" onClick={() => setPersonModal(true)}>
-            ＋ Add your first report
-          </button>
-        </div>
+        <PageEmpty
+          emoji="👥"
+          title="No reports yet"
+          message="Add the people you delegate work to, then assign and track tasks across your ventures here."
+          action={
+            <button className="btn" type="button" onClick={() => setPersonModal(true)}>
+              ＋ Add your first report
+            </button>
+          }
+        />
       ) : view === 'person' ? (
         <div className="team-split">
           <div className="people-rail">

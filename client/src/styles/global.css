@@ -803,6 +803,21 @@ select:focus:not(:focus-visible),
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Shared zero-data state for full pages (Team, Goals). A visible glass card so
+   an empty page reads clearly instead of looking blank. */
+.page-empty {
+  max-width: 460px;
+  margin: 40px auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.page-empty-emoji { font-size: 40px; }
+.page-empty-title { margin: 0; font-size: 20px; font-weight: 900; color: var(--ink); }
+.page-empty-msg { margin: 0 0 4px; font-size: 13.5px; line-height: 1.5; }
+
 /* Page-level error fallback (ErrorBoundary). Keeps a crash visible + recoverable
    instead of a blank screen. */
 .page-error {

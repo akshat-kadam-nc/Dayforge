@@ -8,6 +8,7 @@ import { buildForest, type RollupMap, type GoalNode } from '../goals/tree';
 import type { GoalInput } from '../goals/api';
 import { GoalTree } from '../components/goals/GoalTree';
 import { GoalModal } from '../components/goals/GoalModal';
+import { PageEmpty } from '../components/PageEmpty';
 import '../styles/today.css';
 import '../styles/goals.css';
 
@@ -104,7 +105,26 @@ export function GoalsPage() {
       {loading ? (
         <p className="muted goals-empty">Loading…</p>
       ) : byArea.length === 0 ? (
-        <p className="muted goals-empty">No goals yet. Create an annual goal and break it down to the week.</p>
+        <PageEmpty
+          emoji="🧭"
+          title="No goals yet"
+          message={
+            areas.length === 0
+              ? 'Set up a life area first (on Today), then create an annual goal and break it down to the week.'
+              : 'Create an annual goal and break it down: half-year → monthly → weekly. Weekly progress tracks your linked tasks.'
+          }
+          action={
+            areas.length > 0 ? (
+              <button
+                type="button"
+                className="btn"
+                onClick={() => setModal({ editing: null, preset: { period: 'annual' }, derived: false })}
+              >
+                ＋ New goal
+              </button>
+            ) : undefined
+          }
+        />
       ) : (
         <div className="goals-areas">
           {byArea.map(({ area, forest }) => (
