@@ -118,11 +118,13 @@
 
 /* Nudges */
 .nudge-row { display: flex; gap: 10px; }
-.nudge { flex: 1; border-radius: var(--r); padding: 10px 14px; display: flex; align-items: center; gap: 9px; font-size: 12.5px; font-weight: 700; backdrop-filter: var(--blur); cursor: pointer; }
+.nudge { flex: 1; border-radius: var(--r); padding: 10px 14px; display: flex; align-items: center; gap: 9px; font-size: 12.5px; font-weight: 700; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); box-shadow: var(--shadow), var(--glass-highlight); cursor: pointer; }
 .nudge-emoji { font-size: 16px; }
 .nudge strong { margin: 0 2px; }
-.nudge-overflow { background: rgba(239,68,68,0.12); border: 1.5px solid rgba(239,68,68,0.35); color: #b91c1c; }
-.nudge-deleg { background: rgba(124,58,237,0.1); border: 1.5px solid rgba(124,58,237,0.3); color: #6d28d9; }
+/* Whitish glass base (like the other cards) with just a tint of the accent
+   colour, so these read clearly over any wallpaper instead of vanishing. */
+.nudge-overflow { background: linear-gradient(rgba(239,68,68,0.10), rgba(239,68,68,0.10)), var(--surface); border: 1.5px solid rgba(239,68,68,0.4); color: #b91c1c; }
+.nudge-deleg { background: linear-gradient(rgba(124,58,237,0.10), rgba(124,58,237,0.10)), var(--surface); border: 1.5px solid rgba(124,58,237,0.4); color: #6d28d9; }
 .nudge-badge { margin-left: auto; background: rgba(124,58,237,0.2); color: #6d28d9; font-size: 11px; font-weight: 900; padding: 2px 8px; border-radius: var(--r-pill); }
 
 /* Card */
@@ -213,7 +215,7 @@
 .scope-range { margin-top: 9px; font-size: 10.5px; font-weight: 800; color: var(--c-muted); letter-spacing: 0.3px; }
 .scope-loading { padding: 18px 4px; font-size: 12.5px; font-weight: 700; color: var(--c-muted); }
 
-.nudge-recon { background: rgba(16,185,129,0.12); border: 1.5px solid rgba(16,185,129,0.35); color: #047857; font-family: inherit; text-align: left; }
+.nudge-recon { background: linear-gradient(rgba(16,185,129,0.10), rgba(16,185,129,0.10)), var(--surface); border: 1.5px solid rgba(16,185,129,0.45); color: #047857; font-family: inherit; text-align: left; }
 
 /* Reconciliation modal */
 .recon-card { max-width: 460px; }

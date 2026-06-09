@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
  * mount and tweens from the previous value on change, so figures feel earned
  * rather than snapping in. Respects prefers-reduced-motion.
  */
-export function useCountUp(target: number, duration = 650): number {
+export function useCountUp(target: number, duration = 1500): number {
   const [value, setValue] = useState(0);
   const fromRef = useRef(0);
   const rafRef = useRef<number | null>(null);
