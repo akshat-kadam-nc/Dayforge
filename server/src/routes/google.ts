@@ -62,20 +62,30 @@ googleRouter.get(
   requireGoogle,
   asyncHandler(async (req, res) => {
     const { code, state } = req.query;
-    const back = (status: string, reason?: string) =>
-      res.redirect(
-        `${env.clientOrigin}/settings?google=${status}` +
-          (reason ? `&greason=${encodeURIComponent(reason.slice(0, 300))}` : ''),
-      );
+    const ok = () => res.redirect(`${env.clientOrigin}/settings?google=connected`);
+    // Render the failure as a plain page that stays put (the SPA redirect flashes
+    // and bounces to home before the reason can be read). TEMP diagnostic.
+    const fail = (reason: string) =>
+      res
+        .status(200)
+        .type('html')
+        .send(
+          `<body style="font:16px/1.5 system-ui;padding:2rem;max-width:40rem;margin:auto">` +
+            `<h2>Google connect failed</h2>` +
+            `<p>Reason:</p><pre style="white-space:pre-wrap;background:#f3f3f3;padding:1rem;border-radius:8px">${
+              reason.replace(/[<&]/g, (c) => (c === '<' ? '&lt;' : '&amp;'))
+            }</pre>` +
+            `<p><a href="${env.clientOrigin}/settings">Back to Settings</a></p></body>`,
+        );
     console.log('[google] callback hit', { hasCode: typeof code === 'string', hasState: typeof state === 'string' });
-    if (typeof code !== 'string' || typeof state !== 'string') return back('error', 'missing code/state');
+    if (typeof code !== 'string' || typeof state !== 'string') return fail('missing code/state');
 
     let userId: string;
     try {
       userId = verifyToken(state).userId;
     } catch (err) {
       console.error('[google] callback state verify failed', err);
-      return back('error', 'state verify failed');
+      return fail('state verify failed');
     }
 
     try {
@@ -84,10 +94,10 @@ googleRouter.get(
       const count = await GoogleAccountModel.countDocuments({ userId });
       await upsertAccount(userId, info, tokens, ACCOUNT_COLORS[count % ACCOUNT_COLORS.length]);
       console.log(`[google] connected ${info.email} (sub ${info.sub}) for user ${userId}`);
-      return back('connected');
+      return ok();
     } catch (err) {
       console.error('[google] callback connect failed for user', userId, err);
-      return back('error', err instanceof Error ? err.message : 'connect failed');
+      return fail(err instanceof Error ? `${err.message}` : 'connect failed');
     }
   }),
 );
