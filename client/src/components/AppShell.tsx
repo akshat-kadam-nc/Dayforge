@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { WallpaperLayer } from './WallpaperLayer';
 import { WallpaperPicker } from './WallpaperPicker';
+import { ErrorBoundary } from './ErrorBoundary';
 
 const NAV = [
   { to: '/', label: 'Today', icon: '🎯', end: true },
@@ -97,9 +98,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </nav>
 
-      {/* Keyed on the route so each navigation replays the page-enter animation. */}
+      {/* Keyed on the route so each navigation replays the page-enter animation.
+          The ErrorBoundary keeps a single page's crash from blanking the whole
+          app — and shows the real error instead of a white screen. */}
       <main className="app-content page-enter" key={location.pathname}>
-        {children}
+        <ErrorBoundary resetKey={location.pathname}>{children}</ErrorBoundary>
       </main>
     </div>
   );
