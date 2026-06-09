@@ -62,15 +62,20 @@ googleRouter.get(
   requireGoogle,
   asyncHandler(async (req, res) => {
     const { code, state } = req.query;
-    const back = (status: string) => res.redirect(`${env.clientOrigin}/settings?google=${status}`);
-    if (typeof code !== 'string' || typeof state !== 'string') return back('error');
+    const back = (status: string, reason?: string) =>
+      res.redirect(
+        `${env.clientOrigin}/settings?google=${status}` +
+          (reason ? `&greason=${encodeURIComponent(reason.slice(0, 300))}` : ''),
+      );
+    console.log('[google] callback hit', { hasCode: typeof code === 'string', hasState: typeof state === 'string' });
+    if (typeof code !== 'string' || typeof state !== 'string') return back('error', 'missing code/state');
 
     let userId: string;
     try {
       userId = verifyToken(state).userId;
     } catch (err) {
       console.error('[google] callback state verify failed', err);
-      return back('error');
+      return back('error', 'state verify failed');
     }
 
     try {
@@ -82,7 +87,7 @@ googleRouter.get(
       return back('connected');
     } catch (err) {
       console.error('[google] callback connect failed for user', userId, err);
-      return back('error');
+      return back('error', err instanceof Error ? err.message : 'connect failed');
     }
   }),
 );

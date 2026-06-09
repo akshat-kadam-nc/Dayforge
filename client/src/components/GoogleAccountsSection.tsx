@@ -28,8 +28,9 @@ export function GoogleAccountsSection({ isGuest }: { isGuest: boolean }) {
     // Surface the result of an OAuth round trip, then clean the URL.
     const params = new URLSearchParams(window.location.search);
     const g = params.get('google');
+    const reason = params.get('greason');
     if (g === 'connected') setBanner('Google Calendar connected.');
-    else if (g === 'error') setBanner('Could not connect that account. Try again.');
+    else if (g === 'error') setBanner(`Could not connect that account.${reason ? ` (${reason})` : ''} Try again.`);
     if (g) window.history.replaceState({}, '', window.location.pathname);
     void refresh();
   }, [isGuest]);
