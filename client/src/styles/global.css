@@ -56,8 +56,8 @@ body {
   padding: 24px;
 }
 
-/* Login backdrop: a randomly-chosen wallpaper with a dark scrim so the glass
-   card and text stay legible over any image. */
+/* Login backdrop: wallpapers cross-fade on a slow timer, under a fixed dark
+   scrim so the glass card and text stay legible over any image. */
 .auth-screen.has-bg {
   position: relative;
   overflow: hidden;
@@ -66,19 +66,33 @@ body {
   position: absolute;
   inset: 0;
   z-index: 0;
+}
+.auth-bg-layer {
+  position: absolute;
+  inset: 0;
   background-size: cover;
   background-position: center;
-  animation: auth-bg-in 1.1s var(--ease-out);
+  opacity: 0;
+  transform: scale(1.04);
+  transition: opacity 1.6s var(--ease-out), transform 9s linear;
 }
-.auth-bg::after {
-  content: '';
+.auth-bg-layer.is-active {
+  opacity: 1;
+  transform: scale(1);
+}
+.auth-scrim {
   position: absolute;
   inset: 0;
   background: linear-gradient(155deg, rgba(2, 21, 44, 0.62), rgba(2, 21, 44, 0.34) 45%, rgba(253, 156, 6, 0.18));
 }
-@keyframes auth-bg-in {
-  from { opacity: 0; transform: scale(1.06); }
-  to { opacity: 1; transform: scale(1); }
+@media (prefers-reduced-motion: reduce) {
+  .auth-bg-layer {
+    transition: opacity 0.4s linear;
+    transform: none;
+  }
+  .auth-bg-layer.is-active {
+    transform: none;
+  }
 }
 .auth-screen.has-bg .auth-card {
   position: relative;

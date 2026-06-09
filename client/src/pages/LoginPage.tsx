@@ -1,9 +1,9 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { ApiError } from '../api/client';
 
 // Every image dropped in src/assets/login is bundled and eligible as a login
-// backdrop — no manifest to maintain. One is chosen at random per page load.
+// backdrop — no manifest to maintain. They cross-fade on a slow timer.
 const LOGIN_BGS = Object.values(
   import.meta.glob('../assets/login/*.{jpg,jpeg,png,webp,avif}', {
     eager: true,
@@ -12,11 +12,26 @@ const LOGIN_BGS = Object.values(
   }),
 ) as string[];
 
+const FADE_MS = 9000;
+
 export function LoginPage() {
-  const bg = useMemo(
-    () => (LOGIN_BGS.length ? LOGIN_BGS[Math.floor(Math.random() * LOGIN_BGS.length)] : null),
+  // Randomise the starting frame so two loads rarely open on the same image.
+  const start = useMemo(
+    () => (LOGIN_BGS.length ? Math.floor(Math.random() * LOGIN_BGS.length) : 0),
     [],
   );
+  const [active, setActive] = useState(start);
+
+  useEffect(() => {
+    if (LOGIN_BGS.length < 2) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const id = window.setInterval(
+      () => setActive((i) => (i + 1) % LOGIN_BGS.length),
+      FADE_MS,
+    );
+    return () => window.clearInterval(id);
+  }, []);
+
   const { login, register, continueAsGuest } = useAuth();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
@@ -40,8 +55,19 @@ export function LoginPage() {
   }
 
   return (
-    <div className={`auth-screen${bg ? ' has-bg' : ''}`}>
-      {bg && <div className="auth-bg" style={{ backgroundImage: `url(${bg})` }} />}
+    <div className={`auth-screen${LOGIN_BGS.length ? ' has-bg' : ''}`}>
+      {LOGIN_BGS.length > 0 && (
+        <div className="auth-bg" aria-hidden="true">
+          {LOGIN_BGS.map((src, i) => (
+            <div
+              key={src}
+              className={`auth-bg-layer${i === active ? ' is-active' : ''}`}
+              style={{ backgroundImage: `url(${src})` }}
+            />
+          ))}
+          <div className="auth-scrim" />
+        </div>
+      )}
       <form className="glass-card auth-card" onSubmit={onSubmit}>
         <div className="brand">
           <img className="brand-mark-img" src="/favicon.svg" alt="" />
