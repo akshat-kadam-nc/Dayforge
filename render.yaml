@@ -9,15 +9,10 @@ services:
     plan: free
     # Free web services sleep after ~15 min idle and cold-start on next request.
     region: oregon
-    # npm ci wipes node_modules and installs exactly from the lockfile.
-    # --include=dev keeps devDeps despite NODE_ENV=production. The ls lines are
-    # temporary diagnostics: they print where @types/node actually landed so a
-    # TS2688 ("cannot find type node") can be traced on Render's box.
-    buildCommand: >-
-      npm ci --include=dev &&
-      echo "--- @types at root ---" && ls node_modules/@types 2>&1 | tr '\n' ' ' &&
-      echo "" && echo "--- @types in server ---" && ls server/node_modules/@types 2>&1 | tr '\n' ' ' &&
-      echo "" && npm run build
+    # npm ci installs exactly from the lockfile. .npmrc (include=dev) forces
+    # devDeps to install despite NODE_ENV=production, so tsc + @types are present
+    # at build time — runtime (node dist) only needs `dependencies`.
+    buildCommand: npm ci && npm run build
     startCommand: npm start --workspace server
     healthCheckPath: /api/health
     autoDeploy: true
