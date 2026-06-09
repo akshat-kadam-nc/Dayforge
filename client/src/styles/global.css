@@ -175,7 +175,8 @@ body {
   padding: 2px 16px 14px;
   min-height: 44px;
 }
-.side-nav.collapsed .side-top { padding: 2px 0 14px; justify-content: center; }
+/* Collapsed: stack the mark over the toggle so the logo stays centred. */
+.side-nav.collapsed .side-top { flex-direction: column; gap: 10px; padding: 2px 0 14px; justify-content: center; }
 .side-mark { width: 30px; height: 30px; flex: none; }
 .side-word { height: 18px; flex: 1; object-fit: contain; object-position: left center; }
 .side-nav.collapsed .side-word { display: none; }
@@ -278,7 +279,7 @@ body {
   .side-nav.collapsed .side-word,
   .side-nav.collapsed .side-lbl,
   .side-nav.collapsed .side-who { display: revert; }
-  .side-nav.collapsed .side-top { padding: 2px 16px 14px; justify-content: flex-start; }
+  .side-nav.collapsed .side-top { flex-direction: row; padding: 2px 16px 14px; justify-content: flex-start; }
   .side-nav.collapsed .side-items { padding: 8px 12px; align-items: stretch; }
   .side-nav.collapsed .side-item { width: auto; padding: 0 13px; justify-content: flex-start; }
   .side-nav.collapsed .side-foot { padding: 10px 16px 2px; justify-content: flex-start; }
