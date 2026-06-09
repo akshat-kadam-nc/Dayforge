@@ -12,6 +12,7 @@ import { CompletedFold } from '../components/today/CompletedFold';
 import { GoalsSidebar } from '../components/today/GoalsSidebar';
 import { ChoresCard } from '../components/today/ChoresCard';
 import { TimerStrip } from '../components/today/TimerStrip';
+import { CelebrationLayer } from '../components/today/CelebrationLayer';
 import { Fab } from '../components/today/Fab';
 import { EmptyState } from '../components/today/EmptyState';
 import '../styles/today.css';
@@ -93,6 +94,7 @@ function Cockpit() {
       </div>
 
       <TimerStrip />
+      <CelebrationLayer />
       <Fab />
     </div>
   );

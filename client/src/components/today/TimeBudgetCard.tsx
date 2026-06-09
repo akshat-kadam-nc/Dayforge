@@ -12,6 +12,7 @@ import {
   type Segment,
 } from '../../today/budget';
 import { formatMinutes } from '../../today/format';
+import { useCountUp } from '../../today/useCountUp';
 
 const SCOPES: BudgetScope[] = ['day', 'week', 'month'];
 const FREE_COLOR = 'rgba(148,163,184,0.4)';
@@ -62,10 +63,10 @@ function DayBudget() {
   return (
     <>
       <div className="budget-stats">
-        <Stat value={formatMinutes(effectiveAvailable(state))} label="Available" />
-        <Stat value={formatMinutes(allocatedMinutes(state))} label="Allocated" color="var(--warning)" />
-        <Stat value={formatMinutes(interruptedMinutes(state))} label="Interrupted" color="var(--fire)" />
-        <Stat value={formatMinutes(loggedMinutes(state))} label="Logged" color="var(--success)" />
+        <Stat minutes={effectiveAvailable(state)} label="Available" />
+        <Stat minutes={allocatedMinutes(state)} label="Allocated" color="var(--warning)" />
+        <Stat minutes={interruptedMinutes(state)} label="Interrupted" color="var(--fire)" />
+        <Stat minutes={loggedMinutes(state)} label="Logged" color="var(--success)" />
       </div>
       <BudgetBar segments={pcts} />
       <SegmentLabels segments={segments} />
@@ -111,10 +112,10 @@ function ScopedBudget() {
   return (
     <>
       <div className="budget-stats">
-        <Stat value={formatMinutes(sum.availableMinutes)} label="Available" />
-        <Stat value={formatMinutes(sum.allocated)} label="Allocated" color="var(--warning)" />
-        <Stat value={formatMinutes(sum.interrupted)} label="Interrupted" color="var(--fire)" />
-        <Stat value={formatMinutes(sum.logged)} label="Logged" color="var(--success)" />
+        <Stat minutes={sum.availableMinutes} label="Available" />
+        <Stat minutes={sum.allocated} label="Allocated" color="var(--warning)" />
+        <Stat minutes={sum.interrupted} label="Interrupted" color="var(--fire)" />
+        <Stat minutes={sum.logged} label="Logged" color="var(--success)" />
       </div>
       <BudgetBar segments={pcts} />
       <SegmentLabels segments={segments} hideMinutesFor={['free']} />
@@ -148,10 +149,11 @@ function SegmentLabels({ segments, hideMinutesFor = ['untracked'] }: { segments:
   );
 }
 
-function Stat({ value, label, color }: { value: string; label: string; color?: string }) {
+function Stat({ minutes, label, color }: { minutes: number; label: string; color?: string }) {
+  const animated = useCountUp(minutes);
   return (
     <div className="stat-pill">
-      <span className="stat-pill-val" style={color ? { color } : undefined}>{value}</span>
+      <span className="stat-pill-val" style={color ? { color } : undefined}>{formatMinutes(animated)}</span>
       <span className="stat-pill-lbl">{label}</span>
     </div>
   );

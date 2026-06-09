@@ -3,6 +3,7 @@ import { useToday } from '../../today/useToday';
 import type { Task } from '../../today/types';
 import { formatClock, formatMinutes } from '../../today/format';
 import { isRunning, taskLoggedSeconds } from '../../today/budget';
+import { fireCelebration } from '../../today/celebrate';
 import { PortalMenu } from './PortalMenu';
 
 export function TaskRow({ task }: { task: Task }) {
@@ -29,6 +30,11 @@ export function TaskRow({ task }: { task: Task }) {
   const [customMin, setCustomMin] = useState(task.estimateMinutes || 30);
   const kebabRef = useRef<HTMLButtonElement>(null);
   const checkRef = useRef<HTMLButtonElement>(null);
+
+  /** Fire the reward burst with time gained vs plan for the chosen logging. */
+  function celebrate(loggedEff: number) {
+    fireCelebration({ title: task.title, gained: task.estimateMinutes - loggedEff });
+  }
 
   const schedule = task.scheduledAt ? `${task.scheduledAt} · ` : '';
 
@@ -110,7 +116,7 @@ export function TaskRow({ task }: { task: Task }) {
               className="play-btn stop-complete"
               aria-label="Stop and complete"
               title="Stop & complete"
-              onClick={() => actions.stopComplete(task.id)}
+              onClick={() => { celebrate(Math.round(loggedSecs / 60)); actions.stopComplete(task.id); }}
             >
               ⏹
             </button>
@@ -162,7 +168,7 @@ export function TaskRow({ task }: { task: Task }) {
         <div className="pm-label">Log time for this task</div>
         <button
           type="button"
-          onClick={() => { actions.completeWithLog(task.id, 'allocated'); setCompleteOpen(false); }}
+          onClick={() => { celebrate(task.estimateMinutes); actions.completeWithLog(task.id, 'allocated'); setCompleteOpen(false); }}
         >
           ✓ Log allocated ({formatMinutes(task.estimateMinutes)})
         </button>
@@ -177,14 +183,14 @@ export function TaskRow({ task }: { task: Task }) {
           />
           <button
             type="button"
-            onClick={() => { actions.completeWithLog(task.id, 'custom', customMin); setCompleteOpen(false); }}
+            onClick={() => { celebrate(customMin); actions.completeWithLog(task.id, 'custom', customMin); setCompleteOpen(false); }}
           >
             Log custom
           </button>
         </div>
         <button
           type="button"
-          onClick={() => { actions.completeWithLog(task.id, 'none'); setCompleteOpen(false); }}
+          onClick={() => { celebrate(task.loggedMinutes); actions.completeWithLog(task.id, 'none'); setCompleteOpen(false); }}
         >
           ∅ Don't log time
         </button>

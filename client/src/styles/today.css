@@ -542,3 +542,50 @@
 
 .sidebar-add:hover { transform: scale(1.15); }
 .chore-add-btn:hover:not(:disabled) { transform: translateY(-1px) scale(1.05); }
+
+/* ── Phase 3: data-viz draw-in + completion reward ── */
+
+/* Allocation ring draws itself in, then re-tweens as the day changes. */
+.ring-anim { transform-origin: 64px 64px; animation: ring-in var(--dur-slow) var(--ease-spring); }
+@keyframes ring-in { from { opacity: 0; transform: scale(0.72) rotate(-10deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
+.ring-seg { transition: stroke-dasharray var(--dur-slow) var(--ease-out), stroke-dashoffset var(--dur-slow) var(--ease-out); }
+
+/* Budget bar grows from the left on load; segments retween on change. */
+.budget-bar-fill { transform-origin: left center; animation: bar-grow var(--dur-slow) var(--ease-out); }
+@keyframes bar-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.budget-seg { transition: width var(--dur-slow) var(--ease-out); }
+
+/* Completing a task is the core reward moment. The row jumps into the
+   Completed fold immediately, so the reward is a floating badge that pops in,
+   drifts up, and fades. */
+.celebrate-layer { position: fixed; top: 18%; left: 0; right: 0; z-index: 60; display: flex; justify-content: center; pointer-events: none; }
+.celebrate-badge {
+  display: flex; align-items: center; gap: 12px;
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+  color: white; padding: 12px 20px 12px 14px; border-radius: 100px;
+  box-shadow: 0 14px 40px rgba(22,163,74,0.45), 0 0 0 6px rgba(34,197,94,0.12);
+  animation: celebrate-pop 1.8s var(--ease-out) forwards;
+}
+.celebrate-check {
+  width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.25);
+  display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900;
+  animation: check-pop 700ms var(--ease-spring);
+}
+@keyframes check-pop { 0% { transform: scale(0.2); } 55% { transform: scale(1.35); } 100% { transform: scale(1); } }
+.celebrate-text { display: flex; flex-direction: column; line-height: 1.2; }
+.celebrate-headline { font-size: 14px; font-weight: 900; }
+.celebrate-title { font-size: 11px; font-weight: 700; opacity: 0.85; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@keyframes celebrate-pop {
+  0% { opacity: 0; transform: translateY(14px) scale(0.85); }
+  12% { opacity: 1; transform: translateY(0) scale(1); }
+  78% { opacity: 1; transform: translateY(-6px) scale(1); }
+  100% { opacity: 0; transform: translateY(-26px) scale(0.98); }
+}
+
+/* Strikethrough sweeps across a completed task name rather than snapping. */
+.task-name.done { transition: color var(--dur) var(--ease-out); }
+
+/* Timer strips slide up as a task starts running. */
+.timer-strip { animation: strip-in var(--dur) var(--ease-out); }
+@keyframes strip-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.task-item.running-row { transition: background var(--dur) var(--ease-out); }
