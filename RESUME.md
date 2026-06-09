@@ -77,10 +77,12 @@ The Goals page is built and verified in demo + against the real account.
 - Date helpers: `client/src/calendar/grid.ts` (`monthMatrix`, `monthGridRange`, `weekDays`, `weekRangeLabel`, `shiftMonth`, `addDaysKey`, `allocationSegments`, `isoWeek`, `monthDiff`, `weekDiff`, `relPhrase`).
 - Views: `client/src/components/calendar/{MonthGrid,WeekView,DayDetail,ViewToggle,CalendarLegend}.tsx`. Data seam: `client/src/calendar/repo.ts` + `api.ts`. Server: `server/src/routes/calendar.ts`.
 
+## Done since deploy (on `main`, deployed)
+- **Streak logic** (commit `1dafafd`) — `streakDays` now derived server-side (`server/src/services/streak.ts`): consecutive days, ending today (or yesterday if today not yet active), with ≥1 completed task (by `completedAt`). Surfaced in `/today` payload → today repo/state → `TodayHeader`; pill hides at 0; demo shows 5. Caveat: day-bucketing uses `completedAt` in the server's TZ (Render=UTC), so late-night-IST completions can land a day off — fine for a badge; revisit with stored user TZ if it matters.
+- **Team/Delegation page** (commit `b922c4e`) — full build, replaced the placeholder. Server: `Person` + `Delegation` models, `/api/team` CRUD (status pending|in_progress|done|blocked, due/follow-up dates, recurrence label, completedAt stamping, person-delete cascades delegations). Client `team/` seam (types/api/repo, mirrors goals pattern) with `localTeamRepo` ~9-person demo seed. `TeamPage`: follow-up-due strip, **By Person** (attention-sorted rail + per-person detail with status-count stats + inline status `<select>`) and **By Status** board, filter chips (overdue/blocked/this week), search, Assign-work + Add-report modals (`components/team/`), `styles/team.css`. **Backend verified live on prod** (create person+delegation, read back, cascade delete). **UI NOT yet visually verified** — couldn't screenshot: a stray process held port 5173 (PID 17436, unkillable from the sandbox). Verify in demo mode or on prod next session. Possible polish: per-person delete confirm, recurring auto-roll, quick-assign from task creation (spec mentions it).
+
 ## Other next (not started)
-- **Streak logic** — currently hardcoded `streakDays={12}` in `TodayPage`; derive from activity/reconciliation history.
 - **Recurring tasks** and **manual fixed blocks** (sleep/standing meetings beyond GCal) — still unbuilt.
-- **Team/Delegation** page is still a placeholder (locked spec in project-context; `team.html` mockup exists).
 - **Google account legend** (`CalendarLegend`) is visual only — per-source on/off toggle not wired.
 - Chores: a completed carried-over chore disappears (belongs to a past day, not shown in today's "done"). Acceptable; revisit if Akshu wants completed carry-overs to read as done-today. Per-chore area is stored but not yet attributed in "today by area".
 
