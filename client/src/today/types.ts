@@ -216,4 +216,6 @@ export interface TodayState {
   day: string;
   /** Discretionary minutes available today after fixed blocks. */
   availableMinutes: number;
+  /** Consecutive days (ending today/yesterday) with at least one completed task. */
+  streak: number;
 }

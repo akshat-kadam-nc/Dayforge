@@ -38,7 +38,7 @@ function Cockpit() {
 
   return (
     <div className="cockpit">
-      <TodayHeader streakDays={12} />
+      <TodayHeader streakDays={state.streak} />
 
       <div className={`cockpit-body${railCollapsed ? ' rail-collapsed' : ''}`}>
         <main className="cockpit-main">

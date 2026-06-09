@@ -28,7 +28,7 @@ export function TodayHeader({ streakDays }: { streakDays: number }) {
         <div className="t-header-sub">Week {weekOfYear(now)} · {now.getFullYear()}</div>
       </div>
       <div className="t-header-right">
-        <div className="streak-pill">🔥 {streakDays}-day streak</div>
+        {streakDays > 0 && <div className="streak-pill">🔥 {streakDays}-day streak</div>}
         <button className="wp-btn" type="button" onClick={openPicker}>🎨 Wallpaper</button>
         <div className="t-avatar">{initial}</div>
       </div>

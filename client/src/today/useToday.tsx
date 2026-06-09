@@ -51,6 +51,7 @@ function emptyState(): TodayState {
     calendarEvents: [],
     day: todayKey(),
     availableMinutes: 360,
+    streak: 0,
   };
 }
 

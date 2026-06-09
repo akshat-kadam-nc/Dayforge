@@ -58,6 +58,7 @@ export interface TodaySlices {
   fixedBlocks: { id: string; label: string; minutes: number; color: string }[];
   availableMinutes: number;
   day: string;
+  streak: number;
 }
 
 export interface CreateTaskInput {
@@ -129,6 +130,7 @@ export const localRepo: TodayRepo = {
       fixedBlocks: s.fixedBlocks,
       availableMinutes: s.availableMinutes,
       day: s.day,
+      streak: 5, // demo: a plausible run so the streak pill is visible
     };
   },
   async createArea(input) {
@@ -315,6 +317,7 @@ export const apiRepo: TodayRepo = {
       tasks: (ServerDoc & Record<string, unknown>)[];
       interruptions: (ServerDoc & Record<string, unknown>)[];
       logs: (ServerDoc & Record<string, unknown>)[];
+      streak?: number;
     }>(`/today?day=${encodeURIComponent(day)}`);
     return {
       areas: r.areas.map(mapArea),
@@ -326,6 +329,7 @@ export const apiRepo: TodayRepo = {
       fixedBlocks: [],
       availableMinutes: r.availableMinutes,
       day: r.day ?? day,
+      streak: r.streak ?? 0,
     };
   },
   async createArea(input) {

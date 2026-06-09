@@ -267,5 +267,6 @@ export function makeInitialState(): TodayState {
     calendarEvents: [],
     day: today,
     availableMinutes: 360, // 6h discretionary today
+    streak: 5, // demo: a plausible run so the streak pill is visible
   };
 }

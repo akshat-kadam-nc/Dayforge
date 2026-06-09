@@ -11,6 +11,7 @@ import { requireAuth } from '../middleware/auth.js';
 import { requireDb } from '../middleware/requireDb.js';
 import { normaliseDay } from '../util/day.js';
 import { availableForDay } from '../services/availability.js';
+import { computeStreak } from '../services/streak.js';
 
 export const todayRouter = Router();
 todayRouter.use(requireDb, requireAuth);
@@ -34,7 +35,7 @@ todayRouter.get(
       $or: [{ day }, { day: { $ne: day }, status: { $ne: 'done' } }],
     };
 
-    const [user, areas, tracks, goals, tasks, interruptions, logs] = await Promise.all([
+    const [user, areas, tracks, goals, tasks, interruptions, logs, streak] = await Promise.all([
       UserModel.findById(userId),
       LifeAreaModel.find({ userId }).sort({ order: 1, createdAt: 1 }),
       FunctionTrackModel.find({ userId }).sort({ createdAt: 1 }),
@@ -42,11 +43,13 @@ todayRouter.get(
       TaskModel.find(taskFilter).sort({ createdAt: 1 }),
       InterruptionModel.find({ userId, day }).sort({ createdAt: 1 }),
       TimeLogModel.find({ userId, day }).sort({ createdAt: 1 }),
+      computeStreak(userId, day),
     ]);
 
     res.json({
       day,
       availableMinutes: availableForDay(user, day),
+      streak,
       areas,
       tracks,
       goals,
