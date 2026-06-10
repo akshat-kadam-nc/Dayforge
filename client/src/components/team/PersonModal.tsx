@@ -8,10 +8,11 @@ export interface PersonModalProps {
   editing?: Person;
   onClose: () => void;
   onSave: (editing: Person | undefined, input: PersonInput) => Promise<void>;
+  onDelete?: (person: Person) => Promise<void>;
 }
 
 /** Add or edit a direct report. */
-export function PersonModal({ editing, onClose, onSave }: PersonModalProps) {
+export function PersonModal({ editing, onClose, onSave, onDelete }: PersonModalProps) {
   const [name, setName] = useState(editing?.name ?? '');
   const [role, setRole] = useState(editing?.role ?? '');
   const [color, setColor] = useState(editing?.color ?? PERSON_COLORS[0]);
@@ -28,6 +29,18 @@ export function PersonModal({ editing, onClose, onSave }: PersonModalProps) {
     }
   }
 
+  async function remove() {
+    if (!editing || !onDelete || busy) return;
+    if (!window.confirm(`Delete ${editing.name}? Their delegated tasks will be removed too.`)) return;
+    setBusy(true);
+    try {
+      await onDelete(editing);
+      onClose();
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
@@ -37,14 +50,14 @@ export function PersonModal({ editing, onClose, onSave }: PersonModalProps) {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Rahul Mehta"
+            placeholder="e.g. Alex Carter"
             autoFocus
             onKeyDown={(e) => e.key === 'Enter' && submit()}
           />
         </label>
         <label>
           Role / context
-          <input value={role} onChange={(e) => setRole(e.target.value)} placeholder="e.g. Lead Dev · Zuma" />
+          <input value={role} onChange={(e) => setRole(e.target.value)} placeholder="e.g. Lead Developer" />
         </label>
         <label>
           Color
@@ -62,6 +75,11 @@ export function PersonModal({ editing, onClose, onSave }: PersonModalProps) {
           </div>
         </label>
         <div className="modal-actions">
+          {editing && onDelete && (
+            <button type="button" className="btn-danger person-delete" onClick={remove} disabled={busy}>
+              Delete
+            </button>
+          )}
           <button type="button" className="btn-ghost" onClick={onClose}>
             Cancel
           </button>

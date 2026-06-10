@@ -8,7 +8,7 @@ const delegationSchema = new Schema(
     userId: { type: Types.ObjectId, ref: 'User', required: true, index: true },
     personId: { type: Types.ObjectId, ref: 'Person', required: true, index: true },
     title: { type: String, required: true, trim: true },
-    /** Optional venture/context tag shown on the ticket, e.g. "Zuma AI". */
+    /** Optional venture/context tag shown on the ticket, e.g. "Marketing". */
     ventureLabel: { type: String, default: '', trim: true },
     ventureColor: { type: String, default: '#7c3aed' },
     status: { type: String, enum: DELEGATION_STATUSES, default: 'pending', index: true },

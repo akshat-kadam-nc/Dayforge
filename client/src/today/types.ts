@@ -81,7 +81,7 @@ export interface LifeArea {
   color: string;
 }
 
-/** A configurable work vertical inside an area (e.g. DeveLearn > Teaching). */
+/** A configurable work vertical inside an area (e.g. Studio > Design). */
 export interface FunctionTrack {
   id: string;
   areaId: string;

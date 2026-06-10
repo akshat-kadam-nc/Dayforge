@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useToday } from '../../today/useToday';
-import type { InterruptionType } from '../../today/types';
+import type { Interruption, InterruptionType } from '../../today/types';
 import { INTERRUPT_ICON } from './InterruptionsBlock';
 
 const TYPES: { type: InterruptionType; label: string }[] = [
@@ -9,28 +9,30 @@ const TYPES: { type: InterruptionType; label: string }[] = [
   { type: 'distraction', label: 'Distraction' },
 ];
 
-/** Logs a one-tap interruption. Logging pauses whatever task is running. */
-export function InterruptModal({ onClose }: { onClose: () => void }) {
+/** Logs a one-tap interruption, or edits an existing one when `editing` is set. */
+export function InterruptModal({ editing, onClose }: { editing?: Interruption; onClose: () => void }) {
   const { actions } = useToday();
-  const [type, setType] = useState<InterruptionType>('fire');
-  const [title, setTitle] = useState('');
-  const [note, setNote] = useState('');
-  const [minutes, setMinutes] = useState(15);
+  const [type, setType] = useState<InterruptionType>(editing?.type ?? 'fire');
+  const [title, setTitle] = useState(editing?.title ?? '');
+  const [note, setNote] = useState(editing?.note ?? '');
+  const [minutes, setMinutes] = useState(editing?.minutes ?? 15);
 
   function submit() {
-    actions.logInterruption({
+    const input = {
       type,
       title: title.trim() || TYPES.find((t) => t.type === type)!.label,
       note: note.trim() || undefined,
       minutes,
-    });
+    };
+    if (editing) void actions.editInterruption(editing.id, input);
+    else void actions.logInterruption(input);
     onClose();
   }
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <h2 className="modal-title">⚡ Log interruption</h2>
+        <h2 className="modal-title">{editing ? '✎ Edit interruption' : '⚡ Log interruption'}</h2>
 
         <div className="int-type-picker">
           {TYPES.map((t) => (
@@ -66,7 +68,7 @@ export function InterruptModal({ onClose }: { onClose: () => void }) {
 
         <div className="modal-actions">
           <button type="button" className="btn-ghost" onClick={onClose}>Cancel</button>
-          <button type="button" className="btn" onClick={submit}>Log it</button>
+          <button type="button" className="btn" onClick={submit}>{editing ? 'Save' : 'Log it'}</button>
         </div>
       </div>
     </div>

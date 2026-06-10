@@ -44,38 +44,38 @@ function isoOffset(days: number): string {
 
 function seed(): TeamData {
   const people: Person[] = [
-    { id: 'p-rahul', name: 'Rahul Mehta', role: 'Lead Dev · Zuma', color: '#3b82f6' },
-    { id: 'p-priya', name: 'Priya Sharma', role: 'BD · Next Platforms', color: '#ec4899' },
-    { id: 'p-amit', name: 'Amit Kulkarni', role: 'Curriculum · DeveLearn', color: '#f97316' },
-    { id: 'p-sneha', name: 'Sneha Patil', role: 'Marketing · Zuma', color: '#8b5cf6' },
-    { id: 'p-karan', name: 'Karan Desai', role: 'Ops · WorkIn', color: '#06b6d4' },
-    { id: 'p-neha', name: 'Neha Joshi', role: 'Admin · DeveLearn', color: '#22c55e' },
-    { id: 'p-vikram', name: 'Vikram Rao', role: 'Product · Next', color: '#f43f5e' },
-    { id: 'p-dev', name: 'Dev Nair', role: 'Dev · Zuma', color: '#a855f7' },
-    { id: 'p-maya', name: 'Maya Iyer', role: 'Teaching · DeveLearn', color: '#d97706' },
+    { id: 'p-rahul', name: 'Alex Carter', role: 'Lead Dev · Nimbus', color: '#3b82f6' },
+    { id: 'p-priya', name: 'Sam Rivera', role: 'BD · Orbit', color: '#ec4899' },
+    { id: 'p-amit', name: 'Jordan Lee', role: 'Curriculum · Academy', color: '#f97316' },
+    { id: 'p-sneha', name: 'Taylor Brooks', role: 'Marketing · Nimbus', color: '#8b5cf6' },
+    { id: 'p-karan', name: 'Morgan Reed', role: 'Ops · Orbit', color: '#06b6d4' },
+    { id: 'p-neha', name: 'Casey Quinn', role: 'Admin · Academy', color: '#22c55e' },
+    { id: 'p-vikram', name: 'Riley Stone', role: 'Product · Orbit', color: '#f43f5e' },
+    { id: 'p-dev', name: 'Jamie Fox', role: 'Dev · Nimbus', color: '#a855f7' },
+    { id: 'p-maya', name: 'Drew Patel', role: 'Teaching · Academy', color: '#d97706' },
   ];
 
-  const zuma = { ventureLabel: 'Zuma AI', ventureColor: '#8b5cf6' };
-  const next = { ventureLabel: 'Next / WorkIn', ventureColor: '#06b6d4' };
-  const dl = { ventureLabel: 'DeveLearn', ventureColor: '#f97316' };
+  const nimbus = { ventureLabel: 'Nimbus AI', ventureColor: '#8b5cf6' };
+  const orbit = { ventureLabel: 'Orbit', ventureColor: '#06b6d4' };
+  const academy = { ventureLabel: 'Academy', ventureColor: '#f97316' };
 
   const delegations: Delegation[] = [
-    { id: 'd1', personId: 'p-rahul', title: 'Fix Play Store policy rejection — re-submit build', ...zuma, status: 'blocked', dueAt: isoOffset(0), followUpAt: isoOffset(-1), recurrence: '' },
-    { id: 'd2', personId: 'p-rahul', title: 'ZumaLM v1.2 — final QA pass before deploy', ...zuma, status: 'in_progress', dueAt: isoOffset(-2), followUpAt: isoOffset(0), recurrence: '' },
-    { id: 'd3', personId: 'p-rahul', title: 'Weekly dev sync report', ...zuma, status: 'in_progress', recurrence: 'Weekly · Fri' },
-    { id: 'd4', personId: 'p-rahul', title: 'Scope MUNKEE animation pipeline — feasibility note', ...zuma, status: 'pending', dueAt: isoOffset(3), recurrence: '' },
-    { id: 'd5', personId: 'p-rahul', title: 'Review WorkIn API integration spec', ...next, status: 'pending', dueAt: isoOffset(5), recurrence: '' },
-    { id: 'd6', personId: 'p-priya', title: 'JICA partnership deck — status update', ...next, status: 'in_progress', dueAt: isoOffset(1), followUpAt: isoOffset(0), recurrence: '' },
-    { id: 'd7', personId: 'p-priya', title: 'Q3 enterprise pipeline review', ...next, status: 'pending', dueAt: isoOffset(6), recurrence: '' },
-    { id: 'd8', personId: 'p-priya', title: 'Follow up on DeveLearn franchise lead', ...dl, status: 'blocked', dueAt: isoOffset(-3), recurrence: '' },
-    { id: 'd9', personId: 'p-amit', title: 'Batch 5 curriculum outline', ...dl, status: 'in_progress', dueAt: isoOffset(2), recurrence: '' },
-    { id: 'd10', personId: 'p-amit', title: 'Grade assessment backlog', ...dl, status: 'pending', dueAt: isoOffset(4), recurrence: '' },
-    { id: 'd11', personId: 'p-sneha', title: 'MUNKEE launch campaign assets', ...zuma, status: 'in_progress', dueAt: isoOffset(2), recurrence: '' },
-    { id: 'd12', personId: 'p-karan', title: 'WorkIn ops handbook v1', ...next, status: 'pending', dueAt: isoOffset(7), recurrence: '' },
-    { id: 'd13', personId: 'p-neha', title: 'Vendor invoices reconciliation', ...dl, status: 'in_progress', recurrence: 'Monthly · 1st' },
-    { id: 'd14', personId: 'p-vikram', title: 'Product roadmap Q3 draft', ...next, status: 'pending', dueAt: isoOffset(8), recurrence: '' },
-    { id: 'd15', personId: 'p-dev', title: 'Migrate auth service to new infra', ...zuma, status: 'in_progress', dueAt: isoOffset(3), recurrence: '' },
-    { id: 'd16', personId: 'p-maya', title: 'Prep Python live session — decorators', ...dl, status: 'pending', dueAt: isoOffset(1), recurrence: '' },
+    { id: 'd1', personId: 'p-rahul', title: 'Fix Play Store policy rejection — re-submit build', ...nimbus, status: 'blocked', dueAt: isoOffset(0), followUpAt: isoOffset(-1), recurrence: '' },
+    { id: 'd2', personId: 'p-rahul', title: 'v1.2 — final QA pass before deploy', ...nimbus, status: 'in_progress', dueAt: isoOffset(-2), followUpAt: isoOffset(0), recurrence: '' },
+    { id: 'd3', personId: 'p-rahul', title: 'Weekly dev sync report', ...nimbus, status: 'in_progress', recurrence: 'Weekly · Fri' },
+    { id: 'd4', personId: 'p-rahul', title: 'Scope mascot animation pipeline — feasibility note', ...nimbus, status: 'pending', dueAt: isoOffset(3), recurrence: '' },
+    { id: 'd5', personId: 'p-rahul', title: 'Review platform API integration spec', ...orbit, status: 'pending', dueAt: isoOffset(5), recurrence: '' },
+    { id: 'd6', personId: 'p-priya', title: 'Partnership deck — status update', ...orbit, status: 'in_progress', dueAt: isoOffset(1), followUpAt: isoOffset(0), recurrence: '' },
+    { id: 'd7', personId: 'p-priya', title: 'Q3 enterprise pipeline review', ...orbit, status: 'pending', dueAt: isoOffset(6), recurrence: '' },
+    { id: 'd8', personId: 'p-priya', title: 'Follow up on partner lead', ...academy, status: 'blocked', dueAt: isoOffset(-3), recurrence: '' },
+    { id: 'd9', personId: 'p-amit', title: 'Cohort 5 curriculum outline', ...academy, status: 'in_progress', dueAt: isoOffset(2), recurrence: '' },
+    { id: 'd10', personId: 'p-amit', title: 'Grade assessment backlog', ...academy, status: 'pending', dueAt: isoOffset(4), recurrence: '' },
+    { id: 'd11', personId: 'p-sneha', title: 'Launch campaign assets', ...nimbus, status: 'in_progress', dueAt: isoOffset(2), recurrence: '' },
+    { id: 'd12', personId: 'p-karan', title: 'Ops handbook v1', ...orbit, status: 'pending', dueAt: isoOffset(7), recurrence: '' },
+    { id: 'd13', personId: 'p-neha', title: 'Vendor invoices reconciliation', ...academy, status: 'in_progress', recurrence: 'Monthly · 1st' },
+    { id: 'd14', personId: 'p-vikram', title: 'Product roadmap Q3 draft', ...orbit, status: 'pending', dueAt: isoOffset(8), recurrence: '' },
+    { id: 'd15', personId: 'p-dev', title: 'Migrate auth service to new infra', ...nimbus, status: 'in_progress', dueAt: isoOffset(3), recurrence: '' },
+    { id: 'd16', personId: 'p-maya', title: 'Prep live session — decorators', ...academy, status: 'pending', dueAt: isoOffset(1), recurrence: '' },
   ];
 
   return { people, delegations };

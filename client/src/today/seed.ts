@@ -6,15 +6,15 @@ function withKind(ts: (Omit<Task, 'kind'> & { kind?: TaskKind })[]): Task[] {
 }
 
 /**
- * Phase 1 seed: Akshu's real ventures and a representative day, mirroring the
- * today-v5 mockup. This is the data the cockpit reads until Phase 2 swaps it
- * for the API. Colors match the locked palette.
+ * Demo seed: a set of sample ventures and a representative day for "Explore in
+ * demo mode". This is the data the cockpit reads in guest mode; real accounts
+ * load their own from the API. Colors match the locked palette.
  */
 
 const AREAS = [
-  { id: 'develearn', name: 'DeveLearn', icon: '📚', color: '#f97316' },
-  { id: 'zuma', name: 'Zuma AI', icon: '🤖', color: '#8b5cf6' },
-  { id: 'next', name: 'Next / WorkIn', icon: '⚡', color: '#06b6d4' },
+  { id: 'academy', name: 'Academy', icon: '📚', color: '#f97316' },
+  { id: 'nimbus', name: 'Nimbus AI', icon: '🤖', color: '#8b5cf6' },
+  { id: 'orbit', name: 'Orbit', icon: '⚡', color: '#06b6d4' },
   { id: 'fitness', name: 'Fitness', icon: '💪', color: '#22c55e' },
   { id: 'brand', name: 'Personal Brand', icon: '✍️', color: '#ec4899' },
 ];
@@ -22,28 +22,28 @@ const AREAS = [
 // Function tracks per area (from the locked spec). Only the ones referenced by
 // seed tasks need distinct colors; the rest inherit sensible defaults.
 const TRACKS = [
-  { id: 'dl-teaching', areaId: 'develearn', name: 'Teaching', color: '#1d4ed8' },
-  { id: 'dl-admin', areaId: 'develearn', name: 'Admin', color: '#475569' },
-  { id: 'dl-leadership', areaId: 'develearn', name: 'Leadership', color: '#7e22ce' },
-  { id: 'zu-product', areaId: 'zuma', name: 'Product', color: '#0891b2' },
-  { id: 'zu-marketing', areaId: 'zuma', name: 'Marketing', color: '#be185d' },
-  { id: 'zu-devmgmt', areaId: 'zuma', name: 'Dev Mgmt', color: '#15803d' },
-  { id: 'zu-strategy', areaId: 'zuma', name: 'Strategy', color: '#b45309' },
-  { id: 'nx-product', areaId: 'next', name: 'Product', color: '#0369a1' },
+  { id: 'dl-teaching', areaId: 'academy', name: 'Teaching', color: '#1d4ed8' },
+  { id: 'dl-admin', areaId: 'academy', name: 'Admin', color: '#475569' },
+  { id: 'dl-leadership', areaId: 'academy', name: 'Leadership', color: '#7e22ce' },
+  { id: 'zu-product', areaId: 'nimbus', name: 'Product', color: '#0891b2' },
+  { id: 'zu-marketing', areaId: 'nimbus', name: 'Marketing', color: '#be185d' },
+  { id: 'zu-devmgmt', areaId: 'nimbus', name: 'Dev Mgmt', color: '#15803d' },
+  { id: 'zu-strategy', areaId: 'nimbus', name: 'Strategy', color: '#b45309' },
+  { id: 'nx-product', areaId: 'orbit', name: 'Product', color: '#0369a1' },
   { id: 'br-content', areaId: 'brand', name: 'Content', color: '#be185d' },
 ];
 
 const GOALS = [
-  // DeveLearn: a full annual → half-year → monthly → weekly chain.
-  { id: 'g-dl-annual', areaId: 'develearn', text: 'Grow DeveLearn to 500 active students', icon: '🏆', pct: 0, color: '#f97316', period: 'annual' as const },
-  { id: 'g-dl-half', areaId: 'develearn', text: 'Reach 200 students by H1', icon: '📈', pct: 0, color: '#f97316', period: 'half_year' as const, parentId: 'g-dl-annual' },
-  { id: 'g-dl-month', areaId: 'develearn', text: 'Run Python Batch 4 end-to-end', icon: '📚', pct: 0, color: '#f97316', period: 'monthly' as const, parentId: 'g-dl-half' },
-  { id: 'g-batch4', areaId: 'develearn', text: 'Batch 4 lesson plan — 6 sessions', icon: '📚', pct: 33, color: '#f97316', period: 'weekly' as const, parentId: 'g-dl-month' },
-  // Zuma: full chain too.
-  { id: 'g-zu-annual', areaId: 'zuma', text: 'Make ZumaLM market-ready', icon: '🚀', pct: 0, color: '#8b5cf6', period: 'annual' as const },
-  { id: 'g-zu-half', areaId: 'zuma', text: 'Land first 10 paying teams', icon: '📈', pct: 0, color: '#8b5cf6', period: 'half_year' as const, parentId: 'g-zu-annual' },
-  { id: 'g-zu-month', areaId: 'zuma', text: 'Ship ZumaLM v1.2 to production', icon: '🤖', pct: 0, color: '#8b5cf6', period: 'monthly' as const, parentId: 'g-zu-half' },
-  { id: 'g-zumalm', areaId: 'zuma', text: 'v1.2 release checklist', icon: '🤖', pct: 70, color: '#8b5cf6', period: 'weekly' as const, parentId: 'g-zu-month' },
+  // Academy: a full annual → half-year → monthly → weekly chain.
+  { id: 'g-dl-annual', areaId: 'academy', text: 'Grow Academy to 500 active students', icon: '🏆', pct: 0, color: '#f97316', period: 'annual' as const },
+  { id: 'g-dl-half', areaId: 'academy', text: 'Reach 200 students by H1', icon: '📈', pct: 0, color: '#f97316', period: 'half_year' as const, parentId: 'g-dl-annual' },
+  { id: 'g-dl-month', areaId: 'academy', text: 'Run Cohort 4 end-to-end', icon: '📚', pct: 0, color: '#f97316', period: 'monthly' as const, parentId: 'g-dl-half' },
+  { id: 'g-batch4', areaId: 'academy', text: 'Cohort 4 lesson plan — 6 sessions', icon: '📚', pct: 33, color: '#f97316', period: 'weekly' as const, parentId: 'g-dl-month' },
+  // Nimbus: full chain too.
+  { id: 'g-zu-annual', areaId: 'nimbus', text: 'Make Nimbus market-ready', icon: '🚀', pct: 0, color: '#8b5cf6', period: 'annual' as const },
+  { id: 'g-zu-half', areaId: 'nimbus', text: 'Land first 10 paying teams', icon: '📈', pct: 0, color: '#8b5cf6', period: 'half_year' as const, parentId: 'g-zu-annual' },
+  { id: 'g-zu-month', areaId: 'nimbus', text: 'Ship Nimbus v1.2 to production', icon: '🤖', pct: 0, color: '#8b5cf6', period: 'monthly' as const, parentId: 'g-zu-half' },
+  { id: 'g-zumalm', areaId: 'nimbus', text: 'v1.2 release checklist', icon: '🤖', pct: 70, color: '#8b5cf6', period: 'weekly' as const, parentId: 'g-zu-month' },
   // Personal Brand: a partial chain (monthly + weekly, no annual above).
   { id: 'g-br-month', areaId: 'brand', text: 'Build a consistent LinkedIn presence', icon: '✍️', pct: 0, color: '#ec4899', period: 'monthly' as const },
   { id: 'g-linkedin', areaId: 'brand', text: 'Publish 3 technical LinkedIn posts', icon: '✍️', pct: 33, color: '#ec4899', period: 'weekly' as const, parentId: 'g-br-month' },
@@ -69,8 +69,8 @@ export function makeInitialState(): TodayState {
     tasks: withKind([
       {
         id: 't1',
-        title: 'Prepare Python Batch 4 — Functions & Scope',
-        areaId: 'develearn',
+        title: 'Prepare Cohort 4 — Functions & Scope',
+        areaId: 'academy',
         trackId: 'dl-teaching',
         status: 'in_progress',
         estimateMinutes: 90,
@@ -84,7 +84,7 @@ export function makeInitialState(): TodayState {
       {
         id: 't2',
         title: 'Review franchise SOP draft v2',
-        areaId: 'develearn',
+        areaId: 'academy',
         trackId: 'dl-admin',
         status: 'not_started',
         estimateMinutes: 45,
@@ -97,7 +97,7 @@ export function makeInitialState(): TodayState {
       {
         id: 't3',
         title: 'Faculty meeting — curriculum alignment',
-        areaId: 'develearn',
+        areaId: 'academy',
         trackId: 'dl-leadership',
         status: 'not_started',
         estimateMinutes: 60,
@@ -110,8 +110,8 @@ export function makeInitialState(): TodayState {
       },
       {
         id: 't4',
-        title: 'MUNKEE science outfit — AI image prompts',
-        areaId: 'zuma',
+        title: 'Mascot science outfit — AI image prompts',
+        areaId: 'nimbus',
         trackId: 'zu-marketing',
         status: 'not_started',
         estimateMinutes: 60,
@@ -124,13 +124,13 @@ export function makeInitialState(): TodayState {
       },
       {
         id: 't5',
-        title: 'Review dev sprint progress — assigned to Rahul',
-        areaId: 'zuma',
+        title: 'Review dev sprint progress — assigned to Alex',
+        areaId: 'nimbus',
         trackId: 'zu-devmgmt',
         status: 'not_started',
         estimateMinutes: 30,
         source: 'manual',
-        delegateName: 'Rahul',
+        delegateName: 'Alex',
         deferredCount: 0,
         loggedMinutes: 0,
         createdAt: '2026-06-08T08:30:00',
@@ -138,8 +138,8 @@ export function makeInitialState(): TodayState {
       },
       {
         id: 't6',
-        title: 'Partner sync with Zubin — ZumaLM roadmap',
-        areaId: 'zuma',
+        title: 'Partner sync — Nimbus roadmap',
+        areaId: 'nimbus',
         trackId: 'zu-strategy',
         status: 'not_started',
         estimateMinutes: 90,
@@ -153,7 +153,7 @@ export function makeInitialState(): TodayState {
       {
         id: 't-pending',
         title: 'Send Q2 investor update (overdue)',
-        areaId: 'zuma',
+        areaId: 'nimbus',
         trackId: 'zu-strategy',
         status: 'not_started',
         estimateMinutes: 60,
@@ -167,8 +167,8 @@ export function makeInitialState(): TodayState {
       },
       {
         id: 't-upcoming',
-        title: 'Prep DeveLearn Batch 5 kickoff',
-        areaId: 'develearn',
+        title: 'Prep Academy Cohort 5 kickoff',
+        areaId: 'academy',
         trackId: 'dl-leadership',
         status: 'not_started',
         estimateMinutes: 75,
@@ -183,12 +183,12 @@ export function makeInitialState(): TodayState {
       // Completed work linked to weekly goals, so the Goals page derives
       // estimate-weighted progress (done-estimate / total-estimate) in demo.
       {
-        id: 'g-batch4-d1', title: 'Batch 4 — Session 1 slides', areaId: 'develearn', trackId: 'dl-teaching',
+        id: 'g-batch4-d1', title: 'Cohort 4 — Session 1 slides', areaId: 'academy', trackId: 'dl-teaching',
         status: 'done', estimateMinutes: 60, source: 'manual', goalId: 'g-batch4', deferredCount: 0,
         loggedMinutes: 72, createdAt: yesterday + 'T09:00:00', completedAt: yesterday + 'T11:00:00', day: yesterday,
       },
       {
-        id: 'g-batch4-d2', title: 'Batch 4 — Session 2 exercises', areaId: 'develearn', trackId: 'dl-teaching',
+        id: 'g-batch4-d2', title: 'Cohort 4 — Session 2 exercises', areaId: 'academy', trackId: 'dl-teaching',
         status: 'done', estimateMinutes: 30, source: 'manual', goalId: 'g-batch4', deferredCount: 0,
         loggedMinutes: 28, createdAt: yesterday + 'T12:00:00', completedAt: yesterday + 'T12:40:00', day: yesterday,
       },
@@ -212,23 +212,23 @@ export function makeInitialState(): TodayState {
         day: today,
       },
       {
-        id: 'chore-1', title: 'Reply to Zubin on WhatsApp', areaId: 'zuma', kind: 'chore',
+        id: 'chore-1', title: 'Reply to client on WhatsApp', areaId: 'nimbus', kind: 'chore',
         status: 'not_started', estimateMinutes: 5, source: 'manual', deferredCount: 0,
         loggedMinutes: 0, createdAt: today + 'T08:00:00', day: today,
       },
       {
-        id: 'chore-2', title: 'Send fee receipt to franchise partner', areaId: 'develearn', kind: 'chore',
+        id: 'chore-2', title: 'Send fee receipt to franchise partner', areaId: 'academy', kind: 'chore',
         status: 'not_started', estimateMinutes: 10, source: 'manual', deferredCount: 0,
         loggedMinutes: 0, createdAt: today + 'T08:00:00', day: today,
       },
       {
-        id: 'chore-3', title: 'Approve leave request', areaId: 'next', kind: 'chore',
+        id: 'chore-3', title: 'Approve leave request', areaId: 'orbit', kind: 'chore',
         status: 'done', estimateMinutes: 5, source: 'manual', deferredCount: 0,
         loggedMinutes: 0, createdAt: today + 'T08:00:00', completedAt: today + 'T09:10:00', day: today,
       },
       {
         // Open chore from yesterday: should carry into today's card.
-        id: 'chore-carry', title: 'Return call to printing vendor', areaId: 'develearn', kind: 'chore',
+        id: 'chore-carry', title: 'Return call to printing vendor', areaId: 'academy', kind: 'chore',
         status: 'not_started', estimateMinutes: 10, source: 'manual', deferredCount: 0,
         loggedMinutes: 0, createdAt: yesterday + 'T15:00:00', day: yesterday,
       },
@@ -237,14 +237,14 @@ export function makeInitialState(): TodayState {
       {
         id: 'i1',
         type: 'fire',
-        title: 'Zuma AI — Play Store review rejection',
+        title: 'App — Play Store review rejection',
         note: 'Had to respond to policy flag immediately',
         minutes: 52,
       },
       {
         id: 'i2',
         type: 'rabbit_hole',
-        title: 'Rabbit hole — WorkIn DB schema rethink',
+        title: 'Rabbit hole — DB schema rethink',
         note: 'Unplanned, pulled away from lesson prep',
         minutes: 38,
       },
@@ -257,7 +257,7 @@ export function makeInitialState(): TodayState {
     ],
     // Some time already logged today (so the cockpit is not empty on load).
     logs: [
-      { taskId: 't1', areaId: 'develearn', minutes: 23 },
+      { taskId: 't1', areaId: 'academy', minutes: 23 },
     ],
     timer: { runs: {} },
     collapsedAreas: {},

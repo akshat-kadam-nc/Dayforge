@@ -76,7 +76,7 @@ export function GoalModal({ areas, goals, editing, preset, derived, onClose, onS
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="e.g. Ship ZumaLM v1.2"
+            placeholder="e.g. Ship v1.2 to production"
             autoFocus
             onKeyDown={(e) => e.key === 'Enter' && submit()}
           />

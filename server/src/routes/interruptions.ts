@@ -40,6 +40,22 @@ interruptionsRouter.post(
   }),
 );
 
+interruptionsRouter.patch(
+  '/:id',
+  asyncHandler(async (req, res) => {
+    const data = interruptionInput.partial().parse(req.body);
+    const patch: Record<string, unknown> = { ...data };
+    if (typeof data.day === 'string') patch.day = normaliseDay(data.day);
+    const interruption = await InterruptionModel.findOneAndUpdate(
+      { _id: req.params.id, userId: req.userId },
+      patch,
+      { new: true },
+    );
+    if (!interruption) throw new HttpError(404, 'Interruption not found');
+    res.json({ interruption });
+  }),
+);
+
 interruptionsRouter.delete(
   '/:id',
   asyncHandler(async (req, res) => {

@@ -107,6 +107,8 @@ export interface TodayRepo {
   deferTask(id: string): Promise<void>;
   deleteTask(id: string): Promise<void>;
   createInterruption(input: CreateInterruptionInput): Promise<Interruption>;
+  updateInterruption(id: string, input: CreateInterruptionInput): Promise<Interruption>;
+  deleteInterruption(id: string): Promise<void>;
   createTimeLog(input: CreateTimeLogInput): Promise<void>;
   loadBudget(scope: BudgetScope, day: string): Promise<BudgetSummary>;
   loadDueReconciliations(day: string): Promise<ReconciliationDue[]>;
@@ -178,6 +180,10 @@ export const localRepo: TodayRepo = {
   async createInterruption(input) {
     return { id: `i${Date.now()}`, ...input };
   },
+  async updateInterruption(id, input) {
+    return { id, ...input };
+  },
+  async deleteInterruption() {},
   async createTimeLog() {},
   async loadDueReconciliations(day) {
     // Demo: surface a single weekly close for the current week, derived from the seed.
@@ -385,6 +391,16 @@ export const apiRepo: TodayRepo = {
       body: JSON.stringify({ ...input, day: todayKey() }),
     });
     return mapInterruption(r.interruption);
+  },
+  async updateInterruption(id, input) {
+    const r = await api<{ interruption: ServerDoc & Record<string, unknown> }>(`/interruptions/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    });
+    return mapInterruption(r.interruption);
+  },
+  async deleteInterruption(id) {
+    await api(`/interruptions/${id}`, { method: 'DELETE' });
   },
   async createTimeLog(input) {
     await api('/timelogs', { method: 'POST', body: JSON.stringify({ ...input, day: todayKey() }) });

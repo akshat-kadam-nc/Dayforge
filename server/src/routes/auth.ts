@@ -73,3 +73,21 @@ authRouter.get(
     res.json({ user: publicUser(user) });
   }),
 );
+
+const passwordChange = z.object({
+  newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
+authRouter.post(
+  '/change-password',
+  requireDb,
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { newPassword } = passwordChange.parse(req.body);
+    const user = await UserModel.findById(req.userId);
+    if (!user) throw new HttpError(404, 'User not found');
+    user.passwordHash = await hashPassword(newPassword);
+    await user.save();
+    res.json({ ok: true });
+  }),
+);

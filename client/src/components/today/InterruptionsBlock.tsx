@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { useToday } from '../../today/useToday';
-import type { InterruptionType } from '../../today/types';
+import type { Interruption, InterruptionType } from '../../today/types';
 import { interruptedMinutes } from '../../today/budget';
 import { formatMinutes } from '../../today/format';
+import { InterruptModal } from './InterruptModal';
 
 export const INTERRUPT_ICON: Record<InterruptionType, string> = {
   fire: '🔥',
@@ -10,7 +12,8 @@ export const INTERRUPT_ICON: Record<InterruptionType, string> = {
 };
 
 export function InterruptionsBlock() {
-  const { state } = useToday();
+  const { state, actions } = useToday();
+  const [editing, setEditing] = useState<Interruption | null>(null);
   if (state.interruptions.length === 0) return null;
 
   return (
@@ -30,8 +33,18 @@ export function InterruptionsBlock() {
             {int.note && <div className="int-note">{int.note}</div>}
           </div>
           <span className="int-dur">{formatMinutes(int.minutes)}</span>
+          <button type="button" className="int-act" title="Edit" onClick={() => setEditing(int)}>✎</button>
+          <button
+            type="button"
+            className="int-act danger"
+            title="Delete"
+            onClick={() => actions.deleteInterruption(int.id)}
+          >
+            ✕
+          </button>
         </div>
       ))}
+      {editing && <InterruptModal editing={editing} onClose={() => setEditing(null)} />}
     </div>
   );
 }

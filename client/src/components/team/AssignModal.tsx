@@ -83,7 +83,7 @@ export function AssignModal({ people, defaultPersonId, editing, onClose, onSave 
         </label>
         <label>
           Context (venture / project)
-          <input value={ventureLabel} onChange={(e) => setVentureLabel(e.target.value)} placeholder="e.g. Zuma AI" />
+          <input value={ventureLabel} onChange={(e) => setVentureLabel(e.target.value)} placeholder="e.g. Marketing, Product" />
         </label>
         <label>
           Tag color

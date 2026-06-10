@@ -481,6 +481,39 @@ input:focus {
   border-radius: 9px;
 }
 
+.password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+  max-width: 320px;
+}
+.password-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-secondary);
+}
+.password-form input {
+  font-family: inherit;
+  font-size: 13px;
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-med);
+  background: rgba(255, 255, 255, 0.6);
+}
+.password-form .btn-ghost {
+  align-self: flex-start;
+}
+.password-error {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-fire);
+}
+
 .venture-settings-list {
   list-style: none;
   padding: 0;

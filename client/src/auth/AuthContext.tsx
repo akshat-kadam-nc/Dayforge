@@ -23,7 +23,7 @@ interface AuthState {
   updateUser: (patch: Partial<User>) => void;
 }
 
-const GUEST_USER: User = { id: 'guest', email: 'demo@axiom.local', name: 'Akshu', onboarded: true };
+const GUEST_USER: User = { id: 'guest', email: 'demo@axiom.local', name: 'Demo User', onboarded: true };
 
 const AuthContext = createContext<AuthState | null>(null);
 

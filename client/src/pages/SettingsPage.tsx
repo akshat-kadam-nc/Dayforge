@@ -6,6 +6,8 @@ import { AddVentureModal } from '../components/today/AddVentureModal';
 import { TrackManager } from '../components/today/TrackManager';
 import { GoogleAccountsSection } from '../components/GoogleAccountsSection';
 import { RoutineModal } from '../components/RoutineModal';
+import { changePassword } from '../profile/api';
+import { useToast } from '../components/Toast';
 
 const DAY_ABBR: Record<number, string> = { 0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat' };
 
@@ -86,6 +88,8 @@ export function SettingsPage() {
         )}
       </div>
 
+      {!isGuest && <PasswordSection />}
+
       <GoogleAccountsSection isGuest={isGuest} />
 
       <button className="btn" onClick={logout}>Log out</button>
@@ -93,5 +97,78 @@ export function SettingsPage() {
       {adding && <AddVentureModal onClose={() => setAdding(false)} />}
       {editRoutine && <RoutineModal mode="edit" onClose={() => setEditRoutine(false)} />}
     </Placeholder>
+  );
+}
+
+/** Set a new account password (new + confirm). */
+function PasswordSection() {
+  const { toast } = useToast();
+  const [pwd, setPwd] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit() {
+    if (busy) return;
+    if (pwd.length < 8) {
+      setError('Password must be at least 8 characters.');
+      return;
+    }
+    if (pwd !== confirm) {
+      setError('Passwords do not match.');
+      return;
+    }
+    setError(null);
+    setBusy(true);
+    try {
+      await changePassword(pwd);
+      setPwd('');
+      setConfirm('');
+      toast('Password updated', 'success');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not update password.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="settings-section">
+      <div className="settings-section-head">
+        <h3>Password</h3>
+      </div>
+      <div className="password-form">
+        <label>
+          New password
+          <input
+            type="password"
+            value={pwd}
+            autoComplete="new-password"
+            placeholder="At least 8 characters"
+            onChange={(e) => setPwd(e.target.value)}
+          />
+        </label>
+        <label>
+          Confirm new password
+          <input
+            type="password"
+            value={confirm}
+            autoComplete="new-password"
+            placeholder="Re-enter new password"
+            onChange={(e) => setConfirm(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && submit()}
+          />
+        </label>
+        {error && <p className="password-error">{error}</p>}
+        <button
+          type="button"
+          className="btn-ghost btn-sm"
+          onClick={submit}
+          disabled={busy || !pwd || !confirm}
+        >
+          {busy ? 'Saving…' : 'Set new password'}
+        </button>
+      </div>
+    </div>
   );
 }

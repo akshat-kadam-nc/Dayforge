@@ -32,7 +32,7 @@ export function AddVentureModal({ onClose }: { onClose: () => void }) {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. DeveLearn"
+            placeholder="e.g. Studio, Side Project, Day Job"
             autoFocus
             onKeyDown={(e) => e.key === 'Enter' && submit()}
           />

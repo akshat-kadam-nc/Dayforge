@@ -183,6 +183,21 @@ export function TeamPage() {
       toast('Task delegated', 'success');
     }
   }
+  async function removePerson(person: Person) {
+    const prevPeople = people;
+    const prevDelegations = delegations;
+    setPeople((ps) => ps.filter((p) => p.id !== person.id));
+    setDelegations((ds) => ds.filter((d) => d.personId !== person.id));
+    setSelectedId((cur) => (cur === person.id ? prevPeople.find((p) => p.id !== person.id)?.id ?? null : cur));
+    try {
+      await repo.deletePerson(person.id);
+      toast(`${person.name} removed`, 'info');
+    } catch {
+      setPeople(prevPeople);
+      setDelegations(prevDelegations);
+      toast('Could not remove report', 'error');
+    }
+  }
   async function savePerson(editing: Person | undefined, input: PersonInput) {
     if (editing) {
       const updated = await repo.updatePerson(editing.id, input);
@@ -412,6 +427,7 @@ export function TeamPage() {
           editing={personModal === true ? undefined : personModal.editing}
           onClose={() => setPersonModal(null)}
           onSave={savePerson}
+          onDelete={removePerson}
         />
       )}
     </div>

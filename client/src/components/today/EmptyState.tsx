@@ -9,8 +9,8 @@ export function EmptyState() {
       <div className="empty-emoji">🧭</div>
       <h2>Set up your first venture</h2>
       <p className="muted">
-        Dayforge organises your day by venture (DeveLearn, Zuma AI, and so on). Add one to start
-        capturing tasks and tracking where your time goes.
+        Dayforge organises your day by venture (a business, a side project, a day job, and so on).
+        Add one to start capturing tasks and tracking where your time goes.
       </p>
       <button type="button" className="btn" onClick={() => setAdding(true)}>
         ＋ Add a venture

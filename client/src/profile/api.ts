@@ -11,3 +11,7 @@ export interface Routine {
 export function saveRoutine(routine: Routine): Promise<{ onboarded: boolean; routine: Routine }> {
   return api('/me/settings', { method: 'PATCH', body: JSON.stringify({ routine }) });
 }
+
+export function changePassword(newPassword: string): Promise<{ ok: boolean }> {
+  return api('/auth/change-password', { method: 'POST', body: JSON.stringify({ newPassword }) });
+}

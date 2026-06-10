@@ -5,7 +5,7 @@ const personSchema = new Schema(
   {
     userId: { type: Types.ObjectId, ref: 'User', required: true, index: true },
     name: { type: String, required: true, trim: true },
-    /** Free-form role/context label, e.g. "Lead Dev · Zuma". */
+    /** Free-form role/context label, e.g. "Lead Developer". */
     role: { type: String, default: '', trim: true },
     /** Avatar/accent color. */
     color: { type: String, default: '#7c3aed' },

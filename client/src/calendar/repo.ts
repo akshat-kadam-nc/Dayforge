@@ -74,7 +74,7 @@ export const localCalendarRepo: CalendarRepo = {
           loggedMinutes: done ? Math.round(est * (0.7 + hash(key + a.id) * 0.5)) : 0,
           createdAt: key + 'T08:00:00',
           completedAt: done ? key + 'T17:30:00' : undefined,
-          delegateName: followUp && i === 0 ? 'Rahul' : undefined,
+          delegateName: followUp && i === 0 ? 'Alex' : undefined,
         });
       });
 
@@ -112,8 +112,8 @@ export const localCalendarRepo: CalendarRepo = {
     };
     const all = [
       mk(0, 'Faculty meeting', '#16a34a'),
-      mk(1, 'Zuma standup', '#f59e0b'),
-      mk(2, 'JICA prep call', '#0ea5e9'),
+      mk(1, 'Team standup', '#f59e0b'),
+      mk(2, 'Partner prep call', '#0ea5e9'),
       mk(-1, 'Gym', '#22c55e'),
       mk(3, 'Company off-site', '#0F9D58', true),
     ];

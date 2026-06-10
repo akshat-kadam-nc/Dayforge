@@ -81,7 +81,9 @@ type Action =
   | { type: 'UPDATE_TRACK'; id: string; patch: Partial<Pick<FunctionTrack, 'name' | 'color'>> }
   | { type: 'REMOVE_TRACK'; id: string }
   | { type: 'ADD_GOAL'; goal: Goal }
-  | { type: 'ADD_INTERRUPTION'; interruption: Interruption };
+  | { type: 'ADD_INTERRUPTION'; interruption: Interruption }
+  | { type: 'UPDATE_INTERRUPTION'; interruption: Interruption }
+  | { type: 'REMOVE_INTERRUPTION'; id: string };
 
 /** Commit one task's live run into its loggedMinutes and drop the run. */
 function commitRun(state: TodayState, taskId: string): TodayState {
@@ -253,6 +255,18 @@ function reducer(state: TodayState, action: Action): TodayState {
       // Concurrency is intentional now, so an interruption no longer pauses
       // running tasks — it's just logged. Pause manually if you stepped away.
       return { ...state, interruptions: [...state.interruptions, action.interruption] };
+    case 'UPDATE_INTERRUPTION':
+      return {
+        ...state,
+        interruptions: state.interruptions.map((i) =>
+          i.id === action.interruption.id ? action.interruption : i,
+        ),
+      };
+    case 'REMOVE_INTERRUPTION':
+      return {
+        ...state,
+        interruptions: state.interruptions.filter((i) => i.id !== action.id),
+      };
     default:
       return state;
   }
@@ -284,6 +298,8 @@ export interface TodayActions {
   deleteTrack: (id: string) => void;
   addGoal: (input: CreateGoalInput) => Promise<void>;
   logInterruption: (input: CreateInterruptionInput) => Promise<void>;
+  editInterruption: (id: string, input: CreateInterruptionInput) => Promise<void>;
+  deleteInterruption: (id: string) => void;
   saveReconciliation: (input: ReconciliationInput) => Promise<void>;
   setEventDeduct: (seriesKey: string, deduct: boolean) => void;
   /** Re-pull the day (e.g. after the routine changes available minutes). */
@@ -515,6 +531,14 @@ export function TodayProvider({ children }: { children: ReactNode }) {
     logInterruption: async (input) => {
       const interruption = await repo.createInterruption(input);
       dispatch({ type: 'ADD_INTERRUPTION', interruption });
+    },
+    editInterruption: async (id, input) => {
+      const interruption = await repo.updateInterruption(id, input);
+      dispatch({ type: 'UPDATE_INTERRUPTION', interruption });
+    },
+    deleteInterruption: (id) => {
+      dispatch({ type: 'REMOVE_INTERRUPTION', id });
+      void repo.deleteInterruption(id);
     },
     saveReconciliation: async (input) => {
       await repo.saveReconciliation(input);
