@@ -74,6 +74,7 @@ type Action =
   | { type: 'ADD_TASK'; task: Task }
   | { type: 'REMOVE_TASK'; taskId: string }
   | { type: 'SET_ESTIMATE'; taskId: string; estimateMinutes: number }
+  | { type: 'SET_SCHEDULED_AT'; taskId: string; scheduledAt?: string }
   | { type: 'SET_STATUS'; taskId: string; status: TaskStatus }
   | { type: 'MOVE_TO_TODAY'; taskId: string }
   | { type: 'ADD_AREA'; area: LifeArea }
@@ -218,6 +219,13 @@ function reducer(state: TodayState, action: Action): TodayState {
           t.id === action.taskId ? { ...t, estimateMinutes: action.estimateMinutes } : t,
         ),
       };
+    case 'SET_SCHEDULED_AT':
+      return {
+        ...state,
+        tasks: state.tasks.map((t) =>
+          t.id === action.taskId ? { ...t, scheduledAt: action.scheduledAt } : t,
+        ),
+      };
     case 'SET_STATUS': {
       const base =
         action.status !== 'in_progress' ? commitRun(state, action.taskId) : state;
@@ -292,6 +300,10 @@ export interface TodayActions {
   deleteTask: (taskId: string) => void;
   moveToToday: (taskId: string) => void;
   setStatus: (taskId: string, status: TaskStatus) => void;
+  /** Place a task on the day timeline (HH:MM), or pass null to unschedule it. */
+  scheduleTask: (taskId: string, scheduledAt: string | null) => void;
+  /** Set a task's planned estimate in minutes (used by timeline resize). */
+  setTaskEstimate: (taskId: string, estimateMinutes: number) => void;
   addArea: (input: CreateAreaInput) => Promise<void>;
   addTrack: (input: CreateTrackInput) => Promise<void>;
   updateTrack: (id: string, patch: Partial<Pick<FunctionTrack, 'name' | 'color'>>) => Promise<void>;
@@ -499,6 +511,15 @@ export function TodayProvider({ children }: { children: ReactNode }) {
     moveToToday: (taskId) => {
       dispatch({ type: 'MOVE_TO_TODAY', taskId });
       void repo.updateTask(taskId, { day: state.day });
+    },
+    scheduleTask: (taskId, scheduledAt) => {
+      // null clears the slot; the server stores '' which parses back as unscheduled.
+      dispatch({ type: 'SET_SCHEDULED_AT', taskId, scheduledAt: scheduledAt ?? undefined });
+      void repo.updateTask(taskId, { scheduledAt: scheduledAt ?? '' });
+    },
+    setTaskEstimate: (taskId, estimateMinutes) => {
+      dispatch({ type: 'SET_ESTIMATE', taskId, estimateMinutes });
+      void repo.updateTask(taskId, { estimateMinutes });
     },
     setStatus: (taskId, status) => {
       const patch: Partial<Pick<Task, 'status' | 'loggedMinutes'>> = { status };

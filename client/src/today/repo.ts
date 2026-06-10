@@ -103,7 +103,7 @@ export interface TodayRepo {
   deleteTrack(id: string): Promise<void>;
   createGoal(input: CreateGoalInput): Promise<Goal>;
   createTask(input: CreateTaskInput): Promise<Task>;
-  updateTask(id: string, patch: Partial<Pick<Task, 'status' | 'loggedMinutes' | 'day' | 'estimateMinutes'>>): Promise<void>;
+  updateTask(id: string, patch: Partial<Pick<Task, 'status' | 'loggedMinutes' | 'day' | 'estimateMinutes' | 'scheduledAt'>>): Promise<void>;
   deferTask(id: string): Promise<void>;
   deleteTask(id: string): Promise<void>;
   createInterruption(input: CreateInterruptionInput): Promise<Interruption>;
@@ -216,10 +216,16 @@ export const localRepo: TodayRepo = {
   async saveReconciliation() {},
   async loadCalendarEvents() {
     // Demo: two illustrative events so the calendar block + mute toggle are visible.
+    // The standup gets a real time today so it shows as a band on the day plan.
+    const at = (h: number, m: number) => {
+      const d = new Date();
+      d.setHours(h, m, 0, 0);
+      return d.toISOString();
+    };
     return [
       {
         id: 'demo-ev1', seriesKey: 'demo-standup', title: 'Daily standup (recurring)',
-        start: '', end: '', allDay: false, durationMinutes: 30, accountId: 'demo', color: '#4285F4', deduct: true,
+        start: at(9, 30), end: at(10, 0), allDay: false, durationMinutes: 30, accountId: 'demo', color: '#4285F4', deduct: true,
       },
       {
         id: 'demo-ev2', seriesKey: 'demo-allhands', title: 'Company off-site', start: '', end: '',
