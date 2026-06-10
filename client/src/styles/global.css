@@ -145,6 +145,14 @@ body {
   max-width: 760px;
   width: 100%;
   margin: 0 auto;
+  /* Own stacking layer above the fixed wallpaper (.wallpaper is z-index:0). Without
+     this, a page's bare blocks — e.g. the Team/Goals headers, which have no
+     backdrop-filter and so no stacking context of their own — paint *below* the
+     positioned wallpaper and get covered by it. Glass cards only escaped by
+     accident (backdrop-filter creates a context). Today is unaffected: .cockpit is
+     position:fixed and already paints above. Mirrors the .auth-card z-index:1 trick. */
+  position: relative;
+  z-index: 1;
 }
 
 /* ── Left rail ─────────────────────────────────────────────────────────────
