@@ -812,14 +812,19 @@ select:focus:not(:focus-visible),
 .page-enter {
   animation: page-enter var(--dur-slow) var(--ease-out);
 }
+/* Note: do NOT animate opacity here. A paused or interrupted animation (e.g. the
+   tab is backgrounded mid-navigation) would hold the element at opacity 0 and
+   blank the whole page. Animate transform only — a paused slide stays visible. */
 @keyframes page-enter {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { transform: translateY(8px); }
+  to { transform: translateY(0); }
 }
 
 /* Drop .stagger on a container; direct children fade up in sequence. The
    delays are short so the whole cascade resolves quickly. */
 .stagger > * {
+  /* transform-only for the same reason as page-enter: a paused opacity fade
+     would leave rows invisible. `backwards` applies the start frame pre-delay. */
   animation: stagger-in var(--dur-slow) var(--ease-out) backwards;
 }
 .stagger > *:nth-child(1) { animation-delay: 0ms; }
@@ -832,8 +837,8 @@ select:focus:not(:focus-visible),
 .stagger > *:nth-child(8) { animation-delay: 315ms; }
 .stagger > *:nth-child(n + 9) { animation-delay: 360ms; }
 @keyframes stagger-in {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { transform: translateY(12px); }
+  to { transform: translateY(0); }
 }
 
 /* Shared zero-data state for full pages (Team, Goals). A visible glass card so

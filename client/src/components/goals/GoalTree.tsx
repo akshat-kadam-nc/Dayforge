@@ -19,10 +19,13 @@ export function GoalTree({ node, depth, collapsed, onToggle, onEdit, onDelete, o
   const childPeriod = childPeriodOf(goal.period);
 
   // Weekly leaves show their linked-task tally; parents show a child count.
+  // Guard the period lookup so a legacy goal with a missing/unknown period can
+  // never throw and blank the page.
+  const childLabel = hasChildren ? (PERIOD_LABEL[children[0].goal.period] ?? 'goal').toLowerCase() : '';
   const tally = goal.period === 'weekly' && rollup
     ? `${rollup.countDone}/${rollup.countTotal} tasks`
     : hasChildren
-      ? `${children.length} ${PERIOD_LABEL[children[0].goal.period].toLowerCase()}`
+      ? `${children.length} ${childLabel}`
       : null;
 
   return (
@@ -39,7 +42,7 @@ export function GoalTree({ node, depth, collapsed, onToggle, onEdit, onDelete, o
         <span className="goal-row-icon">{goal.icon}</span>
         <div className="goal-row-main">
           <div className="goal-row-top">
-            <span className="goal-level-tag">{PERIOD_LABEL[goal.period]}</span>
+            <span className="goal-level-tag">{PERIOD_LABEL[goal.period] ?? goal.period}</span>
             <span className="goal-row-text">{goal.text}</span>
             {tally && <span className="goal-row-tally">{tally}</span>}
           </div>

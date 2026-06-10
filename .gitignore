@@ -14,3 +14,7 @@ client/dev-dist/
 # Vite dep cache
 client/.vite/
 .vite/
+
+# Personal context — kept locally for session onboarding, not published (public repo)
+project-context/user_akshu.md
+project-context/project_task_manager.md

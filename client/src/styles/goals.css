@@ -64,6 +64,12 @@
 .goal-area-add:hover { background: var(--area-color, var(--c-accent)); color: white; border-color: transparent; }
 
 .goal-forest { display: flex; flex-direction: column; gap: 4px; }
+.goal-area-empty { display: block; width: 100%; text-align: left; padding: 12px 14px; border-radius: 12px;
+  border: 1.5px dashed var(--border-med, rgba(120,80,200,0.3)); background: rgba(255,255,255,0.35);
+  font-family: inherit; font-size: 12.5px; font-weight: 700; color: var(--c-muted, #6b6781); cursor: pointer;
+  transition: all 0.16s ease; }
+.goal-area-empty:hover { border-color: var(--area-color, var(--c-accent)); color: var(--area-color, var(--c-accent));
+  background: rgba(255,255,255,0.55); }
 .goal-children { display: flex; flex-direction: column; gap: 4px; margin-top: 4px;
   border-left: 1.5px dashed var(--border); padding-left: 4px; }
 

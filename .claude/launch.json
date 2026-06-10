@@ -12,6 +12,12 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["--yes", "serve", "mockups", "-l", "4321"],
       "port": 4321
+    },
+    {
+      "name": "prod",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["server/serve-prod.mjs"],
+      "port": 4100
     }
   ]
 }

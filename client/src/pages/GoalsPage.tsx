@@ -43,14 +43,13 @@ export function GoalsPage() {
     };
   }, [repo, isGuest]);
 
-  // Build a forest per life area; only areas with goals are shown.
+  // Build a forest per life area. Every area is shown — even with no goals yet —
+  // so each venture has a visible card and an add-goal entry point.
   const byArea = useMemo(() => {
-    return areas
-      .map((area) => ({
-        area,
-        forest: buildForest(goals.filter((g) => g.areaId === area.id), rollup),
-      }))
-      .filter((s) => s.forest.length > 0);
+    return areas.map((area) => ({
+      area,
+      forest: buildForest(goals.filter((g) => g.areaId === area.id), rollup),
+    }));
   }, [areas, goals, rollup]);
 
   function toggle(id: string) {
@@ -142,24 +141,34 @@ export function GoalsPage() {
                 </button>
               </div>
               <div className="goal-forest">
-                {forest.map((node) => (
-                  <GoalTree
-                    key={node.goal.id}
-                    node={node}
-                    depth={0}
-                    collapsed={collapsed}
-                    onToggle={toggle}
-                    onEdit={(n) => setModal({ editing: n.goal, derived: isDerived(n) })}
-                    onDelete={remove}
-                    onAddChild={(n) =>
-                      setModal({
-                        editing: null,
-                        preset: { areaId: n.goal.areaId, period: childPeriod(n.goal.period), parentId: n.goal.id },
-                        derived: false,
-                      })
-                    }
-                  />
-                ))}
+                {forest.length === 0 ? (
+                  <button
+                    type="button"
+                    className="goal-area-empty"
+                    onClick={() => setModal({ editing: null, preset: { areaId: area.id, period: 'annual' }, derived: false })}
+                  >
+                    No goals yet — add the first goal for {area.name}.
+                  </button>
+                ) : (
+                  forest.map((node) => (
+                    <GoalTree
+                      key={node.goal.id}
+                      node={node}
+                      depth={0}
+                      collapsed={collapsed}
+                      onToggle={toggle}
+                      onEdit={(n) => setModal({ editing: n.goal, derived: isDerived(n) })}
+                      onDelete={remove}
+                      onAddChild={(n) =>
+                        setModal({
+                          editing: null,
+                          preset: { areaId: n.goal.areaId, period: childPeriod(n.goal.period), parentId: n.goal.id },
+                          derived: false,
+                        })
+                      }
+                    />
+                  ))
+                )}
               </div>
             </section>
           ))}
