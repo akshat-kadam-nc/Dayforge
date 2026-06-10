@@ -17,8 +17,9 @@ const taskInput = z.object({
   // create route enforces it for every other kind.
   areaId: z.string().min(1).optional(),
   kind: z.enum(TASK_KINDS).optional(),
-  trackId: z.string().optional(),
-  goalId: z.string().optional(),
+  // Nullable so an edit can clear the link (null → unset the ObjectId ref).
+  trackId: z.string().nullable().optional(),
+  goalId: z.string().nullable().optional(),
   status: z.enum(TASK_STATUSES).optional(),
   source: z.enum(TASK_SOURCES).optional(),
   estimateMinutes: z.number().int().min(0).optional(),
@@ -62,6 +63,9 @@ tasksRouter.patch(
     const data = taskInput.partial().parse(req.body);
     // Stamp/clear completion time when the status crosses the done boundary.
     const patch: Record<string, unknown> = { ...data };
+    // An empty ref means "unlink" — store null, never '' (which fails ObjectId cast).
+    if (patch.trackId === '') patch.trackId = null;
+    if (patch.goalId === '') patch.goalId = null;
     if (data.status === 'done') patch.completedAt = new Date();
     else if (data.status) patch.completedAt = null;
     // Scope the update by userId so one user can never touch another's task.

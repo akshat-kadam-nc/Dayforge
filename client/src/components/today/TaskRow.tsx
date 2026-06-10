@@ -5,6 +5,7 @@ import { formatClock, formatMinutes } from '../../today/format';
 import { isRunning, taskLoggedSeconds } from '../../today/budget';
 import { fireCelebration } from '../../today/celebrate';
 import { PortalMenu } from './PortalMenu';
+import { TaskFormModal } from './TaskFormModal';
 
 export function TaskRow({ task }: { task: Task }) {
   const { state, actions } = useToday();
@@ -26,7 +27,10 @@ export function TaskRow({ task }: { task: Task }) {
     : '';
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [completeOpen, setCompleteOpen] = useState(false);
+  // Editing applies to normal manual tasks; calendar events and chores have their own paths.
+  const canEdit = task.kind === 'task' && !isCalendar;
   const [customMin, setCustomMin] = useState(task.estimateMinutes || 30);
   const kebabRef = useRef<HTMLButtonElement>(null);
   const checkRef = useRef<HTMLButtonElement>(null);
@@ -144,6 +148,11 @@ export function TaskRow({ task }: { task: Task }) {
       </button>
 
       <PortalMenu anchorRef={kebabRef} open={menuOpen} onClose={() => setMenuOpen(false)}>
+        {canEdit && (
+          <button type="button" onClick={() => { setEditOpen(true); setMenuOpen(false); }}>
+            ✎ Edit
+          </button>
+        )}
         {!isToday && (
           <button type="button" onClick={() => { actions.moveToToday(task.id); setMenuOpen(false); }}>
             📅 Move to today
@@ -195,6 +204,8 @@ export function TaskRow({ task }: { task: Task }) {
           ∅ Don't log time
         </button>
       </PortalMenu>
+
+      {editOpen && <TaskFormModal editing={task} onClose={() => setEditOpen(false)} />}
     </div>
   );
 }

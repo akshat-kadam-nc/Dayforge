@@ -10,6 +10,7 @@ import type {
   BudgetScope,
   BudgetSummary,
   CalendarEvent,
+  DeadlineType,
   FunctionTrack,
   Goal,
   Interruption,
@@ -72,6 +73,7 @@ type Action =
   | { type: 'SET_CALENDAR_EVENTS'; events: CalendarEvent[] }
   | { type: 'SET_EVENT_DEDUCT'; seriesKey: string; deduct: boolean }
   | { type: 'ADD_TASK'; task: Task }
+  | { type: 'UPDATE_TASK'; taskId: string; patch: Partial<Task> }
   | { type: 'REMOVE_TASK'; taskId: string }
   | { type: 'SET_ESTIMATE'; taskId: string; estimateMinutes: number }
   | { type: 'SET_SCHEDULED_AT'; taskId: string; scheduledAt?: string }
@@ -207,6 +209,11 @@ function reducer(state: TodayState, action: Action): TodayState {
       };
     case 'ADD_TASK':
       return { ...state, tasks: [...state.tasks, action.task] };
+    case 'UPDATE_TASK':
+      return {
+        ...state,
+        tasks: state.tasks.map((t) => (t.id === action.taskId ? { ...t, ...action.patch } : t)),
+      };
     case 'REMOVE_TASK': {
       // Commit any live run first so the time isn't lost on defer.
       const base = commitRun(state, action.taskId);
@@ -280,6 +287,18 @@ function reducer(state: TodayState, action: Action): TodayState {
   }
 }
 
+/** The full set of fields the task edit modal can change. null clears a ref/deadline. */
+export interface EditTaskInput {
+  title: string;
+  areaId: string;
+  estimateMinutes: number;
+  trackId: string | null;
+  goalId: string | null;
+  day: string;
+  dueAt: string | null;
+  deadlineType: DeadlineType;
+}
+
 export interface TodayActions {
   play: (taskId: string) => void;
   pause: (taskId: string) => void;
@@ -290,6 +309,8 @@ export interface TodayActions {
   toggleArea: (areaId: string) => void;
   setScope: (scope: BudgetScope) => void;
   addTask: (input: CreateTaskInput) => Promise<void>;
+  /** Edit an existing task's title, area, track, goal, estimate, day, or deadline. */
+  editTask: (taskId: string, input: EditTaskInput) => void;
   /** Add a small end-of-day chore (estimate locked to 5/10/15 by the UI). */
   addChore: (input: { title: string; areaId: string; estimateMinutes: number }) => Promise<void>;
   /** Set the chore-session block size for today, creating the session if absent. */
@@ -463,6 +484,26 @@ export function TodayProvider({ children }: { children: ReactNode }) {
     addTask: async (input) => {
       const task = await repo.createTask(input);
       dispatch({ type: 'ADD_TASK', task });
+    },
+    editTask: (taskId, input) => {
+      const prev = state.tasks.find((t) => t.id === taskId);
+      // Optimistic local patch: a cleared ref/deadline (null) reads as undefined on Task.
+      const patch: Partial<Task> = {
+        title: input.title,
+        areaId: input.areaId,
+        estimateMinutes: input.estimateMinutes,
+        trackId: input.trackId ?? undefined,
+        goalId: input.goalId ?? undefined,
+        day: input.day,
+        dueAt: input.dueAt ?? undefined,
+        deadlineType: input.deadlineType,
+      };
+      dispatch({ type: 'UPDATE_TASK', taskId, patch });
+      // Persist; null reaches the server so it can actually unset the field.
+      void repo.updateTask(taskId, input).catch((err) => {
+        console.error('[today] failed to edit task', err);
+        if (prev) dispatch({ type: 'UPDATE_TASK', taskId, patch: prev });
+      });
     },
     addChore: async ({ title, areaId, estimateMinutes }) => {
       // Chores always fall due at end of the shown day; they can overflow like tasks.

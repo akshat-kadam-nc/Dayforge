@@ -91,6 +91,25 @@ export interface CreateInterruptionInput { type: InterruptionType; title: string
 export interface CreateTimeLogInput { taskId: string; areaId: string; minutes: number }
 
 /**
+ * Fields a task PATCH may set. The timer/scheduling paths set a subset; the edit
+ * modal sets the rest. `null` on a ref or dueAt clears it (the server stores null
+ * rather than '' so the ObjectId/Date cast can't fail).
+ */
+export interface UpdateTaskPatch {
+  status?: Task['status'];
+  loggedMinutes?: number;
+  day?: string;
+  estimateMinutes?: number;
+  scheduledAt?: string;
+  title?: string;
+  areaId?: string;
+  trackId?: string | null;
+  goalId?: string | null;
+  dueAt?: string | null;
+  deadlineType?: Task['deadlineType'];
+}
+
+/**
  * The data seam. `localRepo` keeps Phase 1 behaviour (in-memory seed, no
  * network) for demo mode; `apiRepo` persists to the backend for real accounts.
  * The reducer and components are identical across both.
@@ -103,7 +122,7 @@ export interface TodayRepo {
   deleteTrack(id: string): Promise<void>;
   createGoal(input: CreateGoalInput): Promise<Goal>;
   createTask(input: CreateTaskInput): Promise<Task>;
-  updateTask(id: string, patch: Partial<Pick<Task, 'status' | 'loggedMinutes' | 'day' | 'estimateMinutes' | 'scheduledAt'>>): Promise<void>;
+  updateTask(id: string, patch: UpdateTaskPatch): Promise<void>;
   deferTask(id: string): Promise<void>;
   deleteTask(id: string): Promise<void>;
   createInterruption(input: CreateInterruptionInput): Promise<Interruption>;
