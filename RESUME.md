@@ -92,6 +92,21 @@ The Goals page is built and verified in demo + against the real account.
 ## Navigation — left rail (done)
 Replaced the bottom tray with a **left vertical glass rail** (`components/AppShell.tsx` + `.side-nav` in global.css). Rests **collapsed (76px icon rail)**, **click-toggle** (the `‹/›` button) to expand to 232px with labels; state persists in `localStorage` `dayforge.nav.collapsed` (default collapsed). Active item gets a tinted pill; user avatar + name pinned at the bottom. Layout offset via `--rail-w` on `.app-shell` (inherits through the DOM so the fixed `.cockpit` offsets itself with `left: var(--rail-w)`; the cockpit is now full-height — `--nav-h` is dead). Under **760px** the rail becomes an off-canvas **hamburger drawer** (`.nav-burger` top-left + `.nav-backdrop`); `--rail-w` goes 0 so content is full width. The Today top bar (date/streak/Wallpaper) is kept per Akshu; its old logo was removed (rail carries branding now) and `.t-header` switched to a 3-col grid to keep the date centred. Mock that was approved lives at `mockups/nav-sidebar.html`. Verified collapsed/expanded/active/mobile-drawer in demo; build green.
 
+## Session 2026-06-10 (latest, all live)
+- **Login wallpapers:** 16 WebPs in `client/src/assets/login/`, cross-fade every 9s under `.auth-scrim` (`LoginPage.tsx`). Convert new PNG/JPG → WebP q82 with the repo's `sharp` before committing.
+- **In-app photo wallpapers + liquid glass:** photo library in `client/src/assets/wallpapers/` (separate from login, 16 seeded), auto-discovered by `wallpaper/photos.ts` → 🖼 Photos section in the picker (stable `photo:<filename>` ids). `WallpaperLayer` resolves custom-upload → photo → gradient preset + a `.wp-scrim` for image bgs. Default = `photo:dayforge-wallpaper-10`. Glass centralised in `:root` (`--glass-surface`/`--glass-blur`/`--glass-edge`/`--glass-highlight`/`--glass-shadow`); page scopes alias `--surface`/`--blur`. **Blur kept modest (`blur(14px) saturate(135%)`)** on purpose — backdrop-filter over a raster photo is costly. Drop new wallpapers in `assets/wallpapers/`, no code change.
+- **Nudge/recon pills** (`.nudge-recon/-overflow/-deleg`) given a whitish glass base + tint so they're legible. **`useCountUp` slowed 650→1500ms.**
+- **Nav left rail** (see section above).
+- **Error boundary** (`components/ErrorBoundary.tsx`, wraps page content in AppShell, keyed by path): a page crash now shows a readable error + keeps the rail usable, instead of blanking the whole app.
+- **FIXED: blank Team/Goals on empty data.** Root cause: their empty states were bare text/buttons with **no card surface**, so over the wallpaper the page read as blank (Today never had this — its empty state is a glass card). Fix: shared `components/PageEmpty.tsx` glass card now used for Team (no reports) + Goals (no goals). Verified both render as visible `rgba(255,255,255,0.8)` glass cards.
+- **PENDING cleanup:** I created sample Team data on the **live** `akshat@nextplatforms.in` account to diagnose the above — **1 person (Rahul Mehta) + 3 delegations**. Akshu to decide whether to delete it (do via the live API `DELETE /api/team/people/:id`, which cascades its delegations, with a fresh login token).
+
+### Environment quirks learned this session (important for debugging)
+- **Local `server/.env` MONGODB_URI points at the SAME prod Atlas `axiom` db** as Render — local writes hit production. The Claude auto-classifier blocks prod DB writes/dumps; need explicit user go-ahead.
+- The **Claude_Preview** browser **can't navigate to the live external site** (stays on localhost) and **pauses CSS animations when its tab is hidden** (`document.hidden` true) → `.app-content` shows `opacity:0` from the `page-enter` keyframe. That is a **preview artifact, not a real bug** (foreground browsers complete the animation). Don't chase it.
+- `preview_screenshot` intermittently hangs on the heavy glass-over-photo compositing; **restart the preview server** to clear it.
+- To repro the real prod build locally: `npm run build` then `SERVE_CLIENT=true NODE_ENV=production PORT=4100 node server/dist/index.js`, open `localhost:4100`.
+
 ## Other next (not started)
 - **Recurring tasks** and **manual fixed blocks** (sleep/standing meetings beyond GCal) — still unbuilt.
 - **Google account legend** (`CalendarLegend`) is visual only — per-source on/off toggle not wired.
