@@ -140,3 +140,9 @@
   .rep-overview { grid-template-columns: 1fr 1fr; }
   .rep-pace, .rep-deadline { grid-template-columns: 1fr; }
 }
+
+/* Missed goals (under Goals completed) */
+.rep-count.bad { background: rgba(239, 68, 68, 0.14); color: #be123c; }
+.rep-missed { margin-top: 14px; border-top: 1.5px solid var(--border-med); padding-top: 12px; }
+.rep-missed-title { font-size: 12px; font-weight: 900; color: #be123c; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.rep-goal-missed { font-size: 11px; font-weight: 900; color: #be123c; }

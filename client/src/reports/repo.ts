@@ -122,7 +122,21 @@ export const localReportsRepo: ReportsRepo = {
         byType: { soft: { onTime: Math.round(onTime * 0.7), late: Math.round(late * 0.6) }, hard: { onTime: onTime - Math.round(onTime * 0.7), late: late - Math.round(late * 0.6) } },
         worstLate,
       },
-      goals: { completed, legacyCount: 1 },
+      goals: {
+        completed,
+        missed: [
+          {
+            id: 'demo-missed-gym',
+            text: 'Gym 5× this week',
+            icon: '💪',
+            areaId: areas.find((a) => /fit/i.test(a.name))?.id ?? areas[0]?.id ?? '',
+            period: 'weekly',
+            pct: 60,
+            resolvedAt: `${addDaysKey(to, -2)}T22:00:00.000Z`,
+          },
+        ],
+        legacyCount: 1,
+      },
       team,
       series,
     };

@@ -5,6 +5,14 @@ function withKind(ts: (Omit<Task, 'kind'> & { kind?: TaskKind })[]): Task[] {
   return ts.map((t) => ({ ...t, kind: t.kind ?? 'task' }));
 }
 
+/** ISO timestamp N days from now (negative = past), for demo deadlines/stamps. */
+function isoIn(days: number, hour = 18): string {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  d.setHours(hour, 0, 0, 0);
+  return d.toISOString();
+}
+
 /**
  * Demo seed: a set of sample ventures and a representative day for "Explore in
  * demo mode". This is the data the cockpit reads in guest mode; real accounts
@@ -47,6 +55,12 @@ const GOALS = [
   // Personal Brand: a partial chain (monthly + weekly, no annual above).
   { id: 'g-br-month', areaId: 'brand', text: 'Build a consistent LinkedIn presence', icon: '✍️', pct: 0, color: '#ec4899', period: 'monthly' as const },
   { id: 'g-linkedin', areaId: 'brand', text: 'Publish 3 technical LinkedIn posts', icon: '✍️', pct: 33, color: '#ec4899', period: 'weekly' as const, parentId: 'g-br-month' },
+  // Fitness: a count + timed weekly goal (gym), mid-progress (3 of 5 linked done).
+  { id: 'g-gym', areaId: 'fitness', text: 'Go to the gym 5×', icon: '💪', pct: 0, color: '#22c55e', period: 'weekly' as const, metric: 'count' as const, targetCount: 5, timed: true, dueAt: isoIn(3) },
+  // A completed weekly goal — shows in Closed + Reports.
+  { id: 'g-done', areaId: 'orbit', text: 'Finalise Q2 OKRs', icon: '🏆', pct: 100, color: '#06b6d4', period: 'weekly' as const, status: 'completed' as const, completedAt: isoIn(-2) },
+  // A missed timed count goal from last week — Closed, frozen at 60%.
+  { id: 'g-missed', areaId: 'fitness', text: 'Gym 5× (last week)', icon: '💪', pct: 60, color: '#22c55e', period: 'weekly' as const, metric: 'count' as const, targetCount: 5, timed: true, dueAt: isoIn(-4), status: 'missed' as const, resolvedAt: isoIn(-3) },
 ];
 
 function keyShift(n: number): string {
@@ -196,6 +210,22 @@ export function makeInitialState(): TodayState {
         id: 'g-linkedin-d1', title: 'Draft post — "Why MERN for solo founders"', areaId: 'brand', trackId: 'br-content',
         status: 'done', estimateMinutes: 45, source: 'manual', goalId: 'g-linkedin', deferredCount: 0,
         loggedMinutes: 50, createdAt: yesterday + 'T16:00:00', completedAt: yesterday + 'T17:00:00', day: yesterday,
+      },
+      // Gym sessions toward the count goal g-gym (3 of 5 done → 60%).
+      {
+        id: 'g-gym-1', title: 'Gym — push day', areaId: 'fitness', status: 'done', estimateMinutes: 60,
+        source: 'manual', goalId: 'g-gym', deferredCount: 0, loggedMinutes: 65,
+        createdAt: keyShift(-2) + 'T07:00:00', completedAt: keyShift(-2) + 'T08:00:00', day: keyShift(-2),
+      },
+      {
+        id: 'g-gym-2', title: 'Gym — pull day', areaId: 'fitness', status: 'done', estimateMinutes: 60,
+        source: 'manual', goalId: 'g-gym', deferredCount: 0, loggedMinutes: 58,
+        createdAt: yesterday + 'T07:00:00', completedAt: yesterday + 'T08:00:00', day: yesterday,
+      },
+      {
+        id: 'g-gym-3', title: 'Gym — legs', areaId: 'fitness', status: 'done', estimateMinutes: 60,
+        source: 'manual', goalId: 'g-gym', deferredCount: 0, loggedMinutes: 70,
+        createdAt: today + 'T07:00:00', completedAt: today + 'T08:00:00', day: today,
       },
       // Chore session block + a few demo chores for the Chores card.
       {

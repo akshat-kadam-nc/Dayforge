@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useToday } from '../../today/useToday';
 import { allocatedForArea, interruptedMinutes } from '../../today/budget';
 import { formatMinutes } from '../../today/format';
+import type { Goal } from '../../today/types';
 import { AddGoalModal } from './AddGoalModal';
 
 /**
@@ -13,8 +14,27 @@ export function GoalsSidebar() {
   const { state } = useToday();
   const [addingGoal, setAddingGoal] = useState(false);
 
-  // The rail only surfaces this week's goals; higher levels live on the Goals page.
-  const weeklyGoals = state.goals.filter((g) => g.period === 'weekly');
+  // The rail only surfaces this week's ACTIVE goals; higher levels + concluded
+  // goals live on the Goals page.
+  const weeklyGoals = state.goals.filter((g) => g.period === 'weekly' && (g.status ?? 'active') === 'active');
+
+  // Count completed linked tasks per goal so count-goal progress is live here.
+  const doneByGoal = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const t of state.tasks) {
+      if (t.kind !== 'task' || !t.goalId || t.status !== 'done') continue;
+      m[t.goalId] = (m[t.goalId] ?? 0) + 1;
+    }
+    return m;
+  }, [state.tasks]);
+
+  function goalProgress(g: Goal): { pct: number; tally?: string } {
+    if (g.metric === 'count' && g.targetCount) {
+      const done = doneByGoal[g.id] ?? 0;
+      return { pct: Math.min(100, Math.round((done / g.targetCount) * 100)), tally: `${done}/${g.targetCount}` };
+    }
+    return { pct: g.pct };
+  }
 
   const splits = [
     ...state.areas.map((a) => ({
@@ -47,18 +67,22 @@ export function GoalsSidebar() {
         {weeklyGoals.length === 0 && (
           <p className="muted sidebar-empty">No goals yet.</p>
         )}
-        {weeklyGoals.map((g) => (
-          <div key={g.id} className="goal-card">
-            <div className="goal-top">
-              <span className="goal-icon">{g.icon}</span>
-              <span className="goal-text">{g.text}</span>
-              <span className="goal-pct" style={{ color: g.color }}>{g.pct}%</span>
+        {weeklyGoals.map((g) => {
+          const { pct, tally } = goalProgress(g);
+          return (
+            <div key={g.id} className="goal-card">
+              <div className="goal-top">
+                <span className="goal-icon">{g.icon}</span>
+                <span className="goal-text">{g.text}</span>
+                {tally && <span className="goal-tally">{tally}</span>}
+                <span className="goal-pct" style={{ color: g.color }}>{pct}%</span>
+              </div>
+              <div className="goal-bar">
+                <div className="goal-bar-fill" style={{ width: `${pct}%`, background: g.color }} />
+              </div>
             </div>
-            <div className="goal-bar">
-              <div className="goal-bar-fill" style={{ width: `${g.pct}%`, background: g.color }} />
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div>

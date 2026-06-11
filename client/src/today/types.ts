@@ -153,6 +153,11 @@ export type GoalPeriod = 'weekly' | 'monthly' | 'half_year' | 'annual';
 
 export const GOAL_PERIODS: GoalPeriod[] = ['weekly', 'monthly', 'half_year', 'annual'];
 
+/** standard = manual/estimate-weighted; count = completed linked tasks / targetCount. */
+export type GoalMetric = 'standard' | 'count';
+/** active until concluded; completed (done / hit target) or missed (timed lapse). */
+export type GoalStatus = 'active' | 'completed' | 'missed';
+
 export interface Goal {
   id: string;
   areaId: string;
@@ -164,6 +169,20 @@ export interface Goal {
   period: GoalPeriod;
   /** Goal one period-level up, if linked. */
   parentId?: string;
+  /** How progress is measured (default standard). count is leaf-only. */
+  metric?: GoalMetric;
+  /** Target number of completed tasks, for count goals. */
+  targetCount?: number;
+  /** Timed goals fail when dueAt passes under target. */
+  timed?: boolean;
+  /** Deadline (ISO) for timed goals. */
+  dueAt?: string;
+  /** Lifecycle (default active). Terminal statuses freeze pct + move to Closed. */
+  status?: GoalStatus;
+  /** Set when completed (done / hit target / manually concluded). */
+  completedAt?: string;
+  /** Set when a timed goal resolves as missed. */
+  resolvedAt?: string;
 }
 
 /** A fixed, non-task block that consumes the day (sleep, standing meetings). */

@@ -45,6 +45,16 @@ export interface CompletedGoal {
   completedAt?: string;
 }
 
+export interface MissedGoal {
+  id: string;
+  text: string;
+  icon: string;
+  areaId: string;
+  period: string;
+  pct: number;
+  resolvedAt?: string;
+}
+
 export interface TeamMemberStat {
   personId: string;
   name: string;
@@ -68,7 +78,7 @@ export interface ReportsPayload {
   totals: ReportTotals;
   pace: PaceStats;
   deadlines: DeadlineStats;
-  goals: { completed: CompletedGoal[]; legacyCount: number };
+  goals: { completed: CompletedGoal[]; missed: MissedGoal[]; legacyCount: number };
   team: TeamMemberStat[];
   series: SeriesPoint[];
 }

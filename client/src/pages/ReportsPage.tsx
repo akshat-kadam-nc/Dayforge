@@ -267,9 +267,9 @@ function Deadlines({ data }: { data: ReportsPayload }) {
   );
 }
 
-// ── Completed goals ──
+// ── Completed + missed goals ──
 function CompletedGoals({ data, areaById }: { data: ReportsPayload; areaById: Map<string, LifeArea> }) {
-  const { completed, legacyCount } = data.goals;
+  const { completed, missed, legacyCount } = data.goals;
   return (
     <section className="rep-card">
       <h2 className="rep-card-title">🧭 Goals completed <span className="rep-count">{completed.length}</span></h2>
@@ -294,6 +294,26 @@ function CompletedGoals({ data, areaById }: { data: ReportsPayload; areaById: Ma
         </div>
       )}
       {legacyCount > 0 && <div className="rep-goal-legacy muted">+ {legacyCount} more at 100% completed earlier (before completion dates were tracked)</div>}
+
+      {missed.length > 0 && (
+        <div className="rep-missed">
+          <div className="rep-missed-title">✗ Missed <span className="rep-count bad">{missed.length}</span></div>
+          {missed.map((g) => {
+            const area = areaById.get(g.areaId);
+            return (
+              <div className="rep-goal" key={g.id}>
+                <span className="rep-goal-ico">{g.icon || '🎯'}</span>
+                <span className="rep-goal-text">{g.text}</span>
+                <span className="rep-goal-meta">
+                  {area && <span className="rep-goal-area" style={{ color: area.color }}>{area.name}</span>}
+                  <span className="rep-goal-missed">{g.pct}%</span>
+                  {g.resolvedAt && <span className="rep-goal-date">{new Date(g.resolvedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }

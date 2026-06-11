@@ -28,8 +28,14 @@ export function TaskFormModal({ editing, onClose }: { editing?: Task; onClose: (
   const [deadlineType, setDeadlineType] = useState<DeadlineType>(editing?.deadlineType ?? 'soft');
 
   const areaTracks = state.tracks.filter((t) => t.areaId === areaId);
-  // Daily tasks link to weekly goals only; scope the picker to the chosen area.
-  const areaGoals = state.goals.filter((g) => g.period === 'weekly' && g.areaId === areaId);
+  // Link to active weekly goals + any active count goal (e.g. a monthly "blog 4×")
+  // in the chosen area, so repetition goals are reachable from the task form.
+  const areaGoals = state.goals.filter(
+    (g) =>
+      g.areaId === areaId &&
+      (g.status ?? 'active') === 'active' &&
+      (g.period === 'weekly' || g.metric === 'count'),
+  );
 
   // Keep the selected venture valid as areas load/change.
   useEffect(() => {

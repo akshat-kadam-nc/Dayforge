@@ -1,5 +1,5 @@
 import { api } from '../api/client';
-import type { Goal, GoalPeriod } from '../today/types';
+import type { Goal, GoalMetric, GoalPeriod, GoalStatus } from '../today/types';
 import type { RollupMap } from './tree';
 
 interface ServerGoal {
@@ -11,6 +11,13 @@ interface ServerGoal {
   color: string;
   period?: GoalPeriod;
   parentId?: string | null;
+  metric?: GoalMetric;
+  targetCount?: number | null;
+  timed?: boolean;
+  dueAt?: string | null;
+  status?: GoalStatus;
+  completedAt?: string | null;
+  resolvedAt?: string | null;
 }
 
 export function mapGoal(d: ServerGoal): Goal {
@@ -23,6 +30,13 @@ export function mapGoal(d: ServerGoal): Goal {
     color: d.color,
     period: d.period ?? 'weekly',
     parentId: d.parentId ? String(d.parentId) : undefined,
+    metric: d.metric ?? 'standard',
+    targetCount: d.targetCount ?? undefined,
+    timed: d.timed ?? false,
+    dueAt: d.dueAt ? new Date(d.dueAt).toISOString() : undefined,
+    status: d.status ?? 'active',
+    completedAt: d.completedAt ? new Date(d.completedAt).toISOString() : undefined,
+    resolvedAt: d.resolvedAt ? new Date(d.resolvedAt).toISOString() : undefined,
   };
 }
 
@@ -34,6 +48,11 @@ export interface GoalInput {
   period: GoalPeriod;
   pct?: number;
   parentId?: string | null;
+  metric?: GoalMetric;
+  targetCount?: number | null;
+  timed?: boolean;
+  dueAt?: string | null;
+  status?: GoalStatus;
 }
 
 export async function fetchRollup(): Promise<{ goals: Goal[]; rollup: RollupMap }> {
@@ -53,4 +72,9 @@ export async function updateGoal(id: string, patch: Partial<GoalInput>): Promise
 
 export async function deleteGoal(id: string): Promise<void> {
   await api(`/goals/${id}`, { method: 'DELETE' });
+}
+
+export async function duplicateGoal(id: string): Promise<Goal> {
+  const r = await api<{ goal: ServerGoal }>(`/goals/${id}/duplicate`, { method: 'POST' });
+  return mapGoal(r.goal);
 }

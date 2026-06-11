@@ -4,6 +4,7 @@ import type { RollupMap } from './tree';
 import {
   createGoal as apiCreate,
   deleteGoal as apiDelete,
+  duplicateGoal as apiDuplicate,
   fetchRollup as apiFetch,
   updateGoal as apiUpdate,
   type GoalInput,
@@ -14,6 +15,7 @@ export interface GoalsRepo {
   create(input: GoalInput): Promise<Goal>;
   update(id: string, patch: Partial<GoalInput>): Promise<Goal>;
   remove(id: string): Promise<void>;
+  duplicate(id: string): Promise<Goal>;
 }
 
 // ---- Real accounts ----
@@ -23,6 +25,7 @@ export const apiGoalsRepo: GoalsRepo = {
   create: apiCreate,
   update: apiUpdate,
   remove: apiDelete,
+  duplicate: apiDuplicate,
 };
 
 // ---- Demo mode: derive the rollup from the in-memory seed ----
@@ -60,6 +63,11 @@ export const localGoalsRepo: GoalsRepo = {
       color: input.color,
       period: input.period,
       parentId: input.parentId ?? undefined,
+      metric: input.metric ?? 'standard',
+      targetCount: input.targetCount ?? undefined,
+      timed: input.timed ?? false,
+      dueAt: input.dueAt ?? undefined,
+      status: input.status ?? 'active',
     };
   },
   async update(id, patch) {
@@ -73,7 +81,26 @@ export const localGoalsRepo: GoalsRepo = {
       color: patch.color ?? '#8b5cf6',
       period: patch.period ?? 'weekly',
       parentId: patch.parentId ?? undefined,
+      metric: patch.metric ?? 'standard',
+      targetCount: patch.targetCount ?? undefined,
+      timed: patch.timed ?? false,
+      dueAt: patch.dueAt ?? undefined,
+      status: patch.status ?? 'active',
+      completedAt: patch.status === 'completed' ? new Date().toISOString() : undefined,
     };
   },
   async remove() {},
+  async duplicate(_id) {
+    return {
+      id: `g${Date.now()}`,
+      areaId: '',
+      text: 'Copy',
+      icon: '🎯',
+      pct: 0,
+      color: '#8b5cf6',
+      period: 'weekly',
+      status: 'active',
+      metric: 'standard',
+    };
+  },
 };

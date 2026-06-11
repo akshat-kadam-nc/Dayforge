@@ -10,6 +10,7 @@ import { requireAuth } from '../middleware/auth.js';
 import { requireDb } from '../middleware/requireDb.js';
 import { addDays, dayKey, normaliseDay } from '../util/day.js';
 import { availableForRange } from '../services/availability.js';
+import { resolveAndRollup } from '../services/goals.js';
 
 export const reportsRouter = Router();
 reportsRouter.use(requireDb, requireAuth);
@@ -33,11 +34,15 @@ reportsRouter.get(
     const lo = new Date(`${start}T00:00:00.000`);
     const hi = new Date(`${end}T23:59:59.999`);
 
-    const [user, areas, doneTasks, goalsDone, persons, delegationsDone] = await Promise.all([
+    // Resolve goal lifecycle first so newly completed/missed goals show in range.
+    await resolveAndRollup(userId);
+
+    const [user, areas, doneTasks, goalsDone, goalsMissed, persons, delegationsDone] = await Promise.all([
       UserModel.findById(userId),
       LifeAreaModel.find({ userId }).sort({ order: 1, createdAt: 1 }),
       TaskModel.find({ userId, kind: 'task', status: 'done', completedAt: { $gte: lo, $lte: hi } }),
       GoalModel.find({ userId, completedAt: { $gte: lo, $lte: hi } }).sort({ completedAt: -1 }),
+      GoalModel.find({ userId, status: 'missed', resolvedAt: { $gte: lo, $lte: hi } }).sort({ resolvedAt: -1 }),
       PersonModel.find({ userId }),
       DelegationModel.find({ userId, status: 'done', completedAt: { $gte: lo, $lte: hi } }).sort({ completedAt: -1 }),
     ]);
@@ -132,6 +137,15 @@ reportsRouter.get(
       period: g.period,
       completedAt: g.completedAt?.toISOString(),
     }));
+    const missedGoals = goalsMissed.map((g) => ({
+      id: g._id,
+      text: g.text,
+      icon: g.icon,
+      areaId: String(g.areaId),
+      period: g.period,
+      pct: g.pct ?? 0,
+      resolvedAt: g.resolvedAt?.toISOString(),
+    }));
     // Goals already at 100 before completedAt existed (or completed outside the range stays out).
     const legacyCount = await GoalModel.countDocuments({ userId, pct: 100, completedAt: null });
 
@@ -174,7 +188,7 @@ reportsRouter.get(
         byType,
         worstLate: worstLate.slice(0, 5),
       },
-      goals: { completed: completedGoals, legacyCount },
+      goals: { completed: completedGoals, missed: missedGoals, legacyCount },
       team,
       series,
     });

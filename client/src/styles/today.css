@@ -669,3 +669,6 @@
 .tb-resize { position: absolute; left: 0; right: 0; bottom: 0; height: 8px; cursor: ns-resize; touch-action: none; }
 .tb-resize::after { content: ''; position: absolute; left: 50%; bottom: 2px; transform: translateX(-50%); width: 22px; height: 3px; border-radius: 2px; background: color-mix(in srgb, var(--box-color) 60%, transparent); opacity: 0; transition: opacity 0.15s; }
 .tb-box:hover .tb-resize::after { opacity: 1; }
+
+/* Count-goal tally in the Today goals rail */
+.goal-tally { font-size: 10px; font-weight: 800; color: var(--c-muted); background: rgba(120,80,220,0.1); padding: 1px 6px; border-radius: 100px; margin-left: auto; margin-right: 6px; }

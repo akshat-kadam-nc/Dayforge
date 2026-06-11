@@ -37,8 +37,21 @@ export function childPeriodOf(period: GoalPeriod): GoalPeriod | null {
   return null;
 }
 
-/** Estimate-weighted progress for a weekly goal: done-estimate / total-estimate. */
+/** True for completed/missed goals (frozen pct, shown in the Closed section). */
+export function isTerminal(goal: Goal): boolean {
+  return goal.status === 'completed' || goal.status === 'missed';
+}
+
+/**
+ * Progress for a leaf goal. Terminal goals show their frozen stored pct. Count
+ * goals are countDone/targetCount. Standard goals are estimate-weighted from
+ * linked tasks (done-estimate / total-estimate), falling back to manual pct.
+ */
 function leafPct(goal: Goal, rollup: GoalRollup | undefined): number {
+  if (isTerminal(goal)) return goal.pct;
+  if (goal.metric === 'count' && goal.targetCount) {
+    return Math.min(100, Math.round(((rollup?.countDone ?? 0) / goal.targetCount) * 100));
+  }
   if (rollup && rollup.estTotal > 0) {
     return Math.round((rollup.estDone / rollup.estTotal) * 100);
   }
@@ -64,7 +77,9 @@ export function buildForest(goals: Goal[], rollup: RollupMap): GoalNode[] {
       .map(build);
     const r = rollup[goal.id];
     let pct: number;
-    if (kids.length > 0) {
+    if (isTerminal(goal)) {
+      pct = goal.pct; // frozen at conclusion, parents included
+    } else if (kids.length > 0) {
       pct = Math.round(kids.reduce((s, k) => s + k.pct, 0) / kids.length);
     } else {
       pct = leafPct(goal, r);

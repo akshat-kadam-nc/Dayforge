@@ -121,3 +121,37 @@
   .goal-row-actions { opacity: 1; }
   .goal-row-text { white-space: normal; }
 }
+
+/* ── Timed & count goals: deadline chip, status, closed section ── */
+.goal-deadline {
+  font-size: 10.5px; font-weight: 800; color: #b45309;
+  background: rgba(245, 158, 11, 0.14); padding: 1px 8px; border-radius: 100px; white-space: nowrap;
+}
+.goal-deadline.overdue { color: #be123c; background: rgba(239, 68, 68, 0.14); }
+
+/* Create/edit modal facet toggles */
+.goal-facet { gap: 0; }
+.goal-facet-head {
+  display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700;
+  text-transform: none; letter-spacing: normal; color: var(--c-secondary);
+}
+.goal-facet-head input[type='checkbox'] { width: 15px; height: 15px; accent-color: var(--c-accent); cursor: pointer; }
+
+/* Closed (concluded/missed) goals */
+.goal-closed { margin-top: 10px; border-top: 1px dashed var(--border-med); padding-top: 8px; }
+.goal-closed-head {
+  background: none; border: none; cursor: pointer; font: inherit; font-size: 11px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.6px; color: var(--c-muted); padding: 4px 2px;
+}
+.goal-closed-list { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.goal-closed-row {
+  display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 12px;
+  background: rgba(255, 255, 255, 0.4); border: 1.5px solid var(--border-med);
+}
+.goal-closed-row.missed { background: rgba(239, 68, 68, 0.05); }
+.goal-closed-icon { font-size: 14px; flex-shrink: 0; }
+.goal-closed-text { flex: 1; min-width: 0; font-size: 12.5px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: 0.85; }
+.goal-closed-badge { font-size: 10.5px; font-weight: 900; padding: 2px 9px; border-radius: 100px; white-space: nowrap; }
+.goal-closed-badge.completed { color: #15803d; background: rgba(22, 163, 74, 0.14); }
+.goal-closed-badge.missed { color: #be123c; background: rgba(239, 68, 68, 0.14); }
+.goal-closed-actions { display: flex; gap: 2px; flex-shrink: 0; }

@@ -4,7 +4,7 @@ import { api } from '../api/client';
 import { makeInitialState } from '../today/seed';
 import type { Goal, GoalPeriod, LifeArea } from '../today/types';
 import { apiGoalsRepo, localGoalsRepo, type GoalsRepo } from '../goals/repo';
-import { buildForest, type RollupMap, type GoalNode } from '../goals/tree';
+import { buildForest, isTerminal, type RollupMap, type GoalNode } from '../goals/tree';
 import type { GoalInput } from '../goals/api';
 import { GoalTree } from '../components/goals/GoalTree';
 import { GoalModal } from '../components/goals/GoalModal';
@@ -25,6 +25,7 @@ export function GoalsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modal, setModal] = useState<ModalState | null>(null);
+  const [conclude, setConclude] = useState<{ goal: Goal; pct: number } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -43,12 +44,18 @@ export function GoalsPage() {
     };
   }, [repo, isGuest]);
 
-  // Build a forest per life area. Every area is shown — even with no goals yet —
-  // so each venture has a visible card and an add-goal entry point.
+  // Build a forest per life area from ACTIVE goals only; concluded/missed goals
+  // are listed separately in a Closed section. Every area is shown — even with no
+  // goals yet — so each venture has a visible card and an add-goal entry point.
   const byArea = useMemo(() => {
+    const active = goals.filter((g) => !isTerminal(g));
+    const closed = goals.filter((g) => isTerminal(g));
     return areas.map((area) => ({
       area,
-      forest: buildForest(goals.filter((g) => g.areaId === area.id), rollup),
+      forest: buildForest(active.filter((g) => g.areaId === area.id), rollup),
+      closed: closed
+        .filter((g) => g.areaId === area.id)
+        .sort((a, b) => (b.completedAt ?? b.resolvedAt ?? '').localeCompare(a.completedAt ?? a.resolvedAt ?? '')),
     }));
   }, [areas, goals, rollup]);
 
@@ -60,8 +67,20 @@ export function GoalsPage() {
     if (id) {
       await repo.update(id, input);
       // Merge the saved fields into local state (api and demo agree on values).
+      // Normalise nullable inputs to the Goal type's optional (undefined) shape.
       setGoals((gs) =>
-        gs.map((g) => (g.id === id ? { ...g, ...input, parentId: input.parentId ?? undefined } : g)),
+        gs.map((g) =>
+          g.id === id
+            ? {
+                ...g,
+                ...input,
+                pct: input.pct ?? g.pct,
+                parentId: input.parentId ?? undefined,
+                targetCount: input.targetCount ?? undefined,
+                dueAt: input.dueAt ?? undefined,
+              }
+            : g,
+        ),
       );
     } else {
       const created = await repo.create(input);
@@ -74,6 +93,45 @@ export function GoalsPage() {
     if (!window.confirm(`Delete "${node.goal.text}"? Child goals will be detached.`)) return;
     await repo.remove(id);
     setGoals((gs) => gs.filter((g) => g.id !== id).map((g) => (g.parentId === id ? { ...g, parentId: undefined } : g)));
+  }
+
+  // Manually conclude a goal at a chosen pct — moves it to Closed, keeps history.
+  async function doConclude() {
+    if (!conclude) return;
+    const { goal, pct } = conclude;
+    setConclude(null);
+    setGoals((gs) =>
+      gs.map((g) => (g.id === goal.id ? { ...g, status: 'completed', pct, completedAt: new Date().toISOString() } : g)),
+    );
+    await repo.update(goal.id, { status: 'completed', pct });
+  }
+
+  async function removeGoal(goal: Goal) {
+    if (!window.confirm(`Delete "${goal.text}"?`)) return;
+    await repo.remove(goal.id);
+    setGoals((gs) => gs.filter((g) => g.id !== goal.id));
+  }
+
+  async function reopen(goal: Goal) {
+    setGoals((gs) =>
+      gs.map((g) => (g.id === goal.id ? { ...g, status: 'active', completedAt: undefined, resolvedAt: undefined } : g)),
+    );
+    await repo.update(goal.id, { status: 'active' });
+  }
+
+  async function duplicate(goal: Goal) {
+    const created = await repo.duplicate(goal.id);
+    // Demo returns a stub id only; build the real copy from the source either way.
+    const copy: Goal = {
+      ...goal,
+      id: created.id,
+      pct: 0,
+      status: 'active',
+      completedAt: undefined,
+      resolvedAt: undefined,
+      dueAt: goal.timed && goal.dueAt ? shiftByPeriodIso(goal.dueAt, goal.period) : undefined,
+    };
+    setGoals((gs) => [...gs, isGuest ? copy : created]);
   }
 
   // A node's progress is derived (hide the manual slider) when it's a weekly with
@@ -126,7 +184,7 @@ export function GoalsPage() {
         />
       ) : (
         <div className="goals-areas">
-          {byArea.map(({ area, forest }) => (
+          {byArea.map(({ area, forest, closed }) => (
             <section key={area.id} className="goal-area-card" style={{ ['--area-color' as string]: area.color }}>
               <div className="goal-area-head">
                 <span className="goal-area-icon">{area.icon}</span>
@@ -159,6 +217,7 @@ export function GoalsPage() {
                       onToggle={toggle}
                       onEdit={(n) => setModal({ editing: n.goal, derived: isDerived(n) })}
                       onDelete={remove}
+                      onConclude={(n) => setConclude({ goal: n.goal, pct: n.pct })}
                       onAddChild={(n) =>
                         setModal({
                           editing: null,
@@ -170,6 +229,8 @@ export function GoalsPage() {
                   ))
                 )}
               </div>
+
+              {closed.length > 0 && <ClosedGoals goals={closed} onReopen={reopen} onDuplicate={duplicate} onDelete={removeGoal} />}
             </section>
           ))}
         </div>
@@ -186,6 +247,72 @@ export function GoalsPage() {
           onSave={save}
         />
       )}
+
+      {conclude && (
+        <div className="modal-overlay" onClick={() => setConclude(null)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <h2 className="modal-title">✓ Conclude goal</h2>
+            <p className="muted goal-modal-note">
+              Mark “{conclude.goal.text}” done and move it to Closed. Set the final progress to record honestly — even partial.
+            </p>
+            <label>
+              Final progress: {conclude.pct}%
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={5}
+                value={conclude.pct}
+                onChange={(e) => setConclude((c) => (c ? { ...c, pct: Number(e.target.value) } : c))}
+              />
+            </label>
+            <div className="modal-actions">
+              <button type="button" className="btn-ghost" onClick={() => setConclude(null)}>Cancel</button>
+              <button type="button" className="btn" onClick={doConclude}>Conclude</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Collapsed list of concluded/missed goals for one area, with frozen pct. */
+function ClosedGoals({
+  goals,
+  onReopen,
+  onDuplicate,
+  onDelete,
+}: {
+  goals: Goal[];
+  onReopen: (g: Goal) => void;
+  onDuplicate: (g: Goal) => void;
+  onDelete: (g: Goal) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="goal-closed">
+      <button type="button" className="goal-closed-head" onClick={() => setOpen((v) => !v)}>
+        {open ? '▾' : '▸'} Closed · {goals.length}
+      </button>
+      {open && (
+        <div className="goal-closed-list">
+          {goals.map((g) => (
+            <div key={g.id} className={`goal-closed-row ${g.status}`}>
+              <span className="goal-closed-icon">{g.icon}</span>
+              <span className="goal-closed-text">{g.text}</span>
+              <span className={`goal-closed-badge ${g.status}`}>
+                {g.status === 'completed' ? `✓ Done — ${g.pct}%` : `✗ Missed — ${g.pct}%`}
+              </span>
+              <div className="goal-closed-actions">
+                <button type="button" className="goal-act" title="Reopen" onClick={() => onReopen(g)}>↩</button>
+                <button type="button" className="goal-act" title="Duplicate for next period" onClick={() => onDuplicate(g)}>⧉</button>
+                <button type="button" className="goal-act danger" title="Delete" onClick={() => onDelete(g)}>🗑</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -194,6 +321,16 @@ function childPeriod(p: GoalPeriod): GoalPeriod {
   if (p === 'annual') return 'half_year';
   if (p === 'half_year') return 'monthly';
   return 'weekly';
+}
+
+/** Shift a deadline forward one period (demo-only; the API does this server-side). */
+function shiftByPeriodIso(iso: string, period: GoalPeriod): string {
+  const d = new Date(iso);
+  if (period === 'weekly') d.setDate(d.getDate() + 7);
+  else if (period === 'monthly') d.setMonth(d.getMonth() + 1);
+  else if (period === 'half_year') d.setMonth(d.getMonth() + 6);
+  else d.setFullYear(d.getFullYear() + 1);
+  return d.toISOString();
 }
 
 /** Areas come from the Today payload (demo seed or API), reused here. */
