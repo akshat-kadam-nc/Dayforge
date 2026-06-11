@@ -13,6 +13,9 @@ const goalSchema = new Schema(
     period: { type: String, enum: GOAL_PERIODS, default: 'weekly' },
     // Optional link to the goal one period-level up (weekly→monthly→half_year→annual).
     parentId: { type: Types.ObjectId, ref: 'Goal', default: null, index: true },
+    // Stamped when pct first reaches 100; cleared if it drops back below. Powers
+    // the Reports "completed goals" history. Legacy goals already at 100 have none.
+    completedAt: { type: Date },
   },
   { timestamps: true },
 );

@@ -10,6 +10,7 @@ const NAV = [
   { to: '/calendar', label: 'Calendar', icon: '🗓️' },
   { to: '/goals', label: 'Goals', icon: '🧭' },
   { to: '/team', label: 'Team', icon: '👥' },
+  { to: '/reports', label: 'Reports', icon: '📊' },
   { to: '/settings', label: 'Settings', icon: '⚙️' },
 ];
 

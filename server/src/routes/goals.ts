@@ -105,9 +105,17 @@ goalsRouter.patch(
       }
       await validateParent(req.userId, data.parentId, period);
     }
+    // Stamp completion the first time pct hits 100; clear it if pct drops back.
+    const patch: Record<string, unknown> = { ...data };
+    if (data.pct === 100) {
+      const current = await GoalModel.findOne({ _id: req.params.id, userId: req.userId }).select('completedAt');
+      if (current && !current.completedAt) patch.completedAt = new Date();
+    } else if (data.pct !== undefined) {
+      patch.completedAt = null;
+    }
     const goal = await GoalModel.findOneAndUpdate(
       { _id: req.params.id, userId: req.userId },
-      data,
+      patch,
       { new: true },
     );
     if (!goal) throw new HttpError(404, 'Goal not found');

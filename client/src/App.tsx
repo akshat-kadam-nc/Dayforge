@@ -11,6 +11,7 @@ import { TodayPage } from './pages/TodayPage';
 import { CalendarPage } from './pages/CalendarPage';
 import { GoalsPage } from './pages/GoalsPage';
 import { TeamPage } from './pages/TeamPage';
+import { ReportsPage } from './pages/ReportsPage';
 import { SettingsPage } from './pages/SettingsPage';
 
 export function App() {
@@ -41,6 +42,7 @@ function AppRoutes() {
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/goals" element={<GoalsPage />} />
           <Route path="/team" element={<TeamPage />} />
+          <Route path="/reports" element={<ReportsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
