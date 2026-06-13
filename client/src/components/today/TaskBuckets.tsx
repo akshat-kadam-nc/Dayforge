@@ -14,13 +14,31 @@ function fmtCreated(iso?: string): string {
   return isNaN(d.getTime()) ? '' : d.toLocaleDateString([], { month: 'short', day: 'numeric' });
 }
 
-/** Overdue (past-day, unfinished) or Scheduled (future-day) tasks in a
- *  collapsible section. They share the tasks array but sit outside Today. */
+/** Local YYYY-MM-DD for a deadline timestamp. */
+function dueDateKey(iso: string): string {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
+/** A task's effective deadline: its explicit `dueAt` date, else its slated
+ *  `day` (the de-facto deadline when no deadline is set). */
+function effDue(t: Task): string {
+  return t.dueAt ? dueDateKey(t.dueAt) || t.day : t.day;
+}
+
+/** Pending = deadline reached but unfinished; Scheduled = known but not yet due.
+ *  Bucketed on the effective deadline, not the slated day, so a task created
+ *  today but due later waits in Scheduled until its deadline arrives instead of
+ *  falling into Pending the next morning. */
 export function TaskBuckets({ which }: { which: 'pending' | 'upcoming' }) {
   const { state } = useToday();
+  const today = state.day;
   const tasks = state.tasks
-    .filter((t) => t.kind === 'task' && (which === 'pending' ? t.day < state.day : t.day > state.day) && t.status !== 'done')
-    .sort((a, b) => a.day.localeCompare(b.day));
+    .filter((t) => t.kind === 'task' && t.status !== 'done' && t.day !== today)
+    .filter((t) => (which === 'pending' ? effDue(t) <= today : effDue(t) > today))
+    .sort((a, b) => effDue(a).localeCompare(effDue(b)) || a.day.localeCompare(b.day));
   if (tasks.length === 0) return null;
 
   return which === 'pending' ? (
@@ -58,7 +76,7 @@ function Bucket({
         tasks.map((t) => (
           <div key={t.id} className="bucket-item">
             <div className="bucket-meta">
-              <span className="bucket-day">{fmtDay(t.day)}</span>
+              <span className="bucket-day">{fmtDay(effDue(t))}</span>
               {showCreated && t.createdAt && <span className="bucket-created">added {fmtCreated(t.createdAt)}</span>}
             </div>
             <TaskRow task={t} />
