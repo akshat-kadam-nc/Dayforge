@@ -1,5 +1,4 @@
 import { useAuth } from '../../auth/AuthContext';
-import { useWallpaper } from '../../wallpaper/WallpaperContext';
 
 function dayLabel(d: Date): string {
   return d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
@@ -13,7 +12,6 @@ function weekOfYear(d: Date): number {
 
 export function TodayHeader({ streakDays }: { streakDays: number }) {
   const { user } = useAuth();
-  const { openPicker } = useWallpaper();
   const now = new Date();
   const initial = (user?.name ?? user?.email ?? 'A').charAt(0).toUpperCase();
 
@@ -26,7 +24,6 @@ export function TodayHeader({ streakDays }: { streakDays: number }) {
       </div>
       <div className="t-header-right">
         {streakDays > 0 && <div className="streak-pill">🔥 {streakDays}-day streak</div>}
-        <button className="wp-btn" type="button" onClick={openPicker}>🎨 Wallpaper</button>
         <div className="t-avatar">{initial}</div>
       </div>
     </header>

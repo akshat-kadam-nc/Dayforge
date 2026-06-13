@@ -1,5 +1,5 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
-import { PHOTO_URL, isPhotoId } from './photos';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { PHOTO_URL, PHOTO_WALLPAPERS, isPhotoId } from './photos';
 
 export interface WallpaperPreset {
   id: string;
@@ -27,6 +27,10 @@ const DEFAULT_WP = 'photo:dayforge-wallpaper-10';
 const FALLBACK_WP = 'wp-poke-dusk';
 const WP_KEY = 'axiom_wp';
 const WP_IMG_KEY = 'axiom_wp_image';
+const WP_SHUFFLE_KEY = 'axiom_wp_shuffle';
+/** How often shuffle rotates the wallpaper. Calm cadence so it isn't distracting
+ *  while working (login cross-fades faster because it's a passive screen). */
+const SHUFFLE_MS = 60_000;
 
 /** Resolve a stored wp id to something renderable: a missing photo (e.g. its
  *  file was removed) degrades to the gradient fallback instead of a blank bg. */
@@ -52,6 +56,9 @@ interface WallpaperCtx {
   closePicker: () => void;
   setPreview: (sel: WallpaperSelection) => void;
   applyPreview: () => void;
+  /** Auto-rotate through the photo wallpapers on a timer. */
+  shuffle: boolean;
+  setShuffle: (on: boolean) => void;
 }
 
 const Ctx = createContext<WallpaperCtx | null>(null);
@@ -63,6 +70,37 @@ export function WallpaperProvider({ children }: { children: ReactNode }) {
   }));
   const [preview, setPreviewState] = useState<WallpaperSelection | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [shuffle, setShuffleState] = useState(() => localStorage.getItem(WP_SHUFFLE_KEY) === '1');
+
+  function setShuffle(on: boolean) {
+    try {
+      localStorage.setItem(WP_SHUFFLE_KEY, on ? '1' : '0');
+    } catch {
+      // non-fatal
+    }
+    setShuffleState(on);
+    // Turning shuffle off restores the user's last explicitly-chosen wallpaper.
+    if (!on) {
+      setApplied({
+        wp: resolveWp(localStorage.getItem(WP_KEY) || DEFAULT_WP),
+        image: localStorage.getItem(WP_IMG_KEY) || null,
+      });
+    }
+  }
+
+  // While shuffle is on, rotate through the photo wallpapers without overwriting
+  // the saved choice (so it returns on toggle-off). Needs at least two photos.
+  useEffect(() => {
+    if (!shuffle || PHOTO_WALLPAPERS.length < 2) return;
+    const ids = PHOTO_WALLPAPERS.map((p) => p.id);
+    const id = setInterval(() => {
+      setApplied((cur) => {
+        const next = ids[(ids.indexOf(cur.wp) + 1) % ids.length];
+        return { wp: next, image: null };
+      });
+    }, SHUFFLE_MS);
+    return () => clearInterval(id);
+  }, [shuffle]);
 
   const value = useMemo<WallpaperCtx>(
     () => ({
@@ -89,8 +127,10 @@ export function WallpaperProvider({ children }: { children: ReactNode }) {
         setPreviewState(null);
         setPickerOpen(false);
       },
+      shuffle,
+      setShuffle,
     }),
-    [applied, preview, pickerOpen],
+    [applied, preview, pickerOpen, shuffle],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

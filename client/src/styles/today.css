@@ -77,8 +77,8 @@
   border-bottom: 1px solid var(--border-med); box-shadow: 0 2px 16px rgba(60,20,120,0.07);
 }
 .t-header-center { display: flex; flex-direction: column; align-items: center; }
-.t-header-day { font-size: 14px; font-weight: 800; }
-.t-header-sub { font-size: 11px; color: var(--c-muted); font-weight: 600; }
+.t-header-day { font-size: 14px; font-weight: 800; color: var(--c-primary); text-shadow: var(--text-legible); }
+.t-header-sub { font-size: 11px; color: var(--c-secondary); font-weight: 700; text-shadow: var(--text-legible); }
 .t-header-right { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
 .streak-pill { background: rgba(251,191,36,0.18); border: 1.5px solid rgba(251,191,36,0.5); border-radius: var(--r-pill); padding: 4px 11px; font-size: 12px; font-weight: 800; color: #92400e; white-space: nowrap; }
 .wp-btn { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.55); border: 1.5px solid var(--border-med); border-radius: var(--r-pill); padding: 5px 12px; font-family: inherit; font-size: 11.5px; font-weight: 800; color: var(--c-secondary); cursor: pointer; }
@@ -129,7 +129,7 @@
 
 /* Card */
 .card { background: var(--surface); border: 1.5px solid var(--border-med); border-radius: var(--r-lg); padding: 16px 18px; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); box-shadow: var(--shadow); }
-.card-title { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: var(--c-muted); margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+.card-title { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: var(--c-secondary); margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
 .toggle-pills { display: flex; gap: 3px; background: rgba(255,255,255,0.55); border-radius: var(--r-pill); padding: 3px; border: 1.5px solid var(--border-med); }
 .toggle-pills button { background: none; border: none; font-family: inherit; font-size: 10.5px; font-weight: 800; padding: 4px 11px; border-radius: var(--r-pill); cursor: pointer; color: var(--c-muted); }
 .toggle-pills button.active { background: var(--c-accent); color: white; }
@@ -163,8 +163,10 @@
 
 /* Tasks */
 .tasks-header { display: flex; align-items: center; justify-content: space-between; padding: 0 2px; }
-.section-lbl { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: var(--c-muted); }
-.task-count { background: rgba(124,58,237,0.12); color: var(--c-accent); font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: var(--r-pill); }
+/* Floats directly over the wallpaper (no card behind it) — fixed dark colour
+   plus a light halo keeps it legible on any wallpaper, light or dark. */
+.section-lbl { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: var(--c-primary); text-shadow: var(--text-legible); }
+.task-count { background: var(--c-accent); color: #fff; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: var(--r-pill); box-shadow: var(--shadow); }
 .venture-block { background: var(--surface); border: 1.5px solid var(--border-med); border-radius: var(--r-lg); overflow: hidden; backdrop-filter: var(--blur); box-shadow: var(--shadow); }
 .vent-head { display: flex; align-items: center; gap: 9px; padding: 10px 15px; cursor: pointer; border-bottom: 1.5px solid var(--border); }
 .vent-icon { width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
@@ -272,7 +274,7 @@
   display: grid; grid-template-columns: 1fr 70px 80px 110px 110px; gap: 8px; align-items: center;
   padding: 8px 15px; border-top: 1px solid var(--border); font-size: 12px; font-weight: 700; color: var(--c-secondary);
 }
-.fold-row.fold-header { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-muted); }
+.fold-row.fold-header { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-secondary); }
 .fold-row .fold-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fold-col { font-size: 11px; }
 .fold-stamp { color: var(--c-muted); font-weight: 700; }
@@ -363,14 +365,14 @@
 
 /* Completed fold */
 .completed-fold { background: rgba(255,255,255,0.55); border: 1.5px solid var(--border); border-radius: var(--r); backdrop-filter: var(--blur); overflow: hidden; }
-.fold-head { display: flex; align-items: center; gap: 8px; padding: 9px 15px; cursor: pointer; font-size: 11.5px; font-weight: 800; color: var(--c-muted); }
+.fold-head { display: flex; align-items: center; gap: 8px; padding: 9px 15px; cursor: pointer; font-size: 11.5px; font-weight: 800; color: var(--c-secondary); }
 .fold-item { display: flex; align-items: center; gap: 9px; padding: 8px 15px; border-top: 1px solid var(--border); font-size: 12px; font-weight: 700; color: var(--c-secondary); }
 .fold-check { color: var(--c-success); font-weight: 900; }
 .fold-name { text-decoration: line-through; }
 
 /* Sidebar */
 .sidebar { border-left: 1.5px solid var(--border-med); padding: 16px 15px; display: flex; flex-direction: column; gap: 16px; background: rgba(255,255,255,0.4); backdrop-filter: var(--blur); }
-.sidebar-title { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: var(--c-muted); margin-bottom: 9px; }
+.sidebar-title { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: var(--c-secondary); margin-bottom: 9px; }
 .cal-badge { display: flex; align-items: center; gap: 6px; background: rgba(14,165,233,0.1); border: 1.5px solid rgba(14,165,233,0.3); border-radius: var(--r-pill); padding: 4px 10px; font-size: 11px; font-weight: 700; color: #0369a1; margin-bottom: 12px; }
 .goal-card { background: rgba(255,255,255,0.75); border: 1.5px solid var(--border); border-radius: var(--r); padding: 9px 11px; margin-bottom: 6px; cursor: pointer; box-shadow: 0 1px 8px rgba(60,20,120,0.06); }
 .goal-top { display: flex; align-items: flex-start; gap: 7px; margin-bottom: 6px; }

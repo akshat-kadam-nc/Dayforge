@@ -21,6 +21,11 @@
   --c-fire: #f43f5e;
   --border-med: rgba(120, 80, 220, 0.22);
 
+  /* Halo for text that floats directly over the wallpaper (no card behind it):
+     a light glow so dark text stays legible on busy or dark wallpapers without
+     depending on the wallpaper choice. */
+  --text-legible: 0 1px 2px rgba(255, 255, 255, 0.65), 0 1px 10px rgba(255, 255, 255, 0.42);
+
   /* Motion vocabulary — shared so every interaction feels consistent.
      ease-out for settling, ease-spring for a touch of playful overshoot. */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -622,6 +627,36 @@ input:focus {
    all content, giving the glass panes a calmer canvas without washing the image
    out. Only rendered for image-based backgrounds (see WallpaperLayer). */
 .wp-photo { background-size: cover; background-position: center; }
+/* Incoming wallpaper cross-fades over the outgoing one (used by shuffle). */
+.wp-fade-in { animation: wp-fade-in 0.9s var(--ease-out) both; }
+@keyframes wp-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .wp-fade-in { animation: none; } }
+
+/* Settings → Wallpaper card */
+.wp-setting-row { display: flex; gap: 14px; align-items: stretch; }
+.wp-setting-preview {
+  width: 132px; flex-shrink: 0; border-radius: 12px; min-height: 74px;
+  border: 1.5px solid var(--border-med); background-size: cover; background-position: center;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+}
+.wp-setting-main { flex: 1; min-width: 0; display: flex; align-items: center; }
+.wp-setting-toggle { display: flex; align-items: center; justify-content: space-between; gap: 14px; width: 100%; }
+.wp-setting-toggle-label { font-size: 13.5px; font-weight: 800; color: var(--c-primary); }
+.wp-setting-hint { font-size: 11.5px; margin: 2px 0 0; }
+
+/* Toggle switch */
+.switch {
+  flex-shrink: 0; width: 46px; height: 26px; border-radius: 100px; padding: 0;
+  border: 1.5px solid var(--border-med); background: rgba(120,80,220,0.12); cursor: pointer;
+  position: relative; transition: background var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out);
+}
+.switch.on { background: var(--c-accent); border-color: var(--c-accent); }
+.switch-knob {
+  position: absolute; top: 1.5px; left: 2px; width: 19px; height: 19px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  transition: transform var(--dur) var(--ease-spring);
+}
+.switch.on .switch-knob { transform: translateX(20px); }
 .wp-scrim {
   position: fixed;
   inset: 0;

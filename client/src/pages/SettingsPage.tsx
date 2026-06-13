@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Placeholder } from '../components/Placeholder';
 import { useAuth } from '../auth/AuthContext';
 import { useToday } from '../today/useToday';
+import { useWallpaper } from '../wallpaper/WallpaperContext';
+import { PHOTO_URL, isPhotoId } from '../wallpaper/photos';
 import { AddVentureModal } from '../components/today/AddVentureModal';
 import { TrackManager } from '../components/today/TrackManager';
 import { GoogleAccountsSection } from '../components/GoogleAccountsSection';
@@ -88,6 +90,8 @@ export function SettingsPage() {
         )}
       </div>
 
+      <WallpaperSection />
+
       {!isGuest && <PasswordSection />}
 
       <GoogleAccountsSection isGuest={isGuest} />
@@ -97,6 +101,47 @@ export function SettingsPage() {
       {adding && <AddVentureModal onClose={() => setAdding(false)} />}
       {editRoutine && <RoutineModal mode="edit" onClose={() => setEditRoutine(false)} />}
     </Placeholder>
+  );
+}
+
+/** Wallpaper: a live preview, the picker trigger, and the timed-shuffle switch. */
+function WallpaperSection() {
+  const { applied, openPicker, shuffle, setShuffle } = useWallpaper();
+  const photoUrl = isPhotoId(applied.wp) ? PHOTO_URL[applied.wp] : undefined;
+  const imageUrl = applied.image ?? photoUrl;
+  const previewStyle = imageUrl
+    ? { backgroundImage: `url(${imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    : undefined;
+  // A gradient preset has no image; show it via its preset class for the swatch.
+  const previewClass = `wp-setting-preview${imageUrl ? '' : ` ${applied.wp}`}`;
+
+  return (
+    <div className="settings-section">
+      <div className="settings-section-head">
+        <h3>Wallpaper</h3>
+        <button type="button" className="btn-ghost btn-sm" onClick={openPicker}>Change</button>
+      </div>
+      <div className="wp-setting-row">
+        <div className={previewClass} style={previewStyle} aria-hidden />
+        <div className="wp-setting-main">
+          <div className="wp-setting-toggle">
+            <div>
+              <div className="wp-setting-toggle-label">Shuffle wallpapers</div>
+              <p className="muted wp-setting-hint">Rotate through your photo wallpapers automatically.</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={shuffle}
+              className={`switch${shuffle ? ' on' : ''}`}
+              onClick={() => setShuffle(!shuffle)}
+            >
+              <span className="switch-knob" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
