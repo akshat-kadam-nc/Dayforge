@@ -893,6 +893,13 @@ select:focus:not(:focus-visible),
   from { transform: translateY(8px); }
   to { transform: translateY(0); }
 }
+/* Today's cockpit is position:fixed. A transform on its ancestor (.app-content,
+   which is max-width:760px and centred) becomes the containing block for fixed
+   descendants, so during the page-enter slide the cockpit briefly resolves its
+   left/right/width against that 760px box and renders squished until the
+   animation ends. Skip the slide here — the cockpit's own .stagger covers the
+   entrance, and nothing else in .app-content is fixed. */
+.app-content:has(.cockpit) { animation: none; }
 
 /* Drop .stagger on a container; direct children fade up in sequence. The
    delays are short so the whole cascade resolves quickly. */
