@@ -651,7 +651,7 @@ input:focus {
 /* Incoming wallpaper cross-fades over the outgoing one (used by shuffle).
    Matches the login gateway's slow 1.6s dissolve so rotations feel gentle, not
    abrupt. A faint zoom settles in alongside it for the same Ken Burns feel. */
-.wp-fade-in { animation: wp-fade-in 1.6s var(--ease-out) both; }
+.wp-fade-in { animation: wp-fade-in 2.4s var(--ease-out) both; }
 @keyframes wp-fade-in { from { opacity: 0; transform: scale(1.03); } to { opacity: 1; transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .wp-fade-in { animation: none; } }
 

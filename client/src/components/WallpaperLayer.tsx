@@ -39,10 +39,10 @@ export function WallpaperLayer() {
   useEffect(() => {
     const top = layers[layers.length - 1];
     if (top.key === next.key) return;
-    // Keep the outgoing layer beneath the new one, then prune once the 1.6s
+    // Keep the outgoing layer beneath the new one, then prune once the 2.4s
     // wp-fade-in has fully covered it (see global.css).
     setLayers((ls) => [...ls.slice(-1), next]);
-    const t = setTimeout(() => setLayers((ls) => ls.slice(-1)), 1700);
+    const t = setTimeout(() => setLayers((ls) => ls.slice(-1)), 2500);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [next.key]);
