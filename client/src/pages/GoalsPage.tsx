@@ -157,9 +157,9 @@ export function GoalsPage() {
   return (
     <div className="goals-page">
       <div className="goals-topbar">
-        <div>
+        <div className="goals-titlewrap">
           <h1 className="goals-title">Goals</h1>
-          <p className="goals-sub muted">Annual → Half-year → Monthly → Weekly, per life area. Weekly progress tracks linked tasks.</p>
+          <p className="goals-sub">Annual → Half-year → Monthly → Weekly, per life area. Weekly progress tracks linked tasks.</p>
         </div>
         <button
           type="button"

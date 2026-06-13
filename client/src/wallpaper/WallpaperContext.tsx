@@ -28,9 +28,26 @@ const FALLBACK_WP = 'wp-poke-dusk';
 const WP_KEY = 'axiom_wp';
 const WP_IMG_KEY = 'axiom_wp_image';
 const WP_SHUFFLE_KEY = 'axiom_wp_shuffle';
-/** How often shuffle rotates the wallpaper. Calm cadence so it isn't distracting
- *  while working (login cross-fades faster because it's a passive screen). */
-const SHUFFLE_MS = 60_000;
+const WP_INTERVAL_KEY = 'axiom_wp_interval';
+
+/** Selectable shuffle cadences (ms). Default is a calm 60s so it isn't
+ *  distracting while working. */
+export const SHUFFLE_INTERVALS: { ms: number; label: string }[] = [
+  { ms: 10_000, label: '10 seconds' },
+  { ms: 30_000, label: '30 seconds' },
+  { ms: 60_000, label: '60 seconds' },
+  { ms: 300_000, label: '5 minutes' },
+  { ms: 600_000, label: '10 minutes' },
+  { ms: 900_000, label: '15 minutes' },
+  { ms: 1_800_000, label: '30 minutes' },
+  { ms: 3_600_000, label: '60 minutes' },
+];
+const DEFAULT_SHUFFLE_MS = 60_000;
+
+function readInterval(): number {
+  const raw = Number(localStorage.getItem(WP_INTERVAL_KEY));
+  return SHUFFLE_INTERVALS.some((o) => o.ms === raw) ? raw : DEFAULT_SHUFFLE_MS;
+}
 
 /** Resolve a stored wp id to something renderable: a missing photo (e.g. its
  *  file was removed) degrades to the gradient fallback instead of a blank bg. */
@@ -59,6 +76,9 @@ interface WallpaperCtx {
   /** Auto-rotate through the photo wallpapers on a timer. */
   shuffle: boolean;
   setShuffle: (on: boolean) => void;
+  /** How often shuffle rotates, in ms (one of SHUFFLE_INTERVALS). */
+  shuffleMs: number;
+  setShuffleMs: (ms: number) => void;
 }
 
 const Ctx = createContext<WallpaperCtx | null>(null);
@@ -71,6 +91,16 @@ export function WallpaperProvider({ children }: { children: ReactNode }) {
   const [preview, setPreviewState] = useState<WallpaperSelection | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [shuffle, setShuffleState] = useState(() => localStorage.getItem(WP_SHUFFLE_KEY) === '1');
+  const [shuffleMs, setShuffleMsState] = useState<number>(readInterval);
+
+  function setShuffleMs(ms: number) {
+    try {
+      localStorage.setItem(WP_INTERVAL_KEY, String(ms));
+    } catch {
+      // non-fatal
+    }
+    setShuffleMsState(ms);
+  }
 
   function setShuffle(on: boolean) {
     try {
@@ -98,9 +128,9 @@ export function WallpaperProvider({ children }: { children: ReactNode }) {
         const next = ids[(ids.indexOf(cur.wp) + 1) % ids.length];
         return { wp: next, image: null };
       });
-    }, SHUFFLE_MS);
+    }, shuffleMs);
     return () => clearInterval(id);
-  }, [shuffle]);
+  }, [shuffle, shuffleMs]);
 
   const value = useMemo<WallpaperCtx>(
     () => ({
@@ -129,8 +159,10 @@ export function WallpaperProvider({ children }: { children: ReactNode }) {
       },
       shuffle,
       setShuffle,
+      shuffleMs,
+      setShuffleMs,
     }),
-    [applied, preview, pickerOpen, shuffle],
+    [applied, preview, pickerOpen, shuffle, shuffleMs],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

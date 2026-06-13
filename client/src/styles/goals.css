@@ -26,8 +26,12 @@
   justify-content: space-between;
   gap: 16px;
 }
-.goals-title { font-size: 22px; font-weight: 900; margin: 0; letter-spacing: -0.3px; }
-.goals-sub { font-size: 12.5px; margin: 2px 0 0; }
+/* Title + subtitle float directly over the wallpaper. A halo isn't enough on
+   bright/busy photos, so the text sits on its own glass chip (see
+   .page-head-glass in global.css). */
+.goals-titlewrap { align-self: flex-start; }
+.goals-title { font-size: 22px; font-weight: 900; margin: 0; letter-spacing: -0.3px; color: var(--c-primary); }
+.goals-sub { font-size: 12.5px; margin: 2px 0 0; color: var(--c-secondary); }
 
 .goals-page .btn {
   font: inherit; font-weight: 800; cursor: pointer;
@@ -142,8 +146,15 @@
 .goal-modal-note { font-size: 11px; font-style: italic; margin: 0; }
 
 @media (max-width: 600px) {
+  /* Touch has no hover, so always show row actions and let titles wrap. */
   .goal-row-actions { opacity: 1; }
   .goal-row-text { white-space: normal; }
+  .goals-page { padding: 16px 14px 80px; gap: 14px; }
+  .goal-area-card { padding: 12px 12px 14px; }
+  .goal-row { gap: 7px; padding: 8px; }
+  /* Drop the level tag on narrow rows; the indent + colour already convey rung. */
+  .goal-row .goal-level-tag { display: none; }
+  .goals-topbar { flex-wrap: wrap; }
 }
 
 /* ── Timed & count goals: deadline chip, status, closed section ── */

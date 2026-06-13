@@ -4,6 +4,7 @@ import { todaysTasks } from '../today/budget';
 import { TodayHeader } from '../components/today/TodayHeader';
 import { NudgeRow } from '../components/today/NudgeRow';
 import { TimeBudgetCard } from '../components/today/TimeBudgetCard';
+import { AllocationRing } from '../components/today/AllocationRing';
 import { TimeboxTimeline } from '../components/today/TimeboxTimeline';
 import { VentureBlock } from '../components/today/VentureBlock';
 import { TaskBuckets } from '../components/today/TaskBuckets';
@@ -72,6 +73,7 @@ function Cockpit() {
             <>
               <NudgeRow />
               <TimeBudgetCard />
+              <AllocationRing />
               <TimeboxTimeline variant="bar" open={dayPlanOpen} onToggle={toggleDayPlan} />
 
               <TaskBuckets which="pending" />

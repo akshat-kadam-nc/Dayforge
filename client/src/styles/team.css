@@ -16,7 +16,9 @@
 }
 
 .team-head { display: flex; align-items: center; justify-content: space-between; }
-.team-title { font-size: 16px; font-weight: 900; }
+/* Floats over the wallpaper; sits on a glass chip (.page-head-glass in
+   global.css) for legibility on any photo. */
+.team-title { font-size: 16px; font-weight: 900; color: var(--c-primary); }
 .team-add-person {
   font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer;
   padding: 7px 14px; border-radius: 100px; border: 1.5px solid var(--border-med);
@@ -142,4 +144,18 @@
 @media (max-width: 900px) {
   .team-split { grid-template-columns: 1fr; }
   .status-board { grid-template-columns: 1fr 1fr; }
+  /* Rail stacks above the detail; cap it so it doesn't push the detail off-screen. */
+  .people-rail { max-height: 340px; }
+}
+
+@media (max-width: 600px) {
+  /* Single-column board; rows wrap so the status pill + actions don't crush. */
+  .status-board { grid-template-columns: 1fr; }
+  .people-rail { max-height: 300px; }
+  .team-search { margin-left: 0; width: 100%; }
+  .detail-head { gap: 10px; }
+  .detail-stats { margin-left: 0; }
+  .deleg-item { flex-wrap: wrap; }
+  .deleg-info { flex-basis: 100%; }
+  .fu-pill { max-width: 100%; }
 }

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Placeholder } from '../components/Placeholder';
 import { useAuth } from '../auth/AuthContext';
 import { useToday } from '../today/useToday';
-import { useWallpaper } from '../wallpaper/WallpaperContext';
+import { useWallpaper, SHUFFLE_INTERVALS } from '../wallpaper/WallpaperContext';
 import { PHOTO_URL, isPhotoId } from '../wallpaper/photos';
 import { AddVentureModal } from '../components/today/AddVentureModal';
 import { TrackManager } from '../components/today/TrackManager';
@@ -106,7 +106,7 @@ export function SettingsPage() {
 
 /** Wallpaper: a live preview, the picker trigger, and the timed-shuffle switch. */
 function WallpaperSection() {
-  const { applied, openPicker, shuffle, setShuffle } = useWallpaper();
+  const { applied, openPicker, shuffle, setShuffle, shuffleMs, setShuffleMs } = useWallpaper();
   const photoUrl = isPhotoId(applied.wp) ? PHOTO_URL[applied.wp] : undefined;
   const imageUrl = applied.image ?? photoUrl;
   const previewStyle = imageUrl
@@ -139,6 +139,19 @@ function WallpaperSection() {
               <span className="switch-knob" />
             </button>
           </div>
+          {shuffle && (
+            <label className="wp-setting-interval">
+              <span>Change every</span>
+              <select
+                value={shuffleMs}
+                onChange={(e) => setShuffleMs(Number(e.target.value))}
+              >
+                {SHUFFLE_INTERVALS.map((o) => (
+                  <option key={o.ms} value={o.ms}>{o.label}</option>
+                ))}
+              </select>
+            </label>
+          )}
         </div>
       </div>
     </div>

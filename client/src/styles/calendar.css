@@ -193,3 +193,33 @@
 .dd-task-title { font-weight: 700; color: var(--c-primary); font-size: 13px; flex: 1; }
 .dd-task-tag { font-size: 10.5px; font-weight: 800; color: var(--c-secondary); }
 .dd-task-est { font-size: 11px; font-weight: 800; color: var(--c-muted); }
+
+/* ── Mobile ──────────────────────────────────────────────────────────────
+   The 7-column month/week grids collapse to ~38px cells on a phone, which is
+   unusable. Month keeps the grid but drops to day-number + load bar (tap a day
+   for detail); Week stops being 7 columns and becomes a vertical day list. */
+@media (max-width: 760px) {
+  .cal-topbar { gap: 10px; }
+  .period-nav { flex: 1; min-width: 0; }
+  .month-title { min-width: 0; font-size: 17px; }
+  .nav-arrow { width: 34px; height: 34px; font-size: 22px; }
+  .cal-legend { margin-left: 0; width: 100%; justify-content: flex-start; }
+}
+
+@media (max-width: 560px) {
+  /* Month: compact cells, no event text (the load bar + dots carry it). */
+  .cal-grid-wrap { padding: 8px; border-radius: 16px; }
+  .weekday { font-size: 9px; letter-spacing: 0.5px; }
+  .cal-grid { gap: 3px; min-height: 0; }
+  .day-cell { padding: 5px 4px; border-radius: 8px; gap: 3px; }
+  .day-cell .evt, .day-cell .evt-more { display: none; }
+  .day-num { font-size: 11px; }
+  .day-num .num-today { width: 18px; height: 18px; font-size: 10px; }
+
+  /* Week: stack the 7 day columns into a scrollable vertical list. */
+  .week-wrap { overflow-y: auto; }
+  .week-cols { grid-template-columns: 1fr; gap: 8px; }
+  .week-col { overflow: visible; }
+  .week-col-body { overflow: visible; }
+  .week-item-title { white-space: normal; }
+}
