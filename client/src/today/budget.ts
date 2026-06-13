@@ -36,10 +36,23 @@ export function taskLoggedSeconds(state: TodayState, task: Task): number {
   return Math.round(task.loggedMinutes * 60) + (state.timer.runs[task.id]?.elapsedSeconds ?? 0);
 }
 
-/** Only the tasks scheduled for the day the cockpit is showing (excludes the
- *  Pending/overdue and Scheduled/future buckets that share the tasks array). */
+/** Whether a task belongs on today's plate: slated for today, or carried from an
+ *  earlier day but still within its deadline (started, not yet overdue). A task
+ *  with no explicit deadline treats its slated day as the de-facto deadline, so
+ *  an undated carry-over is overdue (it goes to Pending, not here). */
+export function isOnTodayPlate(state: TodayState, t: Task): boolean {
+  if (t.day === state.day) return true;
+  if (t.day < state.day && t.dueAt) {
+    const due = new Date(t.dueAt).getTime();
+    return !isNaN(due) && due >= Date.now();
+  }
+  return false;
+}
+
+/** Tasks on today's plate (excludes the Pending/overdue and Scheduled/future
+ *  buckets that share the tasks array). */
 export function todaysTasks(state: TodayState): Task[] {
-  return state.tasks.filter((t) => t.day === state.day);
+  return state.tasks.filter((t) => isOnTodayPlate(state, t));
 }
 
 /** Today's tasks that count toward the per-area budget: normal tasks only.

@@ -1,6 +1,6 @@
 import { useToday } from '../../today/useToday';
 import type { LifeArea } from '../../today/types';
-import { allocatedForArea } from '../../today/budget';
+import { allocatedForArea, isOnTodayPlate } from '../../today/budget';
 import { formatMinutes } from '../../today/format';
 import { TaskRow } from './TaskRow';
 
@@ -8,7 +8,7 @@ import { TaskRow } from './TaskRow';
 export function VentureBlock({ area }: { area: LifeArea }) {
   const { state, actions } = useToday();
   const tasks = state.tasks.filter(
-    (t) => t.kind === 'task' && t.areaId === area.id && t.day === state.day && t.status !== 'done',
+    (t) => t.kind === 'task' && t.areaId === area.id && t.status !== 'done' && isOnTodayPlate(state, t),
   );
   if (tasks.length === 0) return null;
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useToday } from '../../today/useToday';
 import type { Task } from '../../today/types';
+import { isOnTodayPlate } from '../../today/budget';
 import { TaskRow } from './TaskRow';
 
 function fmtDay(key: string): string {
@@ -28,17 +29,21 @@ function effDue(t: Task): string {
   return t.dueAt ? dueDateKey(t.dueAt) || t.day : t.day;
 }
 
-/** Pending = deadline reached but unfinished; Scheduled = known but not yet due.
- *  Bucketed on the effective deadline, not the slated day, so a task created
- *  today but due later waits in Scheduled until its deadline arrives instead of
- *  falling into Pending the next morning. */
+/** Tasks that aren't on today's plate. Pending = started but overdue (an earlier
+ *  day whose deadline has passed, or an undated carry-over). Scheduled = not yet
+ *  started (a future start day). Anything started and still within its deadline
+ *  lives in Today's Tasks, not here. */
 export function TaskBuckets({ which }: { which: 'pending' | 'upcoming' }) {
   const { state } = useToday();
   const today = state.day;
   const tasks = state.tasks
-    .filter((t) => t.kind === 'task' && t.status !== 'done' && t.day !== today)
-    .filter((t) => (which === 'pending' ? effDue(t) <= today : effDue(t) > today))
-    .sort((a, b) => effDue(a).localeCompare(effDue(b)) || a.day.localeCompare(b.day));
+    .filter((t) => t.kind === 'task' && t.status !== 'done' && !isOnTodayPlate(state, t))
+    .filter((t) => (which === 'pending' ? t.day < today : t.day > today))
+    .sort((a, b) =>
+      which === 'pending'
+        ? effDue(a).localeCompare(effDue(b))
+        : a.day.localeCompare(b.day),
+    );
   if (tasks.length === 0) return null;
 
   return which === 'pending' ? (
@@ -76,7 +81,7 @@ function Bucket({
         tasks.map((t) => (
           <div key={t.id} className="bucket-item">
             <div className="bucket-meta">
-              <span className="bucket-day">{fmtDay(effDue(t))}</span>
+              <span className="bucket-day">{fmtDay(tone === 'pending' ? effDue(t) : t.day)}</span>
               {showCreated && t.createdAt && <span className="bucket-created">added {fmtCreated(t.createdAt)}</span>}
             </div>
             <TaskRow task={t} />

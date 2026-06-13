@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useToday } from '../today/useToday';
+import { todaysTasks } from '../today/budget';
 import { TodayHeader } from '../components/today/TodayHeader';
 import { NudgeRow } from '../components/today/NudgeRow';
 import { TimeBudgetCard } from '../components/today/TimeBudgetCard';
@@ -24,7 +25,7 @@ const DAYPLAN_KEY = 'axiom.today.dayplanOpen';
 
 function Cockpit() {
   const { state, loading } = useToday();
-  const todays = state.tasks.filter((t) => t.day === state.day && t.kind === 'task');
+  const todays = todaysTasks(state).filter((t) => t.kind === 'task');
   const openTasks = todays.filter((t) => t.status !== 'done');
   const doneCount = todays.length - openTasks.length;
   const hasAreas = state.areas.length > 0;
