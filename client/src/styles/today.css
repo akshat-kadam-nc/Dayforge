@@ -506,6 +506,11 @@
   .nudge-row { flex-direction: column; }
   .budget-stats { flex-wrap: wrap; }
   .budget-stats .stat-pill { flex: 1 1 calc(50% - 4px); }
+  /* 24-Hour Allocation: the donut/legend and the "Today by area" bars don't fit
+     side by side on a phone — stack them so each gets the full card width. */
+  .ring-body { flex-direction: column; gap: 16px; }
+  .ring-areas { border-left: none; padding-left: 0; border-top: 1.5px solid var(--border); padding-top: 14px; }
+  .ring-legend { grid-template-columns: 1fr; }
 }
 
 /* Chores card (right rail) */

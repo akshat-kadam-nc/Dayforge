@@ -648,12 +648,13 @@ input:focus {
    all content, giving the glass panes a calmer canvas without washing the image
    out. Only rendered for image-based backgrounds (see WallpaperLayer). */
 .wp-photo { background-size: cover; background-position: center; }
-/* Incoming wallpaper cross-fades over the outgoing one (used by shuffle).
-   Matches the login gateway's slow 1.6s dissolve so rotations feel gentle, not
-   abrupt. A faint zoom settles in alongside it for the same Ken Burns feel. */
-.wp-fade-in { animation: wp-fade-in 2.4s var(--ease-out) both; }
-@keyframes wp-fade-in { from { opacity: 0; transform: scale(1.03); } to { opacity: 1; transform: scale(1); } }
-@media (prefers-reduced-motion: reduce) { .wp-fade-in { animation: none; } }
+/* Cross-fade exactly like the login gateway: two persistent layers, each
+   transitioning opacity. The incoming layer is already mounted (and its image
+   preloaded by WallpaperLayer) so the swap is a true 2.4s dissolve, never a pop.
+   Both layers stay in the DOM so swapping back is instant. */
+.wp-layer { opacity: 0; transition: opacity 2.4s var(--ease-out); }
+.wp-layer.is-active { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .wp-layer { transition: opacity 0.3s linear; } }
 
 /* Settings → Wallpaper card */
 .wp-setting-row { display: flex; gap: 14px; align-items: stretch; }
