@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useToday } from '../../today/useToday';
 
 const ICONS = ['🎯', '📚', '🤖', '✍️', '💪', '🚀', '📈', '🏆'];
@@ -25,7 +26,7 @@ export function AddGoalModal({ onClose }: { onClose: () => void }) {
     }
   }
 
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
         <h2 className="modal-title">＋ New goal</h2>
@@ -73,6 +74,7 @@ export function AddGoalModal({ onClose }: { onClose: () => void }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

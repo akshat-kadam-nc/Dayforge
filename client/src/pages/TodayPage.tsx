@@ -20,6 +20,7 @@ import { CockpitSkeleton } from '../components/Skeleton';
 import '../styles/today.css';
 
 const RAIL_KEY = 'axiom.today.railCollapsed';
+const DAYPLAN_KEY = 'axiom.today.dayplanOpen';
 
 function Cockpit() {
   const { state, loading } = useToday();
@@ -31,6 +32,11 @@ function Cockpit() {
   const [railCollapsed, setRailCollapsed] = useState(
     () => localStorage.getItem(RAIL_KEY) === '1',
   );
+  // When the Day plan is open it takes over the right column (in place of the
+  // rail) so the task list gets the full left column and there's room to drag.
+  const [dayPlanOpen, setDayPlanOpen] = useState(
+    () => localStorage.getItem(DAYPLAN_KEY) === '1',
+  );
   function toggleRail() {
     setRailCollapsed((v) => {
       const next = !v;
@@ -38,12 +44,25 @@ function Cockpit() {
       return next;
     });
   }
+  function toggleDayPlan() {
+    setDayPlanOpen((v) => {
+      const next = !v;
+      localStorage.setItem(DAYPLAN_KEY, next ? '1' : '0');
+      return next;
+    });
+  }
+
+  // The right column shows the day-plan panel when open, else the rail (unless
+  // the rail is collapsed). When nothing shows, drop to a single column.
+  const showDayPlan = hasAreas && dayPlanOpen;
+  const showRail = hasAreas && !dayPlanOpen && !railCollapsed;
+  const singleCol = !showDayPlan && !showRail;
 
   return (
     <div className="cockpit">
       <TodayHeader streakDays={state.streak} />
 
-      <div className={`cockpit-body${railCollapsed ? ' rail-collapsed' : ''}`}>
+      <div className={`cockpit-body${singleCol ? ' rail-collapsed' : ''}`}>
         <main className={`cockpit-main${!loading && hasAreas ? ' stagger' : ''}`}>
           {loading ? (
             <CockpitSkeleton />
@@ -54,7 +73,7 @@ function Cockpit() {
               <NudgeRow />
               <TimeBudgetCard />
               <AllocationRing />
-              <TimeboxTimeline />
+              <TimeboxTimeline variant="bar" open={dayPlanOpen} onToggle={toggleDayPlan} />
 
               <TaskBuckets which="pending" />
 
@@ -74,7 +93,13 @@ function Cockpit() {
           <div style={{ height: 12 }} />
         </main>
 
-        {!railCollapsed && hasAreas && (
+        {showDayPlan && (
+          <aside className="cockpit-rail cockpit-dayplan">
+            <TimeboxTimeline variant="panel" open onToggle={toggleDayPlan} />
+          </aside>
+        )}
+
+        {showRail && (
           <aside className="cockpit-rail">
             <ChoresCard />
             <GoalsSidebar />
@@ -83,7 +108,7 @@ function Cockpit() {
           </aside>
         )}
 
-        {hasAreas && (
+        {hasAreas && !dayPlanOpen && (
           <button
             type="button"
             className={`rail-toggle${railCollapsed ? ' collapsed' : ''}`}

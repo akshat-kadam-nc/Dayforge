@@ -18,7 +18,6 @@ import {
 
 const HOUR_PX = 52;
 const PPM = HOUR_PX / 60; // pixels per minute
-const COLLAPSE_KEY = 'axiom.today.timeboxCollapsed';
 
 interface DragState {
   taskId: string;
@@ -31,10 +30,22 @@ interface DragState {
   moved: boolean;
 }
 
-/** The Day plan: place today's tasks on a clock, drag to move, drag the bottom
- *  edge to resize. Google events are fixed bands you plan around; overlaps and
- *  over-budget are flagged so the day can't silently overflow. */
-export function TimeboxTimeline() {
+/**
+ * The Day plan. Two surfaces driven by `variant`:
+ *  - `bar`: a slim summary row in the main column with an open/close toggle.
+ *  - `panel`: the full vertical timeline, rendered in the right column (in place
+ *    of the rail) so tasks have the whole left column and there's room to drag.
+ * `open` + `onToggle` are owned by the parent so it can swap the right column.
+ */
+export function TimeboxTimeline({
+  variant,
+  open,
+  onToggle,
+}: {
+  variant: 'bar' | 'panel';
+  open: boolean;
+  onToggle: () => void;
+}) {
   const { state, actions } = useToday();
 
   const boxes = scheduledBoxes(state);
@@ -43,7 +54,6 @@ export function TimeboxTimeline() {
   const win = dayWindow(state);
   const conflicts = conflictIds(state);
 
-  const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSE_KEY) === '1');
   const [drag, setDrag] = useState<DragState | null>(null);
 
   // Refs so the drag listeners always read the current window/actions/drag
@@ -88,17 +98,33 @@ export function TimeboxTimeline() {
     };
   }, [drag?.taskId, drag?.mode]);
 
-  // Nothing to plan yet — stay out of the way.
-  if (boxes.length === 0 && tray.length === 0 && events.length === 0) return null;
+  const empty = boxes.length === 0 && tray.length === 0 && events.length === 0;
+  const planned = allocatedMinutes(state);
+  const avail = effectiveAvailable(state);
+  const over = overflowMinutes(state);
 
-  function toggle() {
-    setCollapsed((v) => {
-      const next = !v;
-      localStorage.setItem(COLLAPSE_KEY, next ? '1' : '0');
-      return next;
-    });
+  // Slim bar in the main column: summary + a toggle that opens the panel.
+  if (variant === 'bar') {
+    if (empty) return null;
+    return (
+      <section className={`timebox-bar${open ? ' active' : ''}`}>
+        <span className="timebox-title">🗓 Day plan</span>
+        <span className="timebox-summary">
+          {boxes.length} scheduled · {tray.length} to place
+          {conflicts.size > 0 && <span className="timebox-conflict">⚠ {conflicts.size} overlap</span>}
+        </span>
+        <span className={`timebox-budget${over > 0 ? ' over' : ''}`}>
+          {formatMinutes(planned)} / {formatMinutes(avail)}
+          {over > 0 && <strong> · over {formatMinutes(over)}</strong>}
+        </span>
+        <button type="button" className="timebox-open" onClick={onToggle}>
+          {open ? 'Close ✕' : 'Open ▸'}
+        </button>
+      </section>
+    );
   }
 
+  // Panel: the full timeline in the right column.
   function startDrag(e: React.PointerEvent, taskId: string, startMin: number, est: number, mode: 'move' | 'resize') {
     e.preventDefault();
     e.stopPropagation();
@@ -110,28 +136,27 @@ export function TimeboxTimeline() {
   const hours: number[] = [];
   for (let h = win.startMin; h <= win.endMin; h += 60) hours.push(h);
 
-  const planned = allocatedMinutes(state);
-  const avail = effectiveAvailable(state);
-  const over = overflowMinutes(state);
-
   return (
-    <section className={`timebox${collapsed ? ' collapsed' : ''}`}>
+    <section className="timebox timebox-panel">
       <div className="timebox-head">
         <span className="timebox-title">🗓 Day plan</span>
-        <span className="timebox-summary">
-          {boxes.length} scheduled · {tray.length} to place
-          {conflicts.size > 0 && <span className="timebox-conflict">⚠ {conflicts.size} overlap</span>}
-        </span>
         <span className={`timebox-budget${over > 0 ? ' over' : ''}`}>
           {formatMinutes(planned)} / {formatMinutes(avail)}
           {over > 0 && <strong> · over {formatMinutes(over)}</strong>}
         </span>
-        <button type="button" className="timebox-collapse" onClick={toggle} title={collapsed ? 'Show day plan' : 'Hide day plan'}>
-          {collapsed ? '▸' : '▾'}
+        <button type="button" className="timebox-collapse" onClick={onToggle} title="Close day plan">
+          ✕
         </button>
       </div>
 
-      {!collapsed && (
+      <div className="timebox-panel-sub">
+        {boxes.length} scheduled · {tray.length} to place
+        {conflicts.size > 0 && <span className="timebox-conflict">⚠ {conflicts.size} overlap</span>}
+      </div>
+
+      {empty ? (
+        <p className="muted timebox-empty">Nothing to plan yet.</p>
+      ) : (
         <>
           {tray.length > 0 && (
             <div className="timebox-tray">

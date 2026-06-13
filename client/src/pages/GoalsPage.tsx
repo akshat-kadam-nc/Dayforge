@@ -1,22 +1,36 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { api } from '../api/client';
+import { useToday } from '../today/useToday';
 import { makeInitialState } from '../today/seed';
-import type { Goal, GoalPeriod, LifeArea } from '../today/types';
+import type { Goal, GoalPeriod, LifeArea, ReconciliationDue } from '../today/types';
 import { apiGoalsRepo, localGoalsRepo, type GoalsRepo } from '../goals/repo';
 import { buildForest, isTerminal, type RollupMap, type GoalNode } from '../goals/tree';
 import type { GoalInput } from '../goals/api';
 import { GoalTree } from '../components/goals/GoalTree';
 import { GoalModal } from '../components/goals/GoalModal';
+import { ReconciliationModal } from '../components/today/ReconciliationModal';
 import { PageEmpty } from '../components/PageEmpty';
 import '../styles/today.css';
 import '../styles/goals.css';
+
+const RECON_LABEL: Record<ReconciliationDue['scope'], string> = {
+  week: 'Weekly close',
+  month: 'Monthly close',
+  half_year: 'Half-year checkpoint',
+};
 
 type ModalState = { editing: Goal | null; preset?: { areaId?: string; period?: GoalPeriod; parentId?: string }; derived: boolean };
 
 export function GoalsPage() {
   const { isGuest } = useAuth();
   const repo: GoalsRepo = isGuest ? localGoalsRepo : apiGoalsRepo;
+
+  // Reconciliation prompts moved here from Today; the period-close review is a
+  // goals concern. Data + save action come from the app-wide Today context.
+  const { state: todayState } = useToday();
+  const dueReviews = todayState.dueReconciliations;
+  const [openDue, setOpenDue] = useState<ReconciliationDue | null>(null);
 
   const [areas, setAreas] = useState<LifeArea[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -157,6 +171,29 @@ export function GoalsPage() {
         </button>
       </div>
 
+      {dueReviews.length > 0 && (
+        <section className="goals-reviews">
+          <div className="goals-reviews-head">
+            <span className="goals-reviews-title">🗓 Reviews due</span>
+            <span className="goals-reviews-sub muted">Close out the period and reconcile progress against plan.</span>
+          </div>
+          <div className="goals-reviews-grid">
+            {dueReviews.map((d) => (
+              <button
+                key={`${d.scope}:${d.periodKey}`}
+                type="button"
+                className={`review-card review-${d.scope}`}
+                onClick={() => setOpenDue(d)}
+              >
+                <span className="review-scope">{RECON_LABEL[d.scope]}</span>
+                <span className="review-period">{d.label}</span>
+                <span className="review-cta">Review →</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
       {error && <div className="goals-error">{error}</div>}
 
       {loading ? (
@@ -273,6 +310,8 @@ export function GoalsPage() {
           </div>
         </div>
       )}
+
+      {openDue && <ReconciliationModal due={openDue} onClose={() => setOpenDue(null)} />}
     </div>
   );
 }

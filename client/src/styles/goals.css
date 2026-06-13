@@ -42,6 +42,30 @@
 }
 .goals-empty { padding: 40px 0; text-align: center; font-size: 14px; }
 
+/* Period-close reviews (moved here from the Today nudge row) */
+.goals-reviews {
+  background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--r-lg);
+  backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+  box-shadow: var(--shadow); padding: 16px 18px;
+}
+.goals-reviews-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 13px; }
+.goals-reviews-title { font-size: 14px; font-weight: 900; }
+.goals-reviews-sub { font-size: 12px; }
+.goals-reviews-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.review-card {
+  display: flex; flex-direction: column; gap: 4px; text-align: left; cursor: pointer;
+  font-family: inherit; padding: 14px 16px; border-radius: var(--r);
+  border: 1.5px solid rgba(124,58,237,0.35);
+  background: linear-gradient(rgba(124,58,237,0.08), rgba(124,58,237,0.08)), var(--surface);
+  transition: transform var(--dur, 0.18s) var(--ease-out, ease), box-shadow var(--dur, 0.18s) var(--ease-out, ease);
+}
+.review-card:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(60,20,120,0.18); }
+.review-month { border-color: rgba(14,165,233,0.4); background: linear-gradient(rgba(14,165,233,0.08), rgba(14,165,233,0.08)), var(--surface); }
+.review-half_year { border-color: rgba(236,72,153,0.4); background: linear-gradient(rgba(236,72,153,0.08), rgba(236,72,153,0.08)), var(--surface); }
+.review-scope { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: var(--c-muted); }
+.review-period { font-size: 16px; font-weight: 900; letter-spacing: -0.3px; }
+.review-cta { font-size: 12px; font-weight: 800; color: var(--c-accent); margin-top: 4px; }
+
 .goals-areas { display: flex; flex-direction: column; gap: 16px; }
 
 /* Area card */

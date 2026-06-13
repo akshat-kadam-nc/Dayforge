@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useToday } from '../../today/useToday';
 import type { Interruption, InterruptionType } from '../../today/types';
 import { INTERRUPT_ICON } from './InterruptionsBlock';
@@ -29,7 +30,7 @@ export function InterruptModal({ editing, onClose }: { editing?: Interruption; o
     onClose();
   }
 
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
         <h2 className="modal-title">{editing ? '✎ Edit interruption' : '⚡ Log interruption'}</h2>
@@ -71,6 +72,7 @@ export function InterruptModal({ editing, onClose }: { editing?: Interruption; o
           <button type="button" className="btn" onClick={submit}>{editing ? 'Save' : 'Log it'}</button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

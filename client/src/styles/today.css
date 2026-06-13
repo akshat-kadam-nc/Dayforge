@@ -147,7 +147,11 @@
 .bar-lbl-dot { width: 8px; height: 8px; border-radius: 3px; flex-shrink: 0; }
 
 /* Ring */
-.ring-body { display: flex; align-items: center; gap: 18px; }
+.ring-body { display: flex; align-items: stretch; gap: 22px; }
+.ring-left { flex: 1; min-width: 0; display: flex; align-items: center; gap: 18px; }
+.ring-areas { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 2px; border-left: 1.5px solid var(--border); padding-left: 22px; }
+.ring-areas-title { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--c-muted); margin-bottom: 9px; }
+.ring-areas-empty { font-size: 11.5px; margin: 0; }
 .ring-wrap { position: relative; width: 128px; height: 128px; flex-shrink: 0; }
 .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .ring-cv { font-size: 19px; font-weight: 900; letter-spacing: -1px; color: var(--c-fire); }
@@ -375,6 +379,18 @@
 .goal-pct { font-size: 11px; font-weight: 900; flex-shrink: 0; margin-top: 1px; }
 .goal-bar { height: 5px; background: rgba(0,0,0,0.07); border-radius: var(--r-pill); overflow: hidden; }
 .goal-bar-fill { height: 100%; border-radius: var(--r-pill); }
+
+/* Collapsible "this week's goals" group in the rail */
+.goals-group-head { display: flex; align-items: center; gap: 7px; margin-bottom: 9px; }
+.goals-group-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.goals-collapse { background: none; border: none; padding: 0; font-size: 11px; font-weight: 900; color: var(--c-muted); cursor: pointer; line-height: 1; width: 14px; flex-shrink: 0; }
+.goals-count { background: rgba(124,58,237,0.12); color: var(--c-accent); font-size: 10px; font-weight: 900; padding: 1px 7px; border-radius: var(--r-pill); flex-shrink: 0; }
+.goals-group-head .sidebar-add { float: none; flex-shrink: 0; }
+/* Goal rows are buttons that read through to the Goals editor */
+.goal-card-btn { display: block; width: 100%; text-align: left; font-family: inherit; }
+.goal-card-btn .goal-top { margin-bottom: 6px; }
+.goal-edit-hint { font-size: 11px; flex-shrink: 0; margin-top: 1px; opacity: 0; transition: opacity var(--dur) var(--ease-out); color: var(--c-muted); }
+.goal-card-btn:hover .goal-edit-hint { opacity: 0.75; }
 .split-item { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
 .split-icon { font-size: 13px; flex-shrink: 0; }
 .split-name { font-size: 11.5px; font-weight: 700; color: var(--c-secondary); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -630,6 +646,33 @@
   padding: 12px 14px 14px;
   margin-bottom: 4px;
 }
+/* Slim day-plan bar in the main column */
+.timebox-bar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  background: var(--surface); border: 1.5px solid var(--border-med); border-radius: var(--r-lg);
+  backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.5);
+  padding: 11px 14px; margin-bottom: 4px;
+}
+.timebox-bar.active { border-color: var(--c-accent); box-shadow: var(--shadow), 0 0 0 1.5px rgba(124,58,237,0.25); }
+.timebox-open {
+  margin-left: 4px; padding: 6px 13px; border-radius: var(--r-pill);
+  border: 1.5px solid var(--c-accent); background: rgba(124,58,237,0.1); color: var(--c-accent);
+  font-family: inherit; font-size: 11.5px; font-weight: 800; cursor: pointer;
+  transition: all 0.14s var(--ease-out);
+}
+.timebox-open:hover { background: var(--c-accent); color: #fff; }
+
+/* Day-plan panel occupying the right column */
+.cockpit-dayplan { padding: 14px; }
+.cockpit-dayplan .timebox-panel {
+  margin: 0; position: sticky; top: 0;
+  max-height: calc(100vh - 96px); overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: rgba(124,58,237,0.2) transparent;
+}
+.timebox-panel-sub { font-size: 11.5px; font-weight: 700; color: var(--c-muted); display: flex; align-items: center; gap: 8px; margin: 7px 0 2px; }
+.timebox-empty { font-size: 12px; margin: 14px 2px; }
+
 .timebox-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .timebox-title { font-size: 13px; font-weight: 900; color: var(--c-primary); }
 .timebox-summary { font-size: 11.5px; font-weight: 700; color: var(--c-muted); display: flex; align-items: center; gap: 8px; }
