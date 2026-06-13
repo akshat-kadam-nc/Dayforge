@@ -271,16 +271,28 @@
 
 .fold-table { display: flex; flex-direction: column; }
 .fold-row {
-  display: grid; grid-template-columns: 1fr 70px 80px 110px 110px; gap: 8px; align-items: center;
+  display: grid; grid-template-columns: 1fr 70px 80px 110px 110px 60px; gap: 8px; align-items: center;
   padding: 8px 15px; border-top: 1px solid var(--border); font-size: 12px; font-weight: 700; color: var(--c-secondary);
 }
 .fold-row.fold-header { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-secondary); }
 .fold-row .fold-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fold-col { font-size: 11px; }
 .fold-stamp { color: var(--c-muted); font-weight: 700; }
+/* Reopen / adjust-logged controls on each completed row. */
+.fold-acts { display: flex; gap: 2px; justify-content: flex-end; }
+.fold-act {
+  width: 24px; height: 24px; border: none; background: none; cursor: pointer; border-radius: 6px;
+  font-size: 12px; color: var(--c-secondary); display: flex; align-items: center; justify-content: center;
+}
+.fold-act:hover { background: rgba(0,0,0,0.07); color: var(--c-accent); }
+.fold-log-input {
+  width: 100%; max-width: 56px; font: inherit; font-size: 11px; font-weight: 700;
+  padding: 2px 4px; border: 1.5px solid var(--c-accent); border-radius: 6px;
+  background: rgba(255,255,255,0.92); color: var(--c-primary);
+}
 @media (max-width: 720px) {
-  .fold-row { grid-template-columns: 1fr 60px 70px; }
-  .fold-row .fold-col:nth-child(4), .fold-row .fold-col:nth-child(5) { display: none; }
+  .fold-row { grid-template-columns: 1fr 64px 56px; }
+  .fold-row .fold-col:nth-child(3), .fold-row .fold-col:nth-child(4), .fold-row .fold-col:nth-child(5) { display: none; }
 }
 
 /* Portal dropdown (kebab + complete-with-log), rendered at <body> so it isn't clipped */

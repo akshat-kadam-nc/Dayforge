@@ -325,6 +325,8 @@ export interface TodayActions {
   scheduleTask: (taskId: string, scheduledAt: string | null) => void;
   /** Set a task's planned estimate in minutes (used by timeline resize). */
   setTaskEstimate: (taskId: string, estimateMinutes: number) => void;
+  /** Correct the time logged against a task (e.g. fix a completed task's total). */
+  adjustLogged: (taskId: string, loggedMinutes: number) => void;
   addArea: (input: CreateAreaInput) => Promise<void>;
   addTrack: (input: CreateTrackInput) => Promise<void>;
   updateTrack: (id: string, patch: Partial<Pick<FunctionTrack, 'name' | 'color'>>) => Promise<void>;
@@ -561,6 +563,11 @@ export function TodayProvider({ children }: { children: ReactNode }) {
     setTaskEstimate: (taskId, estimateMinutes) => {
       dispatch({ type: 'SET_ESTIMATE', taskId, estimateMinutes });
       void repo.updateTask(taskId, { estimateMinutes });
+    },
+    adjustLogged: (taskId, loggedMinutes) => {
+      const mins = Math.max(0, loggedMinutes);
+      dispatch({ type: 'UPDATE_TASK', taskId, patch: { loggedMinutes: mins } });
+      void repo.updateTask(taskId, { loggedMinutes: mins });
     },
     setStatus: (taskId, status) => {
       const patch: Partial<Pick<Task, 'status' | 'loggedMinutes'>> = { status };

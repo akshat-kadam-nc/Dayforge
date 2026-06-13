@@ -30,9 +30,24 @@ todayRouter.get(
     // No destructive rollover. We return today's tasks plus every unfinished task
     // from other days, and the client buckets them into Today / Pending (overdue)
     // / Scheduled (future). Unfinished past tasks therefore accumulate visibly.
+    //
+    // We also return any task *completed today* even if it's slated for another
+    // day — a carried-over task (earlier `day`, finished now) must stay in the
+    // Completed-today fold until midnight, not vanish on reload. completedAt is a
+    // UTC instant while `day` is the user's local key, so we query a ±1-day
+    // window around it; the client re-filters precisely by local day.
+    const dayStartUtc = new Date(`${day}T00:00:00.000Z`).getTime();
+    const completedWindow = {
+      $gte: new Date(dayStartUtc - 24 * 60 * 60 * 1000),
+      $lt: new Date(dayStartUtc + 2 * 24 * 60 * 60 * 1000),
+    };
     const taskFilter = {
       userId,
-      $or: [{ day }, { day: { $ne: day }, status: { $ne: 'done' } }],
+      $or: [
+        { day },
+        { day: { $ne: day }, status: { $ne: 'done' } },
+        { status: 'done', completedAt: completedWindow },
+      ],
     };
 
     const [user, areas, tracks, goals, tasks, interruptions, logs, streak] = await Promise.all([
