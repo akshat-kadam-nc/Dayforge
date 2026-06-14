@@ -1,25 +1,29 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
 /**
- * TEMP DIAGNOSTIC: capture and return the real load/runtime error so we can see
- * it via curl instead of Vercel's generic FUNCTION_INVOCATION_FAILED. Revert to
- * the plain wrapper once the cause is known.
+ * Vercel serverless entry. vercel.json rewrites every /api/* request here with
+ * the original URL intact, so the /api-prefixed Express routes match as-is.
  *
- * vercel.json rewrites all /api/* to this one function with the original URL
- * intact, so the Express router (its routes are /api-prefixed) matches as-is.
+ * The server is imported *dynamically* (not a top-level static import) on
+ * purpose: that's what lets @vercel/node bundle the cross-directory TypeScript
+ * source into the function. A static `import` of ../server/src failed to load at
+ * runtime (FUNCTION_INVOCATION_FAILED).
+ *
+ * The client (client/dist) is served by Vercel's CDN, so set SERVE_CLIENT=false
+ * in the Vercel env to keep this function API-only.
  */
 let appPromise: Promise<(req: IncomingMessage, res: ServerResponse) => void> | undefined;
 
 function loadApp() {
   if (appPromise) return appPromise;
   const p = (async () => {
-    // Dynamic import so an import-time error is catchable here, not a hard crash.
     const { createApp } = await import('../server/src/app.js');
     const { connectDb } = await import('../server/src/db.js');
     const app = createApp();
     try {
       await connectDb();
     } catch (e) {
+      // Non-fatal: DB-guarded routes return 503 via requireDb; /api/health still responds.
       console.error('[api] db connect failed', e);
     }
     return app as unknown as (req: IncomingMessage, res: ServerResponse) => void;
@@ -35,16 +39,10 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
   try {
     const app = await loadApp();
     return app(req, res);
-  } catch (e) {
-    const err = e as Error;
+  } catch (err) {
+    console.error('[api] handler failed', err);
     res.statusCode = 500;
     res.setHeader('content-type', 'application/json');
-    res.end(
-      JSON.stringify({
-        diag: true,
-        message: String(err?.message ?? err),
-        stack: String(err?.stack ?? '').split('\n').slice(0, 10),
-      }),
-    );
+    res.end(JSON.stringify({ error: 'Internal server error' }));
   }
 }
