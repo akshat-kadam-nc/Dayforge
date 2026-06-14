@@ -25,6 +25,17 @@ export function createApp() {
   const app = express();
 
   app.use(cors({ origin: env.clientOrigin, credentials: true }));
+  // On a serverless host (Vercel) the platform may have already parsed the JSON
+  // body and populated req.body, consuming the stream. Mark it so express.json()
+  // below skips re-parsing (which would read an empty stream and clobber the
+  // body). On a standalone server (Render/local) req.body is undefined here, so
+  // this is a no-op and express.json() parses normally.
+  app.use((req, _res, next) => {
+    if ((req as { body?: unknown }).body !== undefined) {
+      (req as { _body?: boolean })._body = true;
+    }
+    next();
+  });
   app.use(express.json());
 
   app.get('/api/health', (_req, res) => {

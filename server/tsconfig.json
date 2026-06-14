@@ -3,6 +3,9 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
+    // Emit .d.ts so the Vercel serverless wrapper (api/) can import the compiled
+    // app from server/dist with full types.
+    "declaration": true,
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "types": ["node"],
