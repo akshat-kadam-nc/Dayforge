@@ -1,33 +1,50 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { createApp } from '../server/src/app.js';
-import { connectDb } from '../server/src/db.js';
 
 /**
- * Vercel serverless entry for the whole API. vercel.json rewrites every
- * /api/* request to this one function with the original URL preserved, so the
- * Express router (whose routes are /api-prefixed) matches as-is.
+ * TEMP DIAGNOSTIC: capture and return the real load/runtime error so we can see
+ * it via curl instead of Vercel's generic FUNCTION_INVOCATION_FAILED. Revert to
+ * the plain wrapper once the cause is known.
  *
- * We import the server *source*; Vercel's esbuild bundles it into the function
- * (resolving the NodeNext .js specifiers to .ts), so there's no dependency on a
- * separate server build step or on cross-directory compiled output.
- *
- * The client (client/dist) is served separately by Vercel's CDN, so set
- * SERVE_CLIENT=false in the Vercel env to keep this function API-only.
+ * vercel.json rewrites all /api/* to this one function with the original URL
+ * intact, so the Express router (its routes are /api-prefixed) matches as-is.
  */
-const app = createApp();
+let appPromise: Promise<(req: IncomingMessage, res: ServerResponse) => void> | undefined;
 
-// Established once per warm instance; db.ts caches the pool across invocations.
-let dbReady: Promise<void> | undefined;
+function loadApp() {
+  if (appPromise) return appPromise;
+  const p = (async () => {
+    // Dynamic import so an import-time error is catchable here, not a hard crash.
+    const { createApp } = await import('../server/src/app.js');
+    const { connectDb } = await import('../server/src/db.js');
+    const app = createApp();
+    try {
+      await connectDb();
+    } catch (e) {
+      console.error('[api] db connect failed', e);
+    }
+    return app as unknown as (req: IncomingMessage, res: ServerResponse) => void;
+  })();
+  appPromise = p;
+  p.catch(() => {
+    appPromise = undefined; // allow retry on the next request
+  });
+  return p;
+}
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   try {
-    dbReady ??= connectDb();
-    await dbReady;
-  } catch (err) {
-    // Retry on the next request; DB-guarded routes return 503 via requireDb and
-    // /api/health still responds either way.
-    dbReady = undefined;
-    console.error('[api] database connection failed', err);
+    const app = await loadApp();
+    return app(req, res);
+  } catch (e) {
+    const err = e as Error;
+    res.statusCode = 500;
+    res.setHeader('content-type', 'application/json');
+    res.end(
+      JSON.stringify({
+        diag: true,
+        message: String(err?.message ?? err),
+        stack: String(err?.stack ?? '').split('\n').slice(0, 10),
+      }),
+    );
   }
-  return (app as unknown as (req: IncomingMessage, res: ServerResponse) => void)(req, res);
 }
