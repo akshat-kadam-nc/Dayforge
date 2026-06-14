@@ -58,17 +58,26 @@ export function createApp() {
   app.use('/api/team', teamRouter);
   app.use('/api/reports', reportsRouter);
 
-  // Single-origin production: serve the built client and let the SPA handle
-  // client-side routes. Unknown /api/* paths still fall through to the error
-  // handler (404) rather than returning index.html.
+  // Single-origin production (Render): serve the built client and let the SPA
+  // handle client-side routes. Unknown /api/* paths still fall through to the
+  // error handler (404) rather than returning index.html.
+  //
+  // Guarded in try/catch: on Vercel the client is served by the CDN (SERVE_CLIENT
+  // should be false), but when this code is bundled to CJS, `import.meta.url` is
+  // empty and fileURLToPath() throws. That must never crash the whole API — the
+  // catch leaves static serving off and the API keeps working.
   if (env.serveClient) {
-    // Compiled location is server/dist/app.js → repo client/dist is two up.
-    const clientDist = resolve(dirname(fileURLToPath(import.meta.url)), '../../client/dist');
-    app.use(express.static(clientDist));
-    app.get('*', (req, res, next) => {
-      if (req.path.startsWith('/api/')) return next();
-      res.sendFile(resolve(clientDist, 'index.html'));
-    });
+    try {
+      // Compiled location is server/dist/app.js → repo client/dist is two up.
+      const clientDist = resolve(dirname(fileURLToPath(import.meta.url)), '../../client/dist');
+      app.use(express.static(clientDist));
+      app.get('*', (req, res, next) => {
+        if (req.path.startsWith('/api/')) return next();
+        res.sendFile(resolve(clientDist, 'index.html'));
+      });
+    } catch (err) {
+      console.warn('[app] static client serving disabled (no import.meta.url):', err);
+    }
   }
 
   app.use(errorHandler);
