@@ -60,7 +60,35 @@ First V2-track feature, shipped early at Akshu's request. Turns the cockpit from
 - **Cause:** `GoalsPage` only rendered an area card when `forest.length > 0`, so a newly created life area (no goals yet) had no card and no per-area ＋ — leaving no entry point. The top "＋ New goal" button worked but was non-obvious/off-screen.
 - **Fix:** render **every** life area as a card; empty ones show a full-width "No goals yet — add the first goal for X" button that opens the goal modal pre-targeted to that area (`components/goals/GoalsPage.tsx`, `.goal-area-empty` in `goals.css`). Verified in demo (Orbit + Fitness empty areas now show with working add buttons). Also hardened `GoalTree` so a legacy goal with a missing `period` can't throw (`PERIOD_LABEL[...] ?? fallback`).
 
-## DEPLOYED — LIVE
+## MIGRATING TO VERCEL (repo is ready; dashboard/DNS pending) — added 2026-06-14
+Moving off Render free (the ~15min-sleep / ~50s cold-start friction). The repo is
+Vercel-ready on `main` (commit `479f2b9`); Render config is untouched so it keeps
+serving until DNS flips. Architecture on Vercel: **client (`client/dist`) served
+static by the CDN + Express API as one serverless catch-all function.**
+- **In-repo (done):** `api/[...path].ts` wraps `createApp()` (all `/api/*` reach it
+  with the URL intact); `server/src/db.ts` caches the Mongoose connection on
+  `globalThis` (warm reuse, `maxPoolSize:5`); `server/src/app.ts` guards
+  `express.json()` so it skips Vercel's already-parsed body (no-op on Render);
+  `vercel.json` (build `npm run build`, output `client/dist`, `includeFiles
+  server/dist/**`, SPA rewrite of non-`/api` → index.html); server tsconfig emits
+  `.d.ts` so the function imports `server/dist` typed. Build verified green; the
+  function typechecks against dist. Client calls the API via relative `/api`
+  (`client/src/api/client.ts`), so same-origin works with no `VITE_*` vars.
+- **Dashboard steps (NOT done):** import repo → keep **Root Directory = `./`** (not
+  `client/`); don't override build settings (vercel.json wins); env vars
+  `MONGODB_URI` (incl. `/axiom`), `JWT_SECRET`, `GOOGLE_CLIENT_ID/SECRET`,
+  `GOOGLE_REDIRECT_URI`, `CLIENT_ORIGIN`, **`SERVE_CLIENT=false`**; set the
+  **function region to match Atlas**. Test on the `*.vercel.app` URL first
+  (point CLIENT_ORIGIN/redirect there + add to Google console), confirm
+  `*.vercel.app/api/health` → `db:connected`, then move the custom domain + update
+  Google redirect URI. JWT_SECRET: Render's generated value isn't copyable → a new
+  one means one re-login.
+- **Unverified at runtime (do on first deploy):** that Vercel's function bundler
+  picks up `server/dist` (the `includeFiles` is the safety net) — `/api/health` is
+  the canary. Build-vs-runtime: build passes without env vars; the app only works
+  once they're set.
+
+## DEPLOYED — LIVE (Render, until Vercel cutover)
 - **Prod:** https://dayforge.akshatkadam.com (Render Web Service `dayforge`, also at https://dayforge-hk2e.onrender.com). Single-origin: Express serves `client/dist` + SPA fallback when `SERVE_CLIENT` is on. Free plan → sleeps after ~15 min idle, cold-starts on next request.
 - **Render is Blueprint-connected but FROZEN** on the build command from the first blueprint commit (`npm install && npm run build`); `render.yaml` edits do NOT auto-sync. Build works anyway via a repo-root `.npmrc` (`include=dev`) that forces devDeps to install under `NODE_ENV=production` (else `npm install` prunes tsc + @types/node → TS2688). To change the build command you must manually re-sync the Blueprint.
 - **Atlas:** db `axiom` on cluster `axiom-core.n8aodkh`. Render `MONGODB_URI` must include `/axiom` (no db name → driver lands in `test`, real accounts vanish). Network Access needs `0.0.0.0/0`.
