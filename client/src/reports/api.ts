@@ -34,10 +34,11 @@ export async function getReports(from: string, to: string): Promise<ReportsPaylo
   return { ...r, areas: r.areas.map(mapArea) };
 }
 
-/** Full raw task list plus the area/goal lookups the history table needs. */
-export async function getTaskHistory(): Promise<TaskHistory> {
+/** Raw task list within [from, to] (by createdAt) plus the area/goal lookups. */
+export async function getTaskHistory(from: string, to: string): Promise<TaskHistory> {
+  const q = `?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
   const [t, a, g] = await Promise.all([
-    api<{ tasks: Doc[] }>(`/tasks`),
+    api<{ tasks: Doc[] }>(`/tasks${q}`),
     api<{ areas: (ServerDoc & Omit<LifeArea, 'id'>)[] }>(`/areas`),
     api<{ goals: Doc[] }>(`/goals`),
   ]);

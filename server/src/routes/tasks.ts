@@ -36,7 +36,20 @@ tasksRouter.get(
   asyncHandler(async (req, res) => {
     const filter: Record<string, unknown> = { userId: req.userId };
     if (typeof req.query.day === 'string') filter.day = normaliseDay(req.query.day);
-    const tasks = await TaskModel.find(filter).sort({ createdAt: 1 });
+    // Date-range scope for the Reports task-history table: filter by createdAt
+    // (when the task was made) so the page can page back through time instead of
+    // loading the whole ledger. completedAt is a UTC instant and the range keys
+    // are local-day strings, same TZ caveat as reports/streak.
+    if (typeof req.query.from === 'string' || typeof req.query.to === 'string') {
+      const f = normaliseDay(req.query.from);
+      const t = normaliseDay(req.query.to ?? req.query.from);
+      const [start, end] = f <= t ? [f, t] : [t, f];
+      filter.createdAt = {
+        $gte: new Date(`${start}T00:00:00.000`),
+        $lte: new Date(`${end}T23:59:59.999`),
+      };
+    }
+    const tasks = await TaskModel.find(filter).sort({ createdAt: -1 });
     res.json({ tasks });
   }),
 );

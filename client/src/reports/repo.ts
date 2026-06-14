@@ -5,8 +5,8 @@ import type { ReportsPayload, SeriesPoint, AreaTime, TaskHistory, TaskHistoryRow
 
 export interface ReportsRepo {
   load(from: string, to: string): Promise<ReportsPayload>;
-  /** Full raw task history (not range-scoped) for the History tab. */
-  loadTasks(): Promise<TaskHistory>;
+  /** Raw task history within [from, to] (by createdAt) for the History tab. */
+  loadTasks(from: string, to: string): Promise<TaskHistory>;
   /** Reverse a completed task back to not-started. */
   reopenTask(id: string): Promise<void>;
 }
@@ -15,8 +15,8 @@ export const apiReportsRepo: ReportsRepo = {
   load(from, to) {
     return getReports(from, to);
   },
-  loadTasks() {
-    return getTaskHistory();
+  loadTasks(from, to) {
+    return getTaskHistory(from, to);
   },
   reopenTask(id) {
     return reopenTask(id);
@@ -152,11 +152,18 @@ export const localReportsRepo: ReportsRepo = {
     };
   },
 
-  // Raw task history from the seed (today + pending + scheduled + completed).
-  async loadTasks(): Promise<TaskHistory> {
+  // Raw task history from the seed (today + pending + scheduled + completed),
+  // scoped to [from, to] by createdAt to mirror the API's range filter.
+  async loadTasks(from: string, to: string): Promise<TaskHistory> {
     const s = makeInitialState();
+    const lo = new Date(`${from}T00:00:00`).getTime();
+    const hi = new Date(`${to}T23:59:59.999`).getTime();
     const tasks: TaskHistoryRow[] = s.tasks
       .filter((t) => t.kind !== 'chore_session')
+      .filter((t) => {
+        const c = t.createdAt ? new Date(t.createdAt).getTime() : NaN;
+        return isNaN(c) ? true : c >= lo && c <= hi;
+      })
       .map((t) => ({
         id: t.id,
         title: t.title,
