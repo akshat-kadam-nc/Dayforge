@@ -4,12 +4,20 @@ Personal time-management PWA. The point of the app: an accurate, real-time view 
 
 Dayforge is the product name. The repo directory and internal package/identifier names are still `axiom` (the original working name) and are intentionally left unchanged to avoid breaking storage keys and data.
 
+## Documentation
+
+- [docs/OVERVIEW.md](docs/OVERVIEW.md) — what Dayforge is, the problem it solves, salient features.
+- [docs/USER_GUIDE.md](docs/USER_GUIDE.md) — page-by-page how-to-use.
+- **Presentation (HTML deck):** [`client/public/presentation.html`](client/public/presentation.html) — open it in a browser, or view it live at `/presentation.html` on the deployed site. Arrow keys / Space / click to navigate.
+
 ## Layout
 
 ```
 AXIOM/
 ├─ server/            Express + TypeScript API (JWT auth, Mongoose, userId-scoped models)
 ├─ client/            React + TypeScript PWA (Vite, react-router, vite-plugin-pwa)
+│  └─ public/presentation.html   Product walkthrough deck (served at /presentation.html)
+├─ docs/              User-facing docs (overview + how-to-use)
 ├─ mockups/           Locked UX reference screens (open via npx serve)
 ├─ project-context/   Durable plan, user profile, feature spec
 └─ RESUME.md          Catch-up entry point for a fresh session
@@ -77,7 +85,11 @@ delegation tracker.
 
 ## Status
 
-Scaffold complete: auth + userId-scoped Task CRUD on the backend, PWA shell with the five-tab
-bottom nav (Today / Calendar / Goals / Team / Settings) and login on the frontend. Both build
-clean. Next: build features against the locked spec in `project-context/project_task_manager.md`,
-starting with the Today cockpit (daily budget, per-task timer, interruption logging).
+Feature-complete and deployed. Six sections via the left rail — Today, Calendar, Goals, Team,
+Reports, Settings — over JWT auth and userId-scoped Mongoose models. Highlights: the Today
+cockpit (time budget, concurrent timers, day-plan timeboxing, chores, interruptions), the goal
+hierarchy with task-derived progress, Google Calendar sync, the delegation tracker, and Reports
+(look-back stats + a raw task-history table). Built as an installable PWA with a liquid-glass UI.
+
+**Hosting:** deployed on Vercel — static client on the CDN, the API as one serverless function
+(`api/index.ts`), MongoDB Atlas. See `RESUME.md` for the full deploy notes and history.

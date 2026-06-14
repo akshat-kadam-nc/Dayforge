@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Dayforge — Product Walkthrough</title>
+<link rel="icon" href="/favicon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --accent: #7c3aed;
+    --accent-2: #a855f7;
+    --ink: #1a1535;
+    --ink-2: #5c5280;
+    --ink-3: #9d94c0;
+    --glass: rgba(255, 255, 255, 0.82);
+    --glass-edge: rgba(255, 255, 255, 0.6);
+    --glass-shadow: 0 18px 60px rgba(40, 20, 90, 0.22);
+    --radius: 22px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(1200px 700px at 12% 0%, #fde9c8 0%, transparent 55%),
+      radial-gradient(1100px 800px at 100% 100%, #c9b8ff 0%, transparent 55%),
+      linear-gradient(155deg, #efe7ff 0%, #e7f0ff 45%, #ffeede 100%);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Progress bar */
+  #progress { position: fixed; top: 0; left: 0; height: 4px; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); z-index: 50; transition: width .35s ease; border-radius: 0 4px 4px 0; }
+
+  /* Deck + slides */
+  #deck { position: relative; height: 100vh; width: 100vw; }
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: clamp(28px, 6vw, 96px);
+    opacity: 0; transform: translateY(14px) scale(.99);
+    transition: opacity .45s ease, transform .45s ease;
+    pointer-events: none; overflow-y: auto;
+  }
+  .slide.active { opacity: 1; transform: none; pointer-events: auto; }
+  .wrap { width: 100%; max-width: 1100px; margin: 0 auto; }
+
+  .eyebrow { font-size: clamp(11px, 1.4vw, 13px); font-weight: 900; letter-spacing: 2.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+  h1 { font-size: clamp(34px, 6.5vw, 76px); font-weight: 900; line-height: 1.02; letter-spacing: -1.5px; }
+  h2 { font-size: clamp(26px, 4.6vw, 50px); font-weight: 900; line-height: 1.06; letter-spacing: -1px; margin-bottom: 10px; }
+  .lead { font-size: clamp(15px, 2.1vw, 22px); font-weight: 600; color: var(--ink-2); line-height: 1.5; margin-top: 16px; max-width: 760px; }
+  .muted { color: var(--ink-3); }
+  .accent { color: var(--accent); }
+
+  /* Title slide */
+  .logo { display: inline-flex; align-items: center; gap: 16px; margin-bottom: 26px; }
+  .mark { width: 64px; height: 64px; border-radius: 18px; background: linear-gradient(150deg, var(--accent), var(--accent-2)); color: #fff; display: grid; place-items: center; font-weight: 900; font-size: 26px; letter-spacing: -1px; box-shadow: 0 10px 30px rgba(124, 58, 237, .45); }
+  .wordmark { font-size: 22px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; }
+
+  /* Cards */
+  .grid { display: grid; gap: 16px; margin-top: 28px; }
+  .g2 { grid-template-columns: repeat(2, 1fr); }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+  .card {
+    background: var(--glass); border: 1px solid var(--glass-edge); border-radius: var(--radius);
+    box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255,255,255,.6);
+    backdrop-filter: blur(14px) saturate(135%); -webkit-backdrop-filter: blur(14px) saturate(135%);
+    padding: clamp(16px, 2.4vw, 26px);
+  }
+  .card .ico { font-size: 28px; line-height: 1; }
+  .card h3 { font-size: clamp(15px, 1.9vw, 20px); font-weight: 900; margin: 12px 0 6px; }
+  .card p { font-size: clamp(12.5px, 1.5vw, 15px); font-weight: 600; color: var(--ink-2); line-height: 1.5; }
+
+  ul.feat { list-style: none; margin-top: 22px; display: flex; flex-direction: column; gap: 14px; }
+  ul.feat li { display: flex; gap: 14px; align-items: flex-start; font-size: clamp(14px, 1.9vw, 19px); font-weight: 700; color: var(--ink); }
+  ul.feat li .b { color: var(--ink-2); font-weight: 600; }
+  ul.feat li .n { flex: none; width: 30px; height: 30px; border-radius: 10px; background: rgba(124,58,237,.12); color: var(--accent); display: grid; place-items: center; font-weight: 900; font-size: 14px; }
+
+  .pill { display: inline-block; background: rgba(124,58,237,.12); color: var(--accent); font-weight: 800; font-size: 13px; padding: 6px 14px; border-radius: 100px; margin-bottom: 18px; }
+  .big-num { font-size: clamp(40px, 7vw, 84px); font-weight: 900; letter-spacing: -2px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; }
+
+  .quote { font-size: clamp(20px, 3.4vw, 38px); font-weight: 900; line-height: 1.25; letter-spacing: -.5px; max-width: 900px; }
+  .quote .accent { white-space: nowrap; }
+
+  /* Nav */
+  .nav { position: fixed; bottom: 22px; right: 26px; display: flex; align-items: center; gap: 10px; z-index: 40; }
+  .nav button { width: 44px; height: 44px; border-radius: 13px; border: 1px solid var(--glass-edge); background: var(--glass); color: var(--ink); font-size: 20px; font-weight: 900; cursor: pointer; backdrop-filter: blur(10px); box-shadow: 0 6px 20px rgba(40,20,90,.14); transition: transform .12s ease; }
+  .nav button:hover { transform: translateY(-2px); color: var(--accent); }
+  .nav button:disabled { opacity: .4; cursor: default; transform: none; }
+  .counter { position: fixed; bottom: 30px; left: 26px; z-index: 40; font-size: 13px; font-weight: 800; color: var(--ink-2); }
+  .counter b { color: var(--ink); }
+  .hint { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 40; font-size: 12px; font-weight: 700; color: var(--ink-3); }
+
+  @media (max-width: 720px) {
+    .g2, .g3 { grid-template-columns: 1fr; }
+    .hint { display: none; }
+    .nav { bottom: 16px; right: 16px; }
+    .counter { bottom: 24px; left: 16px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .slide { transition: opacity .2s linear; } #progress { transition: none; } }
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<div id="deck">
+
+  <!-- 1. Title -->
+  <section class="slide">
+    <div class="wrap">
+      <div class="logo">
+        <div class="mark">DF</div>
+        <div class="wordmark">Dayforge</div>
+      </div>
+      <h1>See where your<br>time <span class="accent">actually</span> goes.</h1>
+      <p class="lead">A personal time-management cockpit that turns your day into a real, finite budget of minutes — and stops work from quietly overflowing the time you thought was free.</p>
+    </div>
+  </section>
+
+  <!-- 2. The problem -->
+  <section class="slide">
+    <div class="wrap">
+      <div class="eyebrow">The problem</div>
+      <h2>To-do lists hide the math.</h2>
+      <p class="lead">A list that looks achievable, an illusion of free time, and work that spills over — because nothing ever counted the hours against a real budget.</p>
+      <div class="grid g3">
+        <div class="card"><div class="ico">🫥</div><h3>Invisible time</h3><p>Meetings, interruptions and "quick" tasks vanish from your sense of the day.</p></div>
+        <div class="card"><div class="ico">📈</div><h3>Silent overflow</h3><p>Plans look fine until 9pm. Nothing warned you the day was already full.</p></div>
+        <div class="card"><div class="ico">🤷</div><h3>No feedback loop</h3><p>Estimates never get tested against reality, so they never improve.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. The core idea -->
+  <section class="slide">
+    <div class="wrap">
+      <div class="eyebrow">The core idea</div>
+      <h2>Your day is a budget, not a list.</h2>
+      <ul class="feat">
+        <li><span class="n">1</span><span>Set your routine once. <span class="b">Sleep, commute, work hours and working days are subtracted to compute the time you really have.</span></span></li>
+        <li><span class="n">2</span><span>Every task carries an estimate. <span class="b">A live timer logs real minutes against it as you work.</span></span></li>
+        <li><span class="n">3</span><span>The cockpit shows allocated vs available, <span class="b">flags overflow the moment your plan exceeds the budget, and tracks planned vs actual.</span></span></li>
+      </ul>
+      <p class="lead">Calendar events, chores and interruptions all draw from the same budget — so the number you see is the truth, not a wish.</p>
+    </div>
+  </section>
+
+  <!-- 4. Today cockpit -->
+  <section class="slide">
+    <div class="wrap">
+      <span class="pill">Today · the cockpit</span>
+      <h2>Your daily command center.</h2>
+      <div class="grid g2">
+        <div class="card"><div class="ico">⏱️</div><h3>Time Budget</h3><p>Available · Allocated · Interrupted, across Day / Week / Month — with a live "time gained vs plan".</p></div>
+        <div class="card"><div class="ico">🍩</div><h3>24-Hour Allocation</h3><p>A ring of where the day went, plus a "Today by area" breakdown.</p></div>
+        <div class="card"><div class="ico">⚡</div><h3>Live timers</h3><p>Per-task estimates with concurrent timers — start, pause (time kept), stop &amp; complete.</p></div>
+        <div class="card"><div class="ico">📌</div><h3>Pending &amp; Scheduled</h3><p>Overdue carry-over and future tasks, with soft / hard deadlines and overflow detection.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Timeboxing -->
+  <section class="slide">
+    <div class="wrap">
+      <div class="eyebrow">Today · Day plan</div>
+      <h2>Drag your day onto a clock.</h2>
+      <p class="lead">Open the Day plan to place today's tasks on an hour-by-hour timeline. Drag to move, drag the edge to resize (15-minute snaps), drop unscheduled work into the first free slot. Overlaps flag red; Google events are fixed bands you plan around.</p>
+      <div class="grid g3">
+        <div class="card"><div class="ico">🧩</div><h3>Timebox</h3><p>Turn a budget into an actual schedule.</p></div>
+        <div class="card"><div class="ico">🧹</div><h3>Chores block</h3><p>Small 5/10/15-min items batch into one timed end-of-day block that carries forward.</p></div>
+        <div class="card"><div class="ico">↩️</div><h3>Completed ledger</h3><p>Reopen a task or correct its logged time, even after it's done.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. Goals -->
+  <section class="slide">
+    <div class="wrap">
+      <span class="pill">Goals</span>
+      <h2>Goals that track themselves.</h2>
+      <p class="lead">A real hierarchy — Annual → Half-year → Monthly → Weekly — where progress is <span class="accent">derived from the tasks you link</span>, not a slider you nudge.</p>
+      <div class="grid g3">
+        <div class="card"><div class="ico">🔢</div><h3>Count goals</h3><p>Progress = completed linked tasks toward a target (e.g. "ship 3 posts").</p></div>
+        <div class="card"><div class="ico">⏳</div><h3>Timed goals</h3><p>A hard deadline; lapses to "missed" if it passes under target.</p></div>
+        <div class="card"><div class="ico">🔁</div><h3>Conclude · Duplicate</h3><p>Close any goal at a chosen %, or one-click the next period's recurring copy.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. Calendar + Google -->
+  <section class="slide">
+    <div class="wrap">
+      <span class="pill">Calendar</span>
+      <h2>Meetings count too.</h2>
+      <p class="lead">Day / Week / Month views of your tasks and events. Connect <span class="accent">Google Calendar</span> (multi-account, read-only) and synced events become budget-deducting blocks you plan around.</p>
+      <div class="grid g3">
+        <div class="card"><div class="ico">🗓️</div><h3>Month</h3><p>Cells tinted by dominant area, event chips, per-area bars, overflow flags.</p></div>
+        <div class="card"><div class="ico">📊</div><h3>Week &amp; Day</h3><p>A 7-day breakdown and a read-only day detail with completed-task history.</p></div>
+        <div class="card"><div class="ico">🔗</div><h3>Google sync</h3><p>Real meetings deduct from the budget; mute any recurring series you don't want counted.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. Differentiators -->
+  <section class="slide">
+    <div class="wrap">
+      <div class="eyebrow">What makes it different</div>
+      <h2>Three things most apps miss.</h2>
+      <div class="grid g3">
+        <div class="card"><div class="ico">🔥</div><h3>One-tap interruptions</h3><p>Log what derailed you instantly — 🔥 Fire, 🌀 Rabbit Hole, 😵 Distraction. Lost time becomes visible time.</p></div>
+        <div class="card"><div class="ico">🧭</div><h3>Function Tracks</h3><p>Organise work by the function it serves inside each venture, not a flat project list.</p></div>
+        <div class="card"><div class="ico">👥</div><h3>Delegation tracker</h3><p>First-class accounting of work handed off — "I delegated it" never means "I lost it".</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. Team -->
+  <section class="slide">
+    <div class="wrap">
+      <span class="pill">Team &amp; Delegation</span>
+      <h2>Keep handed-off work in sight.</h2>
+      <ul class="feat">
+        <li><span class="n">›</span><span>By Person <span class="b">— an attention-sorted rail with each person's open items, status counts and history.</span></span></li>
+        <li><span class="n">›</span><span>By Status <span class="b">— a board across Pending / In progress / Done / Blocked.</span></span></li>
+        <li><span class="n">›</span><span>Follow-ups due <span class="b">— surfaces what needs chasing, with overdue / blocked / this-week filters and search.</span></span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 10. Reports -->
+  <section class="slide">
+    <div class="wrap">
+      <span class="pill">Reports</span>
+      <h2>Look back. Get honest.</h2>
+      <div class="grid g2">
+        <div class="card"><div class="ico">📈</div><h3>Statistics</h3><p>Over any range: time per area, pace (logged vs estimate), deadline adherence, completed &amp; missed goals, delegation history, effort trend.</p></div>
+        <div class="card"><div class="ico">🗂️</div><h3>Task history</h3><p>The raw ledger — date-filtered (last 7 days by default), searchable, with created / completed / logged and a ↩ Reverse on any completion.</p></div>
+      </div>
+      <p class="lead">Pace turns your estimates into a feedback loop: see where you beat, hit, or blew the plan — and calibrate.</p>
+    </div>
+  </section>
+
+  <!-- 11. Quickstart -->
+  <section class="slide">
+    <div class="wrap">
+      <div class="eyebrow">How to use it</div>
+      <h2>Up and running in four steps.</h2>
+      <ul class="feat">
+        <li><span class="n">1</span><span>Set your routine <span class="b">— sleep, commute, work, working days. That's what makes 24 hours into your real available time.</span></span></li>
+        <li><span class="n">2</span><span>Add tasks with estimates <span class="b">— pick the area, a function track, a deadline, and (optionally) link a weekly goal.</span></span></li>
+        <li><span class="n">3</span><span>Run the day from Today <span class="b">— start timers, plan on the timeline, log interruptions, tick off chores.</span></span></li>
+        <li><span class="n">4</span><span>Review in Reports <span class="b">— see where time went and tighten your estimates for next week.</span></span></li>
+      </ul>
+      <p class="lead muted">Tip: try "Explore in demo mode" on the login screen for a fully populated sample day.</p>
+    </div>
+  </section>
+
+  <!-- 12. Tech -->
+  <section class="slide">
+    <div class="wrap">
+      <div class="eyebrow">Under the hood</div>
+      <h2>Fast, installable, yours.</h2>
+      <div class="grid g3">
+        <div class="card"><div class="ico">⚛️</div><h3>Frontend</h3><p>React + TypeScript PWA (Vite). Installable; budget math and timers run client-side.</p></div>
+        <div class="card"><div class="ico">🛢️</div><h3>Backend</h3><p>Express + TypeScript, Mongoose on MongoDB Atlas, JWT — every record scoped to you.</p></div>
+        <div class="card"><div class="ico">▲</div><h3>Hosting</h3><p>Vercel: static client on the CDN, the whole API as one serverless function.</p></div>
+      </div>
+      <p class="lead">Wrapped in a frosted "liquid glass" UI over swappable wallpapers — light, playful, and calm to live in all day.</p>
+    </div>
+  </section>
+
+  <!-- 13. Close -->
+  <section class="slide">
+    <div class="wrap" style="text-align:center">
+      <div class="logo" style="justify-content:center"><div class="mark">DF</div></div>
+      <p class="quote">Stop guessing where the day went.<br><span class="accent">Forge it.</span></p>
+      <p class="lead" style="margin-left:auto;margin-right:auto">Dayforge — know where your time actually goes.</p>
+    </div>
+  </section>
+
+</div>
+
+<div class="counter"><b id="cur">1</b> / <span id="total">13</span></div>
+<div class="hint">← → or Space to navigate</div>
+<div class="nav">
+  <button id="prev" aria-label="Previous slide">‹</button>
+  <button id="next" aria-label="Next slide">›</button>
+</div>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var i = 0;
+    var curEl = document.getElementById('cur');
+    var progress = document.getElementById('progress');
+    var prevBtn = document.getElementById('prev');
+    var nextBtn = document.getElementById('next');
+    document.getElementById('total').textContent = slides.length;
+
+    function show(n) {
+      i = Math.max(0, Math.min(slides.length - 1, n));
+      slides.forEach(function (s, idx) { s.classList.toggle('active', idx === i); });
+      curEl.textContent = i + 1;
+      progress.style.width = ((i + 1) / slides.length * 100) + '%';
+      prevBtn.disabled = i === 0;
+      nextBtn.disabled = i === slides.length - 1;
+      try { location.hash = i === 0 ? '' : '#' + (i + 1); } catch (e) {}
+    }
+    function go(d) { show(i + d); }
+
+    nextBtn.addEventListener('click', function () { go(1); });
+    prevBtn.addEventListener('click', function () { go(-1); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); go(1); }
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(-1); }
+      else if (e.key === 'Home') { show(0); }
+      else if (e.key === 'End') { show(slides.length - 1); }
+    });
+    // Tap right/left half to advance on touch screens.
+    document.getElementById('deck').addEventListener('click', function (e) {
+      if (e.target.closest('a, button')) return;
+      go(e.clientX > window.innerWidth / 2 ? 1 : -1);
+    });
+
+    var start = parseInt((location.hash || '').replace('#', ''), 10);
+    show(isFinite(start) && start > 0 ? start - 1 : 0);
+  })();
+</script>
+</body>
+</html>
