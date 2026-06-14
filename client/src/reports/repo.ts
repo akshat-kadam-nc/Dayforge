@@ -1,15 +1,25 @@
 import { makeInitialState } from '../today/seed';
-import { getReports } from './api';
+import { getReports, getTaskHistory, reopenTask } from './api';
 import { addDaysKey } from './range';
-import type { ReportsPayload, SeriesPoint, AreaTime } from './types';
+import type { ReportsPayload, SeriesPoint, AreaTime, TaskHistory, TaskHistoryRow } from './types';
 
 export interface ReportsRepo {
   load(from: string, to: string): Promise<ReportsPayload>;
+  /** Full raw task history (not range-scoped) for the History tab. */
+  loadTasks(): Promise<TaskHistory>;
+  /** Reverse a completed task back to not-started. */
+  reopenTask(id: string): Promise<void>;
 }
 
 export const apiReportsRepo: ReportsRepo = {
   load(from, to) {
     return getReports(from, to);
+  },
+  loadTasks() {
+    return getTaskHistory();
+  },
+  reopenTask(id) {
+    return reopenTask(id);
   },
 };
 
@@ -140,5 +150,37 @@ export const localReportsRepo: ReportsRepo = {
       team,
       series,
     };
+  },
+
+  // Raw task history from the seed (today + pending + scheduled + completed).
+  async loadTasks(): Promise<TaskHistory> {
+    const s = makeInitialState();
+    const tasks: TaskHistoryRow[] = s.tasks
+      .filter((t) => t.kind !== 'chore_session')
+      .map((t) => ({
+        id: t.id,
+        title: t.title,
+        kind: t.kind,
+        status: t.status,
+        areaId: t.areaId || undefined,
+        goalId: t.goalId,
+        estimateMinutes: t.estimateMinutes,
+        loggedMinutes: t.loggedMinutes,
+        dueAt: t.dueAt,
+        deadlineType: t.deadlineType,
+        createdAt: t.createdAt,
+        completedAt: t.completedAt,
+        day: t.day,
+      }));
+    return {
+      tasks,
+      areas: s.areas,
+      goals: s.goals.map((g) => ({ id: g.id, text: g.text, icon: g.icon })),
+    };
+  },
+
+  // Demo has no backend; reopening is reflected optimistically in the table.
+  async reopenTask() {
+    /* no-op in demo */
   },
 };

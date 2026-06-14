@@ -82,3 +82,33 @@ export interface ReportsPayload {
   team: TeamMemberStat[];
   series: SeriesPoint[];
 }
+
+/** One row of the raw task-history table. */
+export interface TaskHistoryRow {
+  id: string;
+  title: string;
+  kind: string;
+  status: string;
+  areaId?: string;
+  goalId?: string;
+  estimateMinutes: number;
+  loggedMinutes: number;
+  dueAt?: string;
+  deadlineType?: string;
+  createdAt?: string;
+  completedAt?: string;
+  day: string;
+}
+
+export interface GoalLite {
+  id: string;
+  text: string;
+  icon: string;
+}
+
+/** Everything the history tab needs: the full task list plus lookups. */
+export interface TaskHistory {
+  tasks: TaskHistoryRow[];
+  areas: LifeArea[];
+  goals: GoalLite[];
+}

@@ -5,8 +5,11 @@ import { presetRange, customRange, rangeLabel, type Range, type RangePreset } fr
 import type { ReportsPayload, LifeArea } from '../reports/types';
 import { formatMinutes } from '../today/format';
 import { PageEmpty } from '../components/PageEmpty';
+import { TaskHistoryTable } from '../components/reports/TaskHistoryTable';
 import '../styles/today.css';
 import '../styles/reports.css';
+
+type ReportsTab = 'stats' | 'history';
 
 const PRESETS: { preset: RangePreset; label: string }[] = [
   { preset: 'this_week', label: 'This week' },
@@ -23,6 +26,7 @@ export function ReportsPage() {
   const { isGuest } = useAuth();
   const repo: ReportsRepo = isGuest ? localReportsRepo : apiReportsRepo;
 
+  const [tab, setTab] = useState<ReportsTab>('stats');
   const [range, setRange] = useState<Range>(() => presetRange('this_month'));
   const [data, setData] = useState<ReportsPayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -59,6 +63,27 @@ export function ReportsPage() {
         </div>
       </header>
 
+      <div className="rep-tabs">
+        <button
+          type="button"
+          className={`rep-tab${tab === 'stats' ? ' active' : ''}`}
+          onClick={() => setTab('stats')}
+        >
+          📊 Statistics
+        </button>
+        <button
+          type="button"
+          className={`rep-tab${tab === 'history' ? ' active' : ''}`}
+          onClick={() => setTab('history')}
+        >
+          🗂️ Task history
+        </button>
+      </div>
+
+      {tab === 'history' ? (
+        <TaskHistoryTable repo={repo} />
+      ) : (
+        <>
       <div className="rep-range">
         <div className="rep-presets">
           {PRESETS.map((p) => (
@@ -109,6 +134,8 @@ export function ReportsPage() {
           <TeamHistory data={data!} />
           <Trend data={data!} />
         </div>
+      )}
+        </>
       )}
     </div>
   );
