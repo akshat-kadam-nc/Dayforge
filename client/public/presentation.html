@@ -24,7 +24,7 @@
     --radius: 22px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; }
+  html, body { height: 100%; overflow: hidden; }
   body {
     font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
     color: var(--ink);
@@ -38,7 +38,7 @@
 
   #progress { position: fixed; top: 0; left: 0; height: 4px; width: 0%; background: linear-gradient(90deg, var(--spark), var(--spark-2)); z-index: 50; transition: width .35s ease; border-radius: 0 4px 4px 0; }
 
-  #deck { position: relative; height: 100vh; width: 100vw; }
+  #deck { position: relative; height: 100%; width: 100%; }
   .slide {
     position: absolute; inset: 0;
     display: flex; flex-direction: column; justify-content: center;
@@ -105,6 +105,26 @@
     .mark-img { height: 48px; } .wordmark-img { height: 34px; }
   }
   @media (prefers-reduced-motion: reduce) { .slide { transition: opacity .2s linear; } #progress { transition: none; } }
+
+  /* Print / PDF export: render every slide as its own 16:9 page. */
+  @media print {
+    @page { size: 1280px 720px; margin: 0; }
+    html, body { height: auto; overflow: visible; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    #progress, .nav, .counter, .hint { display: none !important; }
+    #deck { height: auto; width: auto; }
+    .slide {
+      position: relative; inset: auto;
+      opacity: 1 !important; transform: none !important;
+      width: 1280px; height: 720px; overflow: hidden;
+      page-break-after: always; break-after: page;
+      background:
+        radial-gradient(1100px 650px at 12% -5%, rgba(253, 156, 6, 0.16) 0%, transparent 55%),
+        radial-gradient(1100px 820px at 100% 106%, rgba(2, 21, 44, 0.10) 0%, transparent 55%),
+        linear-gradient(160deg, #f6f8fc 0%, #eef3f8 52%, #fcf3e7 100%);
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .slide:last-child { page-break-after: auto; break-after: auto; }
+  }
 </style>
 </head>
 <body>
