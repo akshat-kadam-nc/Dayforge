@@ -339,7 +339,7 @@
 .tag-overdue-soft { background: rgba(217,119,6,0.15); color: #b45309; }
 .tag-overdue-hard { background: rgba(239,68,68,0.16); color: #b91c1c; }
 .due-row { display: flex; gap: 8px; }
-.due-row input { flex: 1; }
+.due-row input, .due-row select { flex: 1; }
 .toggle-pills.inline { display: inline-flex; }
 .toggle-pills.inline button { font-family: inherit; font-size: 12px; font-weight: 800; padding: 6px 16px; border: none; background: none; border-radius: var(--r-pill); cursor: pointer; color: var(--c-secondary); }
 .toggle-pills.inline button.active { background: var(--c-accent); color: white; }

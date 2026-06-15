@@ -131,14 +131,27 @@ export function TaskFormModal({ editing, onClose }: { editing?: Task; onClose: (
           </label>
         )}
         <label>
-          Estimate (minutes)
-          <input
-            type="number"
-            min={5}
-            step={5}
-            value={minutes}
-            onChange={(e) => setMinutes(Math.max(5, Number(e.target.value)))}
-          />
+          Estimate
+          <div className="due-row">
+            <select
+              aria-label="Estimate hours"
+              value={Math.floor(minutes / 60)}
+              onChange={(e) => setMinutes(Math.max(5, Number(e.target.value) * 60 + (minutes % 60)))}
+            >
+              {Array.from({ length: 9 }, (_, h) => (
+                <option key={h} value={h}>{h} h</option>
+              ))}
+            </select>
+            <select
+              aria-label="Estimate minutes"
+              value={minutes % 60}
+              onChange={(e) => setMinutes(Math.max(5, Math.floor(minutes / 60) * 60 + Number(e.target.value)))}
+            >
+              {Array.from({ length: 12 }, (_, i) => i * 5).map((m) => (
+                <option key={m} value={m}>{m} m</option>
+              ))}
+            </select>
+          </div>
         </label>
         <label>
           Start day
