@@ -6,9 +6,11 @@ Dayforge is the product name. The repo directory and internal package/identifier
 
 ## Documentation
 
-- [docs/OVERVIEW.md](docs/OVERVIEW.md) — what Dayforge is, the problem it solves, salient features.
-- [docs/USER_GUIDE.md](docs/USER_GUIDE.md) — page-by-page how-to-use.
-- **Presentation (HTML deck):** [`client/public/presentation.html`](client/public/presentation.html) — open it in a browser, or view it live at `/presentation.html` on the deployed site. Arrow keys / Space / click to navigate.
+Full index in [docs/README.md](docs/README.md).
+
+**Product:** [OVERVIEW](docs/OVERVIEW.md) · [USER_GUIDE](docs/USER_GUIDE.md) · presentation deck ([`client/public/presentation.html`](client/public/presentation.html), live at `/presentation.html`).
+
+**Technical:** [ARCHITECTURE](docs/ARCHITECTURE.md) · [API](docs/API.md) · [DATA_MODEL](docs/DATA_MODEL.md) · [DEVELOPMENT](docs/DEVELOPMENT.md).
 
 ## Layout
 
