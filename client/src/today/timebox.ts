@@ -1,5 +1,5 @@
 import type { CalendarEvent, Task, TodayState } from './types';
-import { todaysTasks } from './budget';
+import { isOnTodayPlate, todaysTasks } from './budget';
 
 /** Timeboxing granularity. All starts and sizes snap to this. */
 export const SNAP_MIN = 15;
@@ -68,6 +68,14 @@ export function scheduledBoxes(state: TodayState): Box[] {
 export function unscheduledTasks(state: TodayState): Task[] {
   return todaysTasks(state).filter(
     (t) => t.kind === 'task' && t.status !== 'done' && parseHHMM(t.scheduledAt) == null,
+  );
+}
+
+/** Overdue/pending tasks (slated for an earlier day, off today's plate) that can
+ *  still be pulled onto today's clock. Placing one moves it to today. */
+export function pendingPlaceable(state: TodayState): Task[] {
+  return state.tasks.filter(
+    (t) => t.kind === 'task' && t.status !== 'done' && t.day < state.day && !isOnTodayPlate(state, t),
   );
 }
 

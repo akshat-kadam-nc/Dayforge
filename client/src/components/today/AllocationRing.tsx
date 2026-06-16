@@ -36,7 +36,7 @@ export function AllocationRing() {
   const max = Math.max(1, ...splits.map((s) => s.minutes));
 
   return (
-    <div className="card">
+    <div className="card alloc-card">
       <div className="card-title">24-Hour Allocation</div>
       <div className="ring-body">
         <div className="ring-left">
@@ -71,7 +71,7 @@ export function AllocationRing() {
             {segments.map((seg) => (
               <div key={seg.id} className="leg">
                 <div className="leg-dot" style={{ background: seg.color }} />
-                {seg.label}
+                <span className="leg-label">{seg.label}</span>
                 <span className="leg-val">{formatMinutes(seg.minutes)}</span>
               </div>
             ))}

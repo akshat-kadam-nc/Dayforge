@@ -9,12 +9,14 @@ import {
   dayWindow,
   findFreeSlot,
   fmtTimeOfDay,
+  pendingPlaceable,
   scheduledBoxes,
   snap,
   timedEvents,
   toHHMM,
   unscheduledTasks,
 } from '../../today/timebox';
+import type { Task } from '../../today/types';
 
 const HOUR_PX = 52;
 const PPM = HOUR_PX / 60; // pixels per minute
@@ -51,6 +53,8 @@ export function TimeboxTimeline({
   const boxes = scheduledBoxes(state);
   const events = timedEvents(state);
   const tray = unscheduledTasks(state);
+  const pending = pendingPlaceable(state);
+  const toPlace = tray.length + pending.length;
   const win = dayWindow(state);
   const conflicts = conflictIds(state);
 
@@ -98,7 +102,15 @@ export function TimeboxTimeline({
     };
   }, [drag?.taskId, drag?.mode]);
 
-  const empty = boxes.length === 0 && tray.length === 0 && events.length === 0;
+  const empty = boxes.length === 0 && tray.length === 0 && events.length === 0 && pending.length === 0;
+
+  // Drop a task into the first free slot. A pending (earlier-day) task is pulled
+  // onto today first so it renders as a box instead of staying off-plate.
+  function placeInFreeSlot(t: Task, fromPending: boolean) {
+    if (fromPending) actions.moveToToday(t.id);
+    actions.scheduleTask(t.id, toHHMM(findFreeSlot(state, boxDuration(t), win)));
+  }
+
   const planned = allocatedMinutes(state);
   const avail = effectiveAvailable(state);
   const over = overflowMinutes(state);
@@ -110,7 +122,7 @@ export function TimeboxTimeline({
       <section className={`timebox-bar${open ? ' active' : ''}`}>
         <span className="timebox-title">🗓 Day plan</span>
         <span className="timebox-summary">
-          {boxes.length} scheduled · {tray.length} to place
+          {boxes.length} scheduled · {toPlace} to place
           {conflicts.size > 0 && <span className="timebox-conflict">⚠ {conflicts.size} overlap</span>}
         </span>
         <span className={`timebox-budget${over > 0 ? ' over' : ''}`}>
@@ -150,7 +162,7 @@ export function TimeboxTimeline({
       </div>
 
       <div className="timebox-panel-sub">
-        {boxes.length} scheduled · {tray.length} to place
+        {boxes.length} scheduled · {toPlace} to place
         {conflicts.size > 0 && <span className="timebox-conflict">⚠ {conflicts.size} overlap</span>}
       </div>
 
@@ -158,7 +170,7 @@ export function TimeboxTimeline({
         <p className="muted timebox-empty">Nothing to plan yet.</p>
       ) : (
         <>
-          {tray.length > 0 && (
+          {toPlace > 0 && (
             <div className="timebox-tray">
               <span className="timebox-tray-lbl">Unscheduled</span>
               {tray.map((t) => (
@@ -168,10 +180,24 @@ export function TimeboxTimeline({
                   className="timebox-chip"
                   style={{ ['--chip-color' as string]: areaColor(t.areaId) }}
                   title="Click to drop into the first free slot"
-                  onClick={() => actions.scheduleTask(t.id, toHHMM(findFreeSlot(state, boxDuration(t), win)))}
+                  onClick={() => placeInFreeSlot(t, false)}
                 >
                   <span className="timebox-chip-dot" />
                   <span className="timebox-chip-title">{t.title}</span>
+                  <span className="timebox-chip-est">{formatMinutes(boxDuration(t))}</span>
+                </button>
+              ))}
+              {pending.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  className="timebox-chip pending"
+                  style={{ ['--chip-color' as string]: areaColor(t.areaId) }}
+                  title="Pending — click to pull onto today and drop into the first free slot"
+                  onClick={() => placeInFreeSlot(t, true)}
+                >
+                  <span className="timebox-chip-dot" />
+                  <span className="timebox-chip-title">📌 {t.title}</span>
                   <span className="timebox-chip-est">{formatMinutes(boxDuration(t))}</span>
                 </button>
               ))}
@@ -212,10 +238,12 @@ export function TimeboxTimeline({
                 const startMin = dragging && drag.mode === 'move' ? drag.curStart : box.startMin;
                 const estMin = dragging && drag.mode === 'resize' ? drag.curEst : boxDuration(box.task);
                 const conflict = conflicts.has(box.task.id);
+                const compact = estMin <= 30;
                 return (
                   <div
                     key={box.task.id}
-                    className={`tb-box${conflict ? ' conflict' : ''}${dragging ? ' dragging' : ''}`}
+                    className={`tb-box${conflict ? ' conflict' : ''}${dragging ? ' dragging' : ''}${compact ? ' compact' : ''}`}
+                    title={`${box.task.title} · ${fmtTimeOfDay(startMin)}–${fmtTimeOfDay(startMin + estMin)}`}
                     style={{
                       top: (startMin - win.startMin) * PPM,
                       height: estMin * PPM,
