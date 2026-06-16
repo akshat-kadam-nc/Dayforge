@@ -310,7 +310,7 @@ export interface TodayActions {
   setScope: (scope: BudgetScope) => void;
   addTask: (input: CreateTaskInput) => Promise<void>;
   /** Edit an existing task's title, area, track, goal, estimate, day, or deadline. */
-  editTask: (taskId: string, input: EditTaskInput) => void;
+  editTask: (taskId: string, input: EditTaskInput) => Promise<void>;
   /** Add a small end-of-day chore (estimate locked to 5/10/15 by the UI). */
   addChore: (input: { title: string; areaId: string; estimateMinutes: number }) => Promise<void>;
   /** Set the chore-session block size for today, creating the session if absent. */
@@ -487,7 +487,7 @@ export function TodayProvider({ children }: { children: ReactNode }) {
       const task = await repo.createTask(input);
       dispatch({ type: 'ADD_TASK', task });
     },
-    editTask: (taskId, input) => {
+    editTask: async (taskId, input) => {
       const prev = state.tasks.find((t) => t.id === taskId);
       // Optimistic local patch: a cleared ref/deadline (null) reads as undefined on Task.
       const patch: Partial<Task> = {
@@ -502,10 +502,14 @@ export function TodayProvider({ children }: { children: ReactNode }) {
       };
       dispatch({ type: 'UPDATE_TASK', taskId, patch });
       // Persist; null reaches the server so it can actually unset the field.
-      void repo.updateTask(taskId, input).catch((err) => {
+      // Roll back on failure, then rethrow so the caller can surface the error.
+      try {
+        await repo.updateTask(taskId, input);
+      } catch (err) {
         console.error('[today] failed to edit task', err);
         if (prev) dispatch({ type: 'UPDATE_TASK', taskId, patch: prev });
-      });
+        throw err;
+      }
     },
     addChore: async ({ title, areaId, estimateMinutes }) => {
       // Chores always fall due at end of the shown day; they can overflow like tasks.

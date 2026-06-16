@@ -8,6 +8,8 @@ export interface User {
   name: string;
   onboarded: boolean;
   routine?: Routine | null;
+  /** DiceBear avatar descriptor `style:seed`; empty = fall back to the initial. */
+  avatar?: string;
 }
 
 interface AuthState {

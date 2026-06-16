@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useToday } from '../../today/useToday';
 import { formatClock } from '../../today/format';
+import { taskLoggedSeconds } from '../../today/budget';
 import { InterruptModal } from './InterruptModal';
 
 /** One strip per concurrently running task, each with its own 1s/sec timer and
@@ -26,12 +27,19 @@ export function TimerStrip() {
           runIds.map((id) => {
             const task = state.tasks.find((t) => t.id === id);
             const area = task ? state.areas.find((a) => a.id === task.areaId) : undefined;
-            const secs = state.timer.runs[id].elapsedSeconds;
+            // Show total time on the task (prior logged + this run), not just the
+            // live run, against the estimate so the allotment is visible inline.
+            const secs = task ? taskLoggedSeconds(state, task) : state.timer.runs[id].elapsedSeconds;
+            const allottedSecs = (task?.estimateMinutes ?? 0) * 60;
+            const over = allottedSecs > 0 && secs > allottedSecs;
             return (
               <div key={id} className="timer-strip">
                 <div className="timer-dot" style={area ? { background: area.color } : undefined} />
                 <span className="timer-lbl">{task?.title ?? 'Task'}</span>
-                <span className="timer-val">{formatClock(secs)}</span>
+                <span className={`timer-val${over ? ' over' : ''}`}>
+                  {formatClock(secs)}
+                  {allottedSecs > 0 && <span className="timer-allot"> / {formatClock(allottedSecs)}</span>}
+                </span>
                 <button type="button" className="interrupt-btn sm" onClick={() => setInterrupting(true)} title="Log interruption">
                   ⚡
                 </button>

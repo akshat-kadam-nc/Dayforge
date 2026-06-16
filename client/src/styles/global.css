@@ -254,7 +254,9 @@ body {
   width: 38px; height: 38px; flex: none; border-radius: 50%;
   background: linear-gradient(135deg, #7c3aed, #a855f7);
   color: #fff; font-weight: 900; display: grid; place-items: center;
+  overflow: hidden;
 }
+.side-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .side-who { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
 .side-who b { font-size: 13px; }
 .side-who span { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -547,6 +549,38 @@ input:focus {
   font-weight: 700;
   color: var(--c-fire);
 }
+
+.avatar-current-row { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.avatar-current {
+  width: 56px; height: 56px; flex: none; border-radius: 50%; overflow: hidden;
+  display: grid; place-items: center; font-weight: 900; font-size: 22px; color: #fff;
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+}
+.avatar-current img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.avatar-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+  gap: 10px;
+}
+.avatar-option {
+  aspect-ratio: 1; border-radius: 50%; overflow: hidden; padding: 0; cursor: pointer;
+  border: 2px solid transparent; background: rgba(255,255,255,0.5);
+  transition: transform 0.15s var(--ease-out), border-color 0.15s;
+}
+.avatar-option img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.avatar-option:hover { transform: scale(1.06); }
+.avatar-option.selected { border-color: var(--c-accent); }
+.avatar-option:disabled { cursor: default; opacity: 0.7; }
+.avatar-bg-label { margin: 14px 0 8px; font-size: 12px; font-weight: 800; }
+.avatar-bg-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.avatar-bg-swatch {
+  width: 30px; height: 30px; border-radius: 50%; cursor: pointer; padding: 0;
+  border: 2px solid rgba(0,0,0,0.12);
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.6);
+  transition: transform 0.15s var(--ease-out), border-color 0.15s;
+}
+.avatar-bg-swatch:hover { transform: scale(1.1); }
+.avatar-bg-swatch.selected { border-color: var(--c-accent); transform: scale(1.1); }
+.avatar-bg-swatch:disabled { cursor: default; opacity: 0.7; }
 
 .venture-settings-list {
   list-style: none;

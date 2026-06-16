@@ -8,7 +8,15 @@ import { AddVentureModal } from '../components/today/AddVentureModal';
 import { TrackManager } from '../components/today/TrackManager';
 import { GoogleAccountsSection } from '../components/GoogleAccountsSection';
 import { RoutineModal } from '../components/RoutineModal';
-import { changePassword } from '../profile/api';
+import { changePassword, saveAvatar } from '../profile/api';
+import {
+  AVATAR_PRESETS,
+  AVATAR_BG_OPTIONS,
+  DEFAULT_AVATAR_BG,
+  avatarDataUri,
+  parseAvatar,
+  buildAvatar,
+} from '../profile/avatars';
 import { useToast } from '../components/Toast';
 
 const DAY_ABBR: Record<number, string> = { 0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat' };
@@ -32,6 +40,8 @@ export function SettingsPage() {
         Signed in as <strong>{user?.email}</strong>
         {isGuest && ' (demo mode — changes are not saved)'}.
       </p>
+
+      <AvatarSection />
 
       {!isGuest && (
         <div className="settings-section">
@@ -101,6 +111,110 @@ export function SettingsPage() {
       {adding && <AddVentureModal onClose={() => setAdding(false)} />}
       {editRoutine && <RoutineModal mode="edit" onClose={() => setEditRoutine(false)} />}
     </Placeholder>
+  );
+}
+
+/** Pick a profile avatar from a curated DiceBear grid. Saved to the account
+ *  (or local-only in demo mode). */
+function AvatarSection() {
+  const { user, isGuest, updateUser } = useAuth();
+  const { toast } = useToast();
+  const [busy, setBusy] = useState(false);
+  const current = user?.avatar ?? '';
+  const parsed = parseAvatar(current);
+  const currentUri = avatarDataUri(current);
+  const initial = (user?.name ?? user?.email ?? 'You').charAt(0).toUpperCase();
+
+  // The background applies to whichever avatar is (or will be) chosen. Track it
+  // separately so picking a color before an avatar still takes effect.
+  const [bg, setBg] = useState(parsed?.bg ?? DEFAULT_AVATAR_BG);
+
+  // The seed half of the currently selected preset, for highlighting the grid
+  // regardless of the chosen background.
+  const currentKey = parsed ? `${parsed.style}:${parsed.seed}` : '';
+
+  async function persist(next: string) {
+    if (isGuest) {
+      updateUser({ avatar: next });
+      toast('Demo mode — avatar not saved.', 'info');
+      return;
+    }
+    setBusy(true);
+    try {
+      const res = await saveAvatar(next);
+      updateUser({ avatar: res.avatar });
+      toast(res.avatar ? 'Avatar updated.' : 'Avatar cleared.', 'success');
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Could not save avatar.', 'error');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // Pick a preset (tap the current one again to clear it), keeping the chosen bg.
+  function chooseAvatar(presetKey: string) {
+    if (busy) return;
+    if (presetKey === currentKey) {
+      void persist('');
+      return;
+    }
+    const [style, seed] = presetKey.split(':');
+    void persist(buildAvatar(style, seed, bg));
+  }
+
+  // Change the background; re-save the current avatar with it if one is set.
+  function chooseBg(id: string) {
+    if (busy) return;
+    setBg(id);
+    if (parsed) void persist(buildAvatar(parsed.style, parsed.seed, id));
+  }
+
+  return (
+    <div className="settings-section">
+      <div className="settings-section-head">
+        <h3>Avatar</h3>
+      </div>
+      <div className="avatar-current-row">
+        <div className="avatar-current">
+          {currentUri ? <img src={currentUri} alt="Current avatar" /> : <span>{initial}</span>}
+        </div>
+        <p className="muted">Pick an avatar. Tap your current one again to clear it.</p>
+      </div>
+      <div className="avatar-grid">
+        {AVATAR_PRESETS.map((presetKey) => {
+          const uri = avatarDataUri(buildAvatar(...(presetKey.split(':') as [string, string]), bg));
+          if (!uri) return null;
+          return (
+            <button
+              key={presetKey}
+              type="button"
+              className={`avatar-option${presetKey === currentKey ? ' selected' : ''}`}
+              onClick={() => chooseAvatar(presetKey)}
+              disabled={busy}
+              aria-pressed={presetKey === currentKey}
+            >
+              <img src={uri} alt="" />
+            </button>
+          );
+        })}
+      </div>
+      <div className="avatar-bg-label muted">Background</div>
+      <div className="avatar-bg-row">
+        {AVATAR_BG_OPTIONS.map((o) => (
+          <button
+            key={o.id}
+            type="button"
+            className={`avatar-bg-swatch${bg === o.id ? ' selected' : ''}`}
+            style={{ background: `#${o.id}` }}
+            onClick={() => chooseBg(o.id)}
+            disabled={busy}
+            title={o.label}
+            aria-label={o.label}
+            aria-pressed={bg === o.id}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 

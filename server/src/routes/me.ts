@@ -30,3 +30,16 @@ meRouter.patch(
     res.json({ onboarded: user.onboarded, routine: user.routine });
   }),
 );
+
+// Set (or clear, with '') the profile avatar. Stored as a `style:seed` descriptor.
+const avatarInput = z.object({ avatar: z.string().max(120) });
+
+meRouter.patch(
+  '/avatar',
+  asyncHandler(async (req, res) => {
+    const { avatar } = avatarInput.parse(req.body);
+    const user = await UserModel.findByIdAndUpdate(req.userId, { avatar }, { new: true });
+    if (!user) throw new HttpError(404, 'User not found');
+    res.json({ avatar: user.avatar ?? '' });
+  }),
+);

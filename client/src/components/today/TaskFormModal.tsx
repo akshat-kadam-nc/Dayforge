@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import { useToday } from '../../today/useToday';
 import type { DeadlineType, Task } from '../../today/types';
 import { todayKey } from '../../today/repo';
+import { useToast } from '../Toast';
+import { ApiError } from '../../api/client';
 
 /**
  * Create-or-edit form for a task, shared by the Fab (create) and TaskRow (edit)
@@ -10,7 +12,9 @@ import { todayKey } from '../../today/repo';
  */
 export function TaskFormModal({ editing, onClose }: { editing?: Task; onClose: () => void }) {
   const { state, actions } = useToday();
+  const { toast } = useToast();
   const isEdit = !!editing;
+  const [submitting, setSubmitting] = useState(false);
 
   const initialDue = editing?.dueAt ? new Date(editing.dueAt) : null;
   const pad = (n: number) => String(n).padStart(2, '0');
@@ -53,34 +57,75 @@ export function TaskFormModal({ editing, onClose }: { editing?: Task; onClose: (
   // Editing a past-dated task (carried over) must still allow its own day.
   const dayMin = isEdit && startDay < todayKey() ? startDay : todayKey();
 
-  function submit() {
-    if (!title.trim() || !areaId) return;
+  // Turn any failure into a message the user can act on, distinguishing the
+  // common causes (no DB configured, auth expired, validation, offline).
+  function failureMessage(err: unknown): string {
+    if (err instanceof ApiError) {
+      if (err.status === 401) return 'Session expired. Log in again, then retry.';
+      if (err.status === 503) return 'Server has no database connection. Task not saved.';
+      if (err.status === 400 || err.status === 422) return err.message || 'The server rejected the task details.';
+      return err.message || `Server error (${err.status}). Task not saved.`;
+    }
+    if (err instanceof TypeError) return 'Network error. Check your connection — task not saved.';
+    return err instanceof Error && err.message ? err.message : 'Could not save the task.';
+  }
+
+  async function submit() {
+    if (submitting) return;
+    // Surface validation instead of silently doing nothing.
+    if (!title.trim()) {
+      toast('Add a task title before saving.', 'error');
+      return;
+    }
+    if (!areaId) {
+      toast('Pick an area before saving.', 'error');
+      return;
+    }
+    if (!Number.isFinite(minutes) || minutes < 5) {
+      toast('Estimate must be at least 5 minutes.', 'error');
+      return;
+    }
+    if (dueDate && Number.isNaN(new Date(`${dueDate}T${dueTime || '17:00'}`).getTime())) {
+      toast('The deadline date or time is invalid.', 'error');
+      return;
+    }
     // Build a local ISO datetime for the deadline if a date was picked.
     const dueAt = dueDate ? new Date(`${dueDate}T${dueTime || '17:00'}`).toISOString() : null;
-    if (isEdit && editing) {
-      actions.editTask(editing.id, {
-        title: title.trim(),
-        areaId,
-        estimateMinutes: minutes,
-        trackId: trackId || null,
-        goalId: goalId || null,
-        day: startDay,
-        dueAt,
-        deadlineType: dueAt ? deadlineType : 'soft',
-      });
-    } else {
-      void actions.addTask({
-        title: title.trim(),
-        areaId,
-        estimateMinutes: minutes,
-        trackId: trackId || undefined,
-        goalId: goalId || undefined,
-        day: startDay,
-        dueAt: dueAt ?? undefined,
-        deadlineType: dueAt ? deadlineType : undefined,
-      });
+    setSubmitting(true);
+    try {
+      if (isEdit && editing) {
+        await actions.editTask(editing.id, {
+          title: title.trim(),
+          areaId,
+          estimateMinutes: minutes,
+          trackId: trackId || null,
+          goalId: goalId || null,
+          day: startDay,
+          dueAt,
+          deadlineType: dueAt ? deadlineType : 'soft',
+        });
+        toast('Task updated.', 'success');
+      } else {
+        await actions.addTask({
+          title: title.trim(),
+          areaId,
+          estimateMinutes: minutes,
+          trackId: trackId || undefined,
+          goalId: goalId || undefined,
+          day: startDay,
+          dueAt: dueAt ?? undefined,
+          deadlineType: dueAt ? deadlineType : undefined,
+        });
+        toast('Task created.', 'success');
+      }
+      onClose();
+    } catch (err) {
+      // Keep the modal open with the user's input intact so they can retry.
+      console.error('[today] task save failed', err);
+      toast(failureMessage(err), 'error');
+    } finally {
+      setSubmitting(false);
     }
-    onClose();
   }
 
   // Portal to <body> so the fixed overlay escapes any ancestor with transform/
@@ -97,7 +142,7 @@ export function TaskFormModal({ editing, onClose }: { editing?: Task; onClose: (
             onChange={(e) => setTitle(e.target.value)}
             placeholder="What needs doing?"
             autoFocus
-            onKeyDown={(e) => e.key === 'Enter' && submit()}
+            onKeyDown={(e) => { if (e.key === 'Enter') void submit(); }}
           />
         </label>
         <label>
@@ -174,8 +219,10 @@ export function TaskFormModal({ editing, onClose }: { editing?: Task; onClose: (
           </label>
         )}
         <div className="modal-actions">
-          <button type="button" className="btn-ghost" onClick={onClose}>Cancel</button>
-          <button type="button" className="btn" onClick={submit}>{isEdit ? 'Save' : 'Add'}</button>
+          <button type="button" className="btn-ghost" onClick={onClose} disabled={submitting}>Cancel</button>
+          <button type="button" className="btn" onClick={() => void submit()} disabled={submitting}>
+            {submitting ? (isEdit ? 'Saving…' : 'Adding…') : isEdit ? 'Save' : 'Add'}
+          </button>
         </div>
       </div>
     </div>,

@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthContext';
 import { WallpaperLayer } from './WallpaperLayer';
 import { WallpaperPicker } from './WallpaperPicker';
 import { ErrorBoundary } from './ErrorBoundary';
+import { avatarDataUri } from '../profile/avatars';
 
 const NAV = [
   { to: '/', label: 'Today', icon: '🎯', end: true },
@@ -34,6 +35,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const name = user?.name ?? user?.email ?? 'You';
   const initial = name.charAt(0).toUpperCase();
+  const avatarUri = avatarDataUri(user?.avatar);
 
   const shellClass = [
     'app-shell',
@@ -91,7 +93,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <div className="side-foot">
-          <div className="side-avatar">{initial}</div>
+          <div className="side-avatar">
+            {avatarUri ? <img src={avatarUri} alt="" /> : initial}
+          </div>
           <div className="side-who">
             <b>{user?.name ?? 'You'}</b>
             <span>{user?.email}</span>

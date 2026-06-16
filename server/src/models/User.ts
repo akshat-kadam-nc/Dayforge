@@ -18,6 +18,8 @@ const userSchema = new Schema(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     name: { type: String, required: true, trim: true },
     passwordHash: { type: String, required: true },
+    /** Avatar descriptor `style:seed` (DiceBear). Empty = fall back to the initial. */
+    avatar: { type: String, default: '' },
     /** Set once the user completes routine setup. Until then the day is fully open. */
     onboarded: { type: Boolean, default: false },
     routine: { type: routineSchema, default: () => ({}) },

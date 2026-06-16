@@ -20,6 +20,7 @@ function publicUser(user: {
   name: string;
   onboarded?: boolean;
   routine?: unknown;
+  avatar?: string;
 }) {
   return {
     id: String(user._id),
@@ -27,6 +28,7 @@ function publicUser(user: {
     name: user.name,
     onboarded: !!user.onboarded,
     routine: user.routine ?? null,
+    avatar: user.avatar ?? '',
   };
 }
 
