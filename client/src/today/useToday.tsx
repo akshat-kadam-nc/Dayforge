@@ -20,6 +20,7 @@ import type {
   ReconciliationInput,
   Task,
   TaskStatus,
+  TimerRun,
   TodayState,
 } from './types';
 import { useAuth } from '../auth/AuthContext';
@@ -35,6 +36,46 @@ import {
   type TodaySlices,
 } from './repo';
 
+// Timer runs are persisted as wall-clock anchors so a reload (or a backgrounded
+// tab, where setInterval is throttled) recovers the true elapsed time. We store
+// only `{ taskId: startedAt }`; the elapsed seconds are always derived from now.
+const RUNS_KEY = 'dayforge.today.runs';
+
+/** True elapsed seconds for a run, from its wall-clock start. */
+function runSeconds(startedAt: number): number {
+  return Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+}
+
+/** Load persisted run anchors and derive their current elapsed time. */
+function loadPersistedRuns(): Record<string, TimerRun> {
+  try {
+    const raw = localStorage.getItem(RUNS_KEY);
+    if (!raw) return {};
+    const map = JSON.parse(raw) as Record<string, number>;
+    const runs: Record<string, TimerRun> = {};
+    for (const [id, startedAt] of Object.entries(map)) {
+      if (typeof startedAt === 'number' && Number.isFinite(startedAt)) {
+        runs[id] = { startedAt, elapsedSeconds: runSeconds(startedAt) };
+      }
+    }
+    return runs;
+  } catch {
+    return {};
+  }
+}
+
+/** Mirror the live runs to localStorage (anchors only). */
+function persistRuns(runs: Record<string, TimerRun>): void {
+  try {
+    const map: Record<string, number> = {};
+    for (const [id, run] of Object.entries(runs)) map[id] = run.startedAt;
+    if (Object.keys(map).length) localStorage.setItem(RUNS_KEY, JSON.stringify(map));
+    else localStorage.removeItem(RUNS_KEY);
+  } catch {
+    /* storage unavailable or full — the timer still works in-memory */
+  }
+}
+
 function emptyState(): TodayState {
   return {
     areas: [],
@@ -44,7 +85,7 @@ function emptyState(): TodayState {
     interruptions: [],
     fixedBlocks: [],
     logs: [],
-    timer: { runs: {} },
+    timer: { runs: loadPersistedRuns() },
     collapsedAreas: {},
     budgetScope: 'day',
     scopeSummary: null,
@@ -92,7 +133,8 @@ type Action =
 function commitRun(state: TodayState, taskId: string): TodayState {
   const run = state.timer.runs[taskId];
   if (!run) return state;
-  const add = run.elapsedSeconds / 60;
+  // Commit the wall-clock elapsed time, not the (possibly throttled) tick count.
+  const add = runSeconds(run.startedAt) / 60;
   const runs = { ...state.timer.runs };
   delete runs[taskId];
   return {
@@ -109,21 +151,31 @@ function commitAllRuns(state: TodayState): TodayState {
 
 function reducer(state: TodayState, action: Action): TodayState {
   switch (action.type) {
-    case 'HYDRATE':
+    case 'HYDRATE': {
       // Merge over current state (not emptyState) so transient slices loaded by
       // their own effects — calendar events, due closes, scope summary — survive
-      // whichever fetch resolves last. Reset only the timer.
+      // whichever fetch resolves last. Keep any live runs (e.g. restored from a
+      // reload), but drop ones whose task is gone or already done.
+      const tasks = action.slices.tasks ?? state.tasks;
+      const runs: TodayState['timer']['runs'] = {};
+      for (const [id, run] of Object.entries(state.timer.runs)) {
+        const t = tasks.find((x) => x.id === id);
+        if (t && t.status !== 'done') runs[id] = { ...run, elapsedSeconds: runSeconds(run.startedAt) };
+      }
       return {
         ...state,
         ...action.slices,
-        timer: { runs: {} },
+        timer: { runs },
       };
+    }
     case 'TICK': {
       const ids = Object.keys(state.timer.runs);
       if (ids.length === 0) return state;
+      // Recompute from the wall clock so a backgrounded/throttled tab is accurate
+      // the instant we recompute, rather than counting elapsed interval fires.
       const runs: TodayState['timer']['runs'] = {};
       for (const id of ids) {
-        runs[id] = { ...state.timer.runs[id], elapsedSeconds: state.timer.runs[id].elapsedSeconds + 1 };
+        runs[id] = { ...state.timer.runs[id], elapsedSeconds: runSeconds(state.timer.runs[id].startedAt) };
       }
       return { ...state, timer: { runs } };
     }
@@ -421,18 +473,36 @@ export function TodayProvider({ children }: { children: ReactNode }) {
     };
   }, [state.day, repo]);
 
-  // Tick once a second while any task is running.
+  // Persist the live run anchors so a reload restores them and keeps counting.
+  useEffect(() => {
+    persistRuns(state.timer.runs);
+  }, [state.timer.runs]);
+
+  // Tick once a second while any task is running, and recompute immediately when
+  // the tab regains focus (setInterval is throttled/paused while hidden, so the
+  // displayed value would otherwise be stale until the next tick).
   const runningCount = Object.keys(state.timer.runs).length;
   useEffect(() => {
     if (runningCount === 0) return;
-    const id = setInterval(() => dispatch({ type: 'TICK' }), 1000);
-    return () => clearInterval(id);
+    const tick = () => dispatch({ type: 'TICK' });
+    const id = setInterval(tick, 1000);
+    const onVisible = () => {
+      if (!document.hidden) tick();
+    };
+    window.addEventListener('focus', tick);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener('focus', tick);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [runningCount]);
 
   /** A task's committed minutes once its current live run is folded in. */
   function committedAfterRun(taskId: string): number {
     const task = state.tasks.find((t) => t.id === taskId);
-    const live = (state.timer.runs[taskId]?.elapsedSeconds ?? 0) / 60;
+    const run = state.timer.runs[taskId];
+    const live = run ? runSeconds(run.startedAt) / 60 : 0;
     return (task?.loggedMinutes ?? 0) + live;
   }
 
