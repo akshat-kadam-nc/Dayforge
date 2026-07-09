@@ -29,6 +29,9 @@ const taskInput = z.object({
   deadlineType: z.enum(DEADLINE_TYPES).optional(),
   delegateName: z.string().optional(),
   day: z.string().optional(),
+  // Explicit completion instant, so a task finished in the past can be logged
+  // with the real date rather than "now". Ignored unless status is done.
+  completedAt: z.string().datetime().nullable().optional(),
 });
 
 tasksRouter.get(
@@ -79,8 +82,15 @@ tasksRouter.patch(
     // An empty ref means "unlink" — store null, never '' (which fails ObjectId cast).
     if (patch.trackId === '') patch.trackId = null;
     if (patch.goalId === '') patch.goalId = null;
-    if (data.status === 'done') patch.completedAt = new Date();
-    else if (data.status) patch.completedAt = null;
+    if (data.status === 'done') {
+      // Honour an explicit completion date (past completions); else stamp now.
+      patch.completedAt = data.completedAt ? new Date(data.completedAt) : new Date();
+    } else if (data.status) {
+      patch.completedAt = null;
+    } else if (data.completedAt !== undefined) {
+      // Adjust the completion date of an already-done task without touching status.
+      patch.completedAt = data.completedAt ? new Date(data.completedAt) : null;
+    }
     // Scope the update by userId so one user can never touch another's task.
     const task = await TaskModel.findOneAndUpdate(
       { _id: req.params.id, userId: req.userId },

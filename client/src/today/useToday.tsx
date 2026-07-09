@@ -104,7 +104,7 @@ type Action =
   | { type: 'PAUSE'; taskId: string }
   | { type: 'PAUSE_ALL' }
   | { type: 'STOP_COMPLETE'; taskId: string }
-  | { type: 'COMPLETE_WITH_LOG'; taskId: string; loggedMinutes: number }
+  | { type: 'COMPLETE_WITH_LOG'; taskId: string; loggedMinutes: number; completedAt?: string }
   | { type: 'UNCOMPLETE'; taskId: string }
   | { type: 'TOGGLE_AREA'; areaId: string }
   | { type: 'SET_SCOPE'; scope: BudgetScope }
@@ -205,12 +205,12 @@ function reducer(state: TodayState, action: Action): TodayState {
       // User declares the final time taken; discard any uncommitted live run.
       const runs = { ...state.timer.runs };
       delete runs[action.taskId];
-      const now = new Date().toISOString();
+      const completedAt = action.completedAt ?? new Date().toISOString();
       return {
         ...state,
         tasks: state.tasks.map((t) =>
           t.id === action.taskId
-            ? { ...t, status: 'done', loggedMinutes: action.loggedMinutes, completedAt: now }
+            ? { ...t, status: 'done', loggedMinutes: action.loggedMinutes, completedAt }
             : t,
         ),
         timer: { runs },
@@ -356,7 +356,7 @@ export interface TodayActions {
   pause: (taskId: string) => void;
   pauseAll: () => void;
   stopComplete: (taskId: string) => void;
-  completeWithLog: (taskId: string, mode: LogMode, customMinutes?: number) => void;
+  completeWithLog: (taskId: string, mode: LogMode, customMinutes?: number, completedAt?: string) => void;
   uncomplete: (taskId: string) => void;
   toggleArea: (areaId: string) => void;
   setScope: (scope: BudgetScope) => void;
@@ -528,7 +528,7 @@ export function TodayProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'STOP_COMPLETE', taskId });
       void repo.updateTask(taskId, { loggedMinutes, status: 'done' });
     },
-    completeWithLog: (taskId, mode, customMinutes) => {
+    completeWithLog: (taskId, mode, customMinutes, completedAt) => {
       const task = state.tasks.find((t) => t.id === taskId);
       const loggedMinutes =
         mode === 'allocated'
@@ -536,8 +536,8 @@ export function TodayProvider({ children }: { children: ReactNode }) {
           : mode === 'custom'
             ? Math.max(0, customMinutes ?? 0)
             : 0;
-      dispatch({ type: 'COMPLETE_WITH_LOG', taskId, loggedMinutes });
-      void repo.updateTask(taskId, { loggedMinutes, status: 'done' });
+      dispatch({ type: 'COMPLETE_WITH_LOG', taskId, loggedMinutes, completedAt });
+      void repo.updateTask(taskId, { loggedMinutes, status: 'done', completedAt });
     },
     uncomplete: (taskId) => {
       dispatch({ type: 'UNCOMPLETE', taskId });

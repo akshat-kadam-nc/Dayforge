@@ -107,6 +107,7 @@ export interface UpdateTaskPatch {
   goalId?: string | null;
   dueAt?: string | null;
   deadlineType?: Task['deadlineType'];
+  completedAt?: string | null;
 }
 
 /**

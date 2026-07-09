@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { useToday } from '../../today/useToday';
 import type { Task } from '../../today/types';
 import { formatClock, formatMinutes } from '../../today/format';
+import { todayKey } from '../../today/repo';
 import { isRunning, taskLoggedSeconds } from '../../today/budget';
 import { fireCelebration } from '../../today/celebrate';
 import { PortalMenu } from './PortalMenu';
@@ -32,8 +33,18 @@ export function TaskRow({ task }: { task: Task }) {
   // Editing applies to normal manual tasks; calendar events and chores have their own paths.
   const canEdit = task.kind === 'task' && !isCalendar;
   const [customMin, setCustomMin] = useState(task.estimateMinutes || 30);
+  // Which date this task was actually completed on. Defaults to today, but a
+  // task finished in the past (e.g. logged late) can be back-dated here.
+  const [completeDate, setCompleteDate] = useState(todayKey());
   const kebabRef = useRef<HTMLButtonElement>(null);
   const checkRef = useRef<HTMLButtonElement>(null);
+
+  // Resolve the chosen date to a completion instant. Today keeps the real time;
+  // a back-dated day uses local noon so it can't shift across a timezone bucket.
+  function completedAtIso(): string | undefined {
+    if (completeDate === todayKey()) return undefined; // let the server stamp "now"
+    return new Date(`${completeDate}T12:00:00`).toISOString();
+  }
 
   /** Fire the reward burst with time gained vs plan for the chosen logging. */
   function celebrate(loggedEff: number) {
@@ -44,7 +55,10 @@ export function TaskRow({ task }: { task: Task }) {
 
   function onCheck() {
     if (isDone) actions.uncomplete(task.id);
-    else setCompleteOpen(true);
+    else {
+      setCompleteDate(todayKey()); // reset to today each time the chooser opens
+      setCompleteOpen(true);
+    }
   }
 
   return (
@@ -177,7 +191,7 @@ export function TaskRow({ task }: { task: Task }) {
         <div className="pm-label">Log time for this task</div>
         <button
           type="button"
-          onClick={() => { celebrate(task.estimateMinutes); actions.completeWithLog(task.id, 'allocated'); setCompleteOpen(false); }}
+          onClick={() => { celebrate(task.estimateMinutes); actions.completeWithLog(task.id, 'allocated', undefined, completedAtIso()); setCompleteOpen(false); }}
         >
           ✓ Log allocated ({formatMinutes(task.estimateMinutes)})
         </button>
@@ -192,17 +206,27 @@ export function TaskRow({ task }: { task: Task }) {
           />
           <button
             type="button"
-            onClick={() => { celebrate(customMin); actions.completeWithLog(task.id, 'custom', customMin); setCompleteOpen(false); }}
+            onClick={() => { celebrate(customMin); actions.completeWithLog(task.id, 'custom', customMin, completedAtIso()); setCompleteOpen(false); }}
           >
             Log custom
           </button>
         </div>
         <button
           type="button"
-          onClick={() => { celebrate(task.loggedMinutes); actions.completeWithLog(task.id, 'none'); setCompleteOpen(false); }}
+          onClick={() => { celebrate(task.loggedMinutes); actions.completeWithLog(task.id, 'none', undefined, completedAtIso()); setCompleteOpen(false); }}
         >
           ∅ Don't log time
         </button>
+        <div className="pm-label pm-date-label">Completed on</div>
+        <div className="pm-date">
+          <input
+            type="date"
+            value={completeDate}
+            max={todayKey()}
+            onChange={(e) => setCompleteDate(e.target.value || todayKey())}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
       </PortalMenu>
 
       {editOpen && <TaskFormModal editing={task} onClose={() => setEditOpen(false)} />}

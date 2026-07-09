@@ -336,6 +336,9 @@
 .pm-custom { display: flex; gap: 6px; align-items: center; padding: 2px 4px; }
 .pm-custom input { width: 70px; font: inherit; font-weight: 700; padding: 6px 8px; border-radius: 8px; border: 1.5px solid var(--border-med); }
 .pm-custom button { flex: 1; background: rgba(124,58,237,0.1) !important; text-align: center !important; }
+.pm-date-label { border-top: 1px solid var(--border-med); margin-top: 4px; }
+.pm-date { padding: 2px 4px 4px; }
+.pm-date input { width: 100%; font: inherit; font-weight: 700; padding: 6px 8px; border-radius: 8px; border: 1.5px solid var(--border-med); }
 
 /* Routine / onboarding modal */
 .routine-card { max-width: 420px; }
